@@ -1,6 +1,10 @@
-# zeroshot (free skill) - benchmark results
+# warmup (free skill) - benchmark results
 
-The claim on the can: pouring `skills/zeroshot/SKILL.md` into a coding agent
+Named `zeroshot` during runs 1-4 below; renamed to `warmup` on 2026-08-18
+(zeroshot is the product, warmup is its free skill). Same file, same content
+lineage.
+
+The claim on the can: pouring `skills/warmup/SKILL.md` into a coding agent
 improves its working discipline. This page is the evidence, all of it - four
 runs, two failures, one invalidated run, and one pass. Method:
 [BENCHMARKING.md](../../BENCHMARKING.md).

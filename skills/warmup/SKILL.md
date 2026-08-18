@@ -1,10 +1,10 @@
 ---
-name: zeroshot
-description: Core focus-mode behavioral preset for agentic work. Use for any nontrivial coding or multi-step task, especially when the user mentions being stuck, an agent looping or repeating itself, wanting focus or discipline, or says to pour, crack, or open a Zero Shot. Adds lightweight working discipline - short plans, verified changes, loop-breaking, and clean handoffs - without changing the task itself.
+name: warmup
+description: Core focus-mode behavioral preset for agentic work. Use for any nontrivial coding or multi-step task, especially when the user mentions being stuck, an agent looping or repeating itself, wanting focus or discipline, or says to pour a warmup, or to crack or open a Zero Shot. Adds lightweight working discipline - short plans, verified changes, loop-breaking, and clean handoffs - without changing the task itself.
 version: 1.3.0
 ---
 
-# zeroshot - core boost
+# warmup - the core boost
 
 The request is the spec. Your plan, your memory, and your own test cases are
 lossy copies of it. Verify against the request. Close every session in writing.

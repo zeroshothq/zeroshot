@@ -23,6 +23,11 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
 - Operator deploy runbook at `packages/api/DEPLOY.md`.
 
 ### Changed
+- The free skill is now named `warmup` (zeroshot is the product, warmup is
+  its free skill). `zeroshot pour warmup` is canonical; `pour zeroshot` and
+  the old API path keep working as legacy aliases. CLI 1.1.0.
+- README skills section restructured: per-skill install commands and a table
+  of all skills (folder, install name, job, status).
 - Build minimum qualifications refreshed from real 2025-2026 job postings
   (researched across OpenAI, Anthropic, Meta, Scale, Databricks, and others);
   README flavors and builds sections are now tables.

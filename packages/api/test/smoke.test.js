@@ -117,11 +117,12 @@ test("subscriptions: unknown plan is 400", async () => {
   assert.equal((await post("/v1/subscriptions", { plan: "mega" })).status, 400);
 });
 
-test("skills: free skill is served openly", async () => {
-  const res = await get("/v1/skills/zeroshot");
+test("skills: free skill is served openly (warmup + legacy alias)", async () => {
+  const res = await get("/v1/skills/warmup");
   assert.equal(res.status, 200);
   assert.match(res.headers.get("content-type"), /text\/markdown/);
   assert.ok((await res.text()).length > 0);
+  assert.equal((await get("/v1/skills/zeroshot")).status, 200);
 });
 
 test("skills: premium requires a valid signed link", async () => {

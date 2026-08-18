@@ -7,7 +7,7 @@ published, including losses and invalidated runs.
 
 | Skill | Version | Latest verdict | Details |
 |---|---|---|---|
-| `zeroshot` (free) | v1.3.0 | **SHIP BAR MET** on claude-sonnet-5 (2026-08-18, run 4); no measurable effect on claude-haiku-4-5 | [skills/zeroshot/RESULTS.md](skills/zeroshot/RESULTS.md) |
+| `warmup` (free) | v1.3.0 | **SHIP BAR MET** on claude-sonnet-5 (2026-08-18, run 4); no measurable effect on claude-haiku-4-5 | [skills/warmup/RESULTS.md](skills/warmup/RESULTS.md) |
 | `descent` (premium) | v1 draft | not yet benchmarked | - |
 | `diffusion` (premium) | v1 draft | not yet benchmarked | - |
 | `dropout` (premium) | v1 draft | not yet benchmarked | - |
@@ -30,5 +30,5 @@ packages/evals/
     RESULTS.md         the skill's results story and run history
 ```
 
-Defaults point at `skills/zeroshot/`; benchmark another skill with
+Defaults point at `skills/warmup/`; benchmark another skill with
 `--skill <path-to-SKILL.md> --tasks skills/<name>/tasks`.

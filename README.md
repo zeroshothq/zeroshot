@@ -34,7 +34,7 @@ npm install -g @zeroshothq/zeroshot
 
 zeroshot recommend "staff LLM engineer"   # your job title → your 24-can build
 zeroshot order mixed-precision-24 --build llm-engineer
-zeroshot pour zeroshot                    # install the free agent skill
+zeroshot pour warmup                      # install the free agent skill
 zeroshot consume --flavor descent         # local caffeine log (offline, private)
 ```
 
@@ -99,27 +99,50 @@ curl -X POST https://api.zeroshothq.dev/v1/recommend \
   -d '{"query": "I write CUDA at 3am"}'
 ```
 
-## Agent Skills - digital cans
+## SKILLS
 
 Agents can't metabolize caffeine, but they can metabolize context. Skills are
-behavioral presets you pour into a coding agent's context.
+behavioral presets you pour into a coding agent's context. Zero Shot is the
+product; these are its skills. Each skill does one job - you do not need all
+of them at once.
 
-- **Free (in this repo):** [`skills/zeroshot`](skills/zeroshot/SKILL.md) - the
-  core boost: short plans, verify-by-running, the loop-breaker (no more
-  "You're absolutely right. Retrying."), clean handoffs.
-  Install: `zeroshot pour zeroshot`, or with the open skills ecosystem:
-  `npx skills add zeroshothq/zeroshot`, or as a Claude Code plugin:
-  `/plugin marketplace add zeroshothq/zeroshot`
-- **Premium (six):** `descent` (ship) · `diffusion` (explore) · `dropout`
-  (review) · `backprop` (debug) · `gaussian` (communicate) · `relu`
-  (simplify). **Included with any paid order or subscription** - after
-  checkout, signed download links arrive at your order email (valid 30 days).
-  Install: `zeroshot pour --url "<your emailed link>"`
+Install one skill at a time. The **Install name** column is the exact value
+you pass:
+
+```bash
+zeroshot pour warmup                                # our CLI (free skill)
+npx skills add zeroshothq/zeroshot --skill warmup   # open skills ecosystem
+/plugin marketplace add zeroshothq/zeroshot         # Claude Code plugin marketplace
+zeroshot pour --url "<your emailed link>"           # premium, link from your order email
+```
+
+### Free
+
+| Skill (folder) | Install name | Description |
+|---|---|---|
+| [`skills/warmup`](skills/warmup/SKILL.md) | `warmup` | The core boost. The request is the spec: re-read it before declaring done, run named edge cases, never repeat a failed action unchanged (no more "You're absolutely right. Retrying."), close every session with a required template. Benchmarked: [ship bar met on claude-sonnet-5](packages/evals/skills/warmup/RESULTS.md). |
+
+### Premium - the six, included with any paid order or subscription
+
+Signed download links arrive at your order email after checkout (valid 30
+days). Sources are not in this public repo; each ships with its own eval
+suite under [`packages/evals/skills/`](packages/evals/) and no skill gets a
+benchmark chart before its published run clears the ship bar.
+
+| Skill (folder) | Install name | Job | Status |
+|---|---|---|---|
+| `skills-premium/descent` | `descent` | Ship mode: the smallest correct change under time pressure, verified by running | drafted, pre-benchmark |
+| `skills-premium/diffusion` | `diffusion` | Explore mode: three genuinely distinct approaches before converging on one | drafted, pre-benchmark |
+| `skills-premium/dropout` | `dropout` | Review mode: find what is wrong in existing work; verdict first, style last | drafted, pre-benchmark |
+| `skills-premium/backprop` | `backprop` | Debug mode: reproduce first, read logs before editing, change one variable at a time | planned |
+| `skills-premium/gaussian` | `gaussian` | Communicate mode: PR descriptions, status updates, stakeholder summaries | planned |
+| `skills-premium/relu` | `relu` | Simplify mode: cut scope, remove abstraction, prefer the boring linear solution | planned |
 
 Skills make measurable claims: the [eval harness](packages/evals/) runs each
-skill with-vs-without across repeated trials, scored by real test execution.
-Results are published as they clear the ship bar - no benchmark on a can
-that isn't reproducible.
+skill with-vs-without across repeated trials, scored by real test execution
+and blind grading. Results are published as they clear the ship bar - and
+when they do not ([all runs are public](packages/evals/RESULTS.md), including
+the losses). No benchmark on a can that isn't reproducible.
 
 ## API
 

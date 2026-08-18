@@ -87,14 +87,22 @@ test("consume rejects unknown flavors", async () => {
   assert.ok(err.includes("unknown flavor"));
 });
 
-test("pour zeroshot installs SKILL.md into --to dir", async () => {
+test("pour warmup installs SKILL.md into --to dir", async () => {
   const dest = path.join(FAKE_HOME, "skills");
-  const { code, out } = await run("pour", "zeroshot", "--to", dest);
+  const { code, out } = await run("pour", "warmup", "--to", dest);
   assert.equal(code, 0);
-  assert.ok(out.includes("Poured zeroshot"));
-  const file = path.join(dest, "zeroshot", "SKILL.md");
+  assert.ok(out.includes("Poured warmup"));
+  const file = path.join(dest, "warmup", "SKILL.md");
   assert.ok(existsSync(file));
   assert.ok(readFileSync(file, "utf8").length > 0);
+});
+
+test("pour zeroshot (legacy alias) still installs the warmup skill", async () => {
+  const dest = path.join(FAKE_HOME, "skills-alias");
+  const { code, out } = await run("pour", "zeroshot", "--to", dest);
+  assert.equal(code, 0);
+  assert.ok(out.includes("Poured warmup"));
+  assert.ok(existsSync(path.join(dest, "warmup", "SKILL.md")));
 });
 
 test("pour of a premium skill name explains email delivery", async () => {

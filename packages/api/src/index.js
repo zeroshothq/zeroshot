@@ -275,7 +275,7 @@ export default {
         await env.DB.prepare("INSERT INTO waitlist (email, pk_key, referred_by, position) VALUES (?,?,?,?)")
           .bind(email, pk, ref || null, position).run();
         await sendEmail(env, email, "Zero Shot - you're on the list",
-          `<div style="font-family:monospace"><p>You're #${position}.</p><p>Your key: <b>${pk}</b> - it doubles as a referral code. Every signup that uses it moves you up 10 spots.</p><p>Meanwhile, pour the free agent skill: <a href="${apiBase}/v1/skills/zeroshot">zeroshot core</a>.</p></div>`);
+          `<div style="font-family:monospace"><p>You're #${position}.</p><p>Your key: <b>${pk}</b> - it doubles as a referral code. Every signup that uses it moves you up 10 spots.</p><p>Meanwhile, pour the free agent skill: <a href="${apiBase}/v1/skills/warmup">warmup</a>.</p></div>`);
         return json({ public_key: pk, position,
           note: "Your key is your referral code. +10 spots per signup." }, 201, cors);
       }

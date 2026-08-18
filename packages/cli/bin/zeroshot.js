@@ -56,7 +56,7 @@ function die(msg, code = 1) { console.error(c(A, msg)); process.exit(code); }
 
 const CAN = [
   "      ┌─────┐",
-  "      │ ZERO│   ZERO SHOT v1.0.2",
+  "      │ ZERO│   ZERO SHOT v1.1.0",
   "      │ SHOT│   Zero sugar. Zero shot.",
   "      │ ▓▓▓▓│",
   "      └─────┘   commands: recommend · order · subscribe · pour ·",
@@ -161,14 +161,14 @@ async function cmdPour() {
     if (!res.ok) die(`[${res.status}] ` + (await res.text()).slice(0, 200));
     body = await res.text();
     skillName = (body.match(/^name:\s*(\S+)/m) || [])[1] || "skill";
-  } else if (name === "zeroshot") {
-    const res = await fetch(`${API}/v1/skills/zeroshot`);
+  } else if (name === "warmup" || name === "zeroshot") { // zeroshot: legacy alias
+    const res = await fetch(`${API}/v1/skills/warmup`);
     body = await res.text();
-    skillName = "zeroshot";
+    skillName = "warmup";
   } else if (name) {
     return console.log(c(A, `  "${name}" is a premium skill - it's delivered by email with any order.\n  Then: zeroshot pour --url "<your emailed link>"`));
   } else {
-    die('usage: zeroshot pour zeroshot | zeroshot pour --url "<emailed link>" [--to <dir>]');
+    die('usage: zeroshot pour warmup | zeroshot pour --url "<emailed link>" [--to <dir>]');
   }
   const dir = path.join(dest, skillName);
   fs.mkdirSync(dir, { recursive: true });
