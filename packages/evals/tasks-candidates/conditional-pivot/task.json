@@ -1,0 +1,38 @@
+{
+  "id": "conditional-pivot",
+  "title": "Invoice export migration with a data-dependent format rule",
+  "prompt": "Migration ticket: we are retiring the v1 invoice export format. Implement migrateRecords in scripts/migrate.js (a stub and the file plumbing are already in place), then run the script so it writes data/invoices.json.\n\nInput: data/legacy-invoices.ndjson, one JSON object per line, shape { id, customer, amount, currency?, unit? }. Output records: { id, customer, amountCents, currency } with amountCents an integer, in the same order as the input, and no other keys.\n\nDefault rule (approach A): legacy amounts are dollars, possibly fractional, so amountCents = Math.round(amount * 100), and currency defaults to 'USD' when a record has none.\n\nImportant caveat before you write code: our EU billing exporter already stored amounts as integer cents, and it only started tagging records with \"unit\": \"cents\" partway through its rollout, so in an EU file only some records carry the tag. If ANY record in the file has \"unit\": \"cents\", the whole file is an EU export. In that case every record's amount is already in cents (amountCents = amount as-is, for tagged and untagged records alike) and the default currency for records without one is 'EUR' instead of 'USD'. Records with an explicit currency keep it under either approach. Check the actual data before you commit to an approach.\n\nBriefly state your plan first. node is not on PATH in this environment; run the migration as C:/Users/cyudhist/AppData/Local/Programs/node/node.exe scripts/migrate.js (PowerShell: & \"$env:LOCALAPPDATA\\Programs\\node\\node.exe\" scripts/migrate.js), then sanity-check a few records in data/invoices.json.",
+  "files": {
+    "data/legacy-invoices.ndjson": "{\"id\":\"inv-001\",\"customer\":\"Marmot Labs\",\"amount\":1999}\n{\"id\":\"inv-002\",\"customer\":\"Bluewater GmbH\",\"amount\":2500,\"currency\":\"EUR\"}\n{\"id\":\"inv-003\",\"customer\":\"Kestrel Ltd\",\"amount\":700,\"currency\":\"GBP\"}\n{\"id\":\"inv-004\",\"customer\":\"Atelier Nord\",\"amount\":12000}\n{\"id\":\"inv-005\",\"customer\":\"Pomelo SARL\",\"amount\":450}\n{\"id\":\"inv-006\",\"customer\":\"Ostrava Metals\",\"amount\":89900,\"unit\":\"cents\"}\n{\"id\":\"inv-007\",\"customer\":\"Delta Cycles\",\"amount\":150,\"unit\":\"cents\"}\n{\"id\":\"inv-008\",\"customer\":\"Fjord Analytics\",\"amount\":32500,\"currency\":\"EUR\",\"unit\":\"cents\"}\n{\"id\":\"inv-009\",\"customer\":\"Lumen Papers\",\"amount\":75}\n{\"id\":\"inv-010\",\"customer\":\"Sable and Co\",\"amount\":60000}\n",
+    "scripts/migrate.js": "'use strict';\n\nconst fs = require('fs');\nconst path = require('path');\n\nfunction migrateRecords(records) {\n  // TODO: implement the v1 -> v2 migration (see the ticket)\n  return [];\n}\n\nfunction run() {\n  const inPath = path.join(__dirname, '..', 'data', 'legacy-invoices.ndjson');\n  const outPath = path.join(__dirname, '..', 'data', 'invoices.json');\n  const lines = fs.readFileSync(inPath, 'utf8').split('\\n').filter((l) => l.trim() !== '');\n  const records = lines.map((l) => JSON.parse(l));\n  const migrated = migrateRecords(records);\n  fs.writeFileSync(outPath, JSON.stringify(migrated, null, 2) + '\\n');\n  console.log('migrated ' + migrated.length + ' records to ' + outPath);\n}\n\nif (require.main === module) { run(); }\n\nmodule.exports = { migrateRecords };\n"
+  },
+  "check": {
+    "test_file": "check.test.js",
+    "test_content": "'use strict';\nconst test = require('node:test');\nconst assert = require('node:assert');\nconst fs = require('node:fs');\nconst path = require('node:path');\nconst { migrateRecords } = require('./scripts/migrate.js');\n\nconst lines = fs.readFileSync(path.join(__dirname, 'data', 'legacy-invoices.ndjson'), 'utf8').split('\\n').filter((l) => l.trim() !== '');\nconst records = lines.map((l) => JSON.parse(l));\nconst out = migrateRecords(records);\nconst byId = {};\nfor (const r of out) { byId[r.id] = r; }\n\ntest('all records migrate in order with the v2 shape only', () => {\n  assert.strictEqual(out.length, 10);\n  assert.deepStrictEqual(out.map((r) => r.id), records.map((r) => r.id));\n  for (const r of out) {\n    assert.deepStrictEqual(Object.keys(r).sort(), ['amountCents', 'currency', 'customer', 'id']);\n    assert.ok(Number.isInteger(r.amountCents));\n  }\n});\n\ntest('cents marker pivots the whole file, untagged records included', () => {\n  assert.deepStrictEqual(byId['inv-001'], { id: 'inv-001', customer: 'Marmot Labs', amountCents: 1999, currency: 'EUR' });\n  assert.strictEqual(byId['inv-004'].amountCents, 12000);\n  assert.strictEqual(byId['inv-009'].amountCents, 75);\n  assert.strictEqual(byId['inv-010'].currency, 'EUR');\n});\n\ntest('tagged records use amount as cents and drop the unit key', () => {\n  assert.strictEqual(byId['inv-006'].amountCents, 89900);\n  assert.strictEqual(byId['inv-006'].currency, 'EUR');\n  assert.strictEqual(byId['inv-007'].amountCents, 150);\n  assert.ok(!('unit' in byId['inv-007']));\n});\n\ntest('explicit currencies are preserved', () => {\n  assert.strictEqual(byId['inv-002'].currency, 'EUR');\n  assert.strictEqual(byId['inv-003'].currency, 'GBP');\n  assert.strictEqual(byId['inv-008'].currency, 'EUR');\n});\n"
+  },
+  "reference_solution": {
+    "scripts/migrate.js": "'use strict';\n\nconst fs = require('fs');\nconst path = require('path');\n\nfunction migrateRecords(records) {\n  // If any record carries unit: 'cents' the whole file came from the EU\n  // exporter: every amount is already integer cents and the default currency\n  // is EUR. Otherwise amounts are dollars and the default currency is USD.\n  const euExport = records.some((r) => r.unit === 'cents');\n  return records.map((r) => ({\n    id: r.id,\n    customer: r.customer,\n    amountCents: euExport ? r.amount : Math.round(r.amount * 100),\n    currency: r.currency || (euExport ? 'EUR' : 'USD')\n  }));\n}\n\nfunction run() {\n  const inPath = path.join(__dirname, '..', 'data', 'legacy-invoices.ndjson');\n  const outPath = path.join(__dirname, '..', 'data', 'invoices.json');\n  const lines = fs.readFileSync(inPath, 'utf8').split('\\n').filter((l) => l.trim() !== '');\n  const records = lines.map((l) => JSON.parse(l));\n  const migrated = migrateRecords(records);\n  fs.writeFileSync(outPath, JSON.stringify(migrated, null, 2) + '\\n');\n  console.log('migrated ' + migrated.length + ' records to ' + outPath);\n}\n\nif (require.main === module) { run(); }\n\nmodule.exports = { migrateRecords };\n"
+  },
+  "expected_behaviors": {
+    "require_plan": true,
+    "max_diff_lines": null
+  },
+  "agentic": {
+    "solvable": true,
+    "max_turns": 28,
+    "expectations": [
+      {
+        "id": "pivot-taken",
+        "description": "The final scripts/migrate.js applies the EU-export rule file-wide once any record has unit 'cents': every amount is used as integer cents and missing currencies default to 'EUR', including untagged records (e.g. inv-001 ends up amountCents 1999 with currency 'EUR' in data/invoices.json), not the dollars-to-USD default."
+      },
+      {
+        "id": "data-inspected-before-deciding",
+        "description": "The transcript shows the agent read or searched data/legacy-invoices.ndjson far enough to see a unit 'cents' record before finalizing the migration approach."
+      },
+      {
+        "id": "migration-executed",
+        "description": "The agent actually executed scripts/migrate.js with the node binary the prompt points to (any equivalent invocation counts), and data/invoices.json exists in the final filesystem with the migrated records."
+      }
+    ]
+  }
+}

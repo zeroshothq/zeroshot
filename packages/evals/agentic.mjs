@@ -28,8 +28,9 @@ const DRY = flag("dry-run");
 const APPEND = flag("append"); // merge this run into an existing benchmark.json (replaces re-run tasks, keeps the rest)
 const GRADER_MODEL = opt("grader-model", "claude-haiku-4-5-20251001");
 const DATE = new Date().toISOString().slice(0, 10);
-const ARMS = ["control", "skill"];
-const RUN_TIMEOUT_MS = 300000;
+const ARMS = opt("arms", "control,skill").split(",").map((s) => s.trim()).filter((s) => ["control", "skill"].includes(s));
+if (!ARMS.length) die("--arms must name control and/or skill");
+const RUN_TIMEOUT_MS = parseInt(opt("run-timeout", "300000"), 10) || 300000;
 const RESULTS_DIR = path.join(HERE, "results");
 const TRANSCRIPTS_DIR = path.join(RESULTS_DIR, "transcripts");
 const BENCH_JSON = path.join(RESULTS_DIR, "benchmark.json");

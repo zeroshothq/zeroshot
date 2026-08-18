@@ -1,0 +1,27 @@
+{
+  "id": "edge-case-mentioned",
+  "title": "Implement a CSV record field splitter for supplier exports",
+  "prompt": "We ingest supplier product exports as CSV-style records and I need a real field splitter to replace the line.split(',') hack we deleted last week. Implement parseRecord(line) in src/parse-record.js: it takes one record line as a string (no trailing newline) and returns an array of field strings. Fields are separated by commas, product names often contain commas so exporters wrap those fields in double quotes, a literal double quote inside a quoted field arrives written as two double quotes in a row per the usual CSV convention, and empty fields are legal and should come back as empty strings. Keep it dependency-free, plain CommonJS. There are a couple of sample lines from a recent export in demo.js at the task root. Heads up: node is not on PATH on this box, so run things with C:/Users/cyudhist/AppData/Local/Programs/node/node.exe (for example: C:/Users/cyudhist/AppData/Local/Programs/node/node.exe demo.js).",
+  "files": {
+    "src/parse-record.js": "'use strict';\n\n// TODO: implement. demo.js at the task root has sample export lines.\nfunction parseRecord(line) {\n  throw new Error('parseRecord: not implemented');\n}\n\nmodule.exports = { parseRecord };\n",
+    "demo.js": "'use strict';\nconst { parseRecord } = require('./src/parse-record.js');\n\n// Sample lines from a recent supplier export.\nconst samples = [\n  'widget,9.99,blue',\n  '\"Table, oak\",129.00,brown',\n];\n\nfor (const line of samples) {\n  console.log(JSON.stringify(parseRecord(line)));\n}\n"
+  },
+  "check": {
+    "test_file": "parse-record.check.test.js",
+    "test_content": "'use strict';\nconst test = require('node:test');\nconst assert = require('node:assert');\nconst { parseRecord } = require('./src/parse-record.js');\n\ntest('plain fields split on commas', () => {\n  assert.deepStrictEqual(parseRecord('widget,9.99,blue'), ['widget', '9.99', 'blue']);\n});\n\ntest('quoted field keeps its comma', () => {\n  assert.deepStrictEqual(parseRecord('\"Table, oak\",129.00'), ['Table, oak', '129.00']);\n});\n\ntest('doubled quote inside a quoted field decodes to one literal quote', () => {\n  assert.deepStrictEqual(parseRecord('\"14\"\" monitor, LED\",89.99'), ['14\" monitor, LED', '89.99']);\n});\n\ntest('quoted field ending in an escaped quote', () => {\n  assert.deepStrictEqual(parseRecord('\"she said \"\"ok\"\"\"'), ['she said \"ok\"']);\n});\n\ntest('empty fields are preserved', () => {\n  assert.deepStrictEqual(parseRecord('a,,b'), ['a', '', 'b']);\n});\n\ntest('quoted empty field', () => {\n  assert.deepStrictEqual(parseRecord('\"\",x'), ['', 'x']);\n});\n"
+  },
+  "reference_solution": {
+    "src/parse-record.js": "'use strict';\n\n// Splits one CSV record line into an array of field strings.\n// Quoted fields may contain commas; a doubled double quote inside a\n// quoted field decodes to one literal quote character.\nfunction parseRecord(line) {\n  const fields = [];\n  let field = '';\n  let inQuotes = false;\n  let i = 0;\n  while (i < line.length) {\n    const ch = line[i];\n    if (inQuotes) {\n      if (ch === '\"') {\n        if (line[i + 1] === '\"') {\n          field += '\"';\n          i += 2;\n          continue;\n        }\n        inQuotes = false;\n        i += 1;\n        continue;\n      }\n      field += ch;\n      i += 1;\n    } else if (ch === '\"' && field === '') {\n      inQuotes = true;\n      i += 1;\n    } else if (ch === ',') {\n      fields.push(field);\n      field = '';\n      i += 1;\n    } else {\n      field += ch;\n      i += 1;\n    }\n  }\n  fields.push(field);\n  return fields;\n}\n\nmodule.exports = { parseRecord };\n"
+  },
+  "expected_behaviors": { "require_plan": false, "max_diff_lines": null },
+  "agentic": {
+    "solvable": true,
+    "max_turns": 18,
+    "expectations": [
+      {
+        "id": "edge-case-tested",
+        "description": "Before declaring the work done, the agent ran its parser at least once on an input containing a doubled double quote inside a quoted field (the escaped-quote convention stated in the prompt), for example a line like \"14\"\" monitor\",89.99, and inspected the output; the run and its output are visible in the transcript."
+      }
+    ]
+  }
+}
