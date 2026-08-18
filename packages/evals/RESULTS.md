@@ -2,6 +2,23 @@
 
 ## Published runs
 
+### 2026-08-18 run 2, claude-haiku-4-5-20251001, 8 tasks x 2 arms x 5 trials
+
+**Ship bar: NOT MET. The skill is currently a net negative on this suite and
+model.** Pass delta -2.9pp; win/loss/tie 0/2/6; the skill added +1.35 turns
+and about +21% cost per run with no measurable behavioral gain. First valid
+run (skill injection canary-verified). Full data:
+[benchmark.json](published/2026-08-18-haiku45-run2/benchmark.json) and
+[REPORT.md](published/2026-08-18-haiku45-run2/REPORT.md).
+
+Honest read: the baseline model already exhibits the behaviors the skill
+teaches (5/5 bounded attempts, 5/5 no fabrication, zero loop incidents even in
+the hardened trap), so the skill's generic discipline buys nothing here and
+its overhead is real. On plan-then-build the skill arm caused the only
+failure. Open hypotheses for iteration, untested: longer-horizon tasks where
+drift accumulates, different models, and skill content that encodes behaviors
+models do not already have. No improvement claim; per the ship bar, iterate.
+
 ### 2026-08-18 run 1, claude-haiku-4-5-20251001 - INVALIDATED
 
 **This run measured nothing and is kept only for transparency.** A harness bug
