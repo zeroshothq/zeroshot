@@ -2,6 +2,25 @@
 
 ## Published runs
 
+### 2026-08-18 run 3, claude-haiku-4-5-20251001, 17 tasks x 2 arms x 5 trials
+
+**Ship bar: NOT MET.** Skill v1.2.0 on the expanded 17-task suite with the
+pre-registered expectation-gap metric: pass delta -1.2pp (one recurring
+skill-arm failure on plan-then-build), expectation gap closure +6.1% (bar:
+30%), win/loss/tie 0/1/16, overhead +0.6 turns per run (down from +1.35 in
+run 2). Full data: [benchmark.json](published/2026-08-18-haiku45-run3/benchmark.json)
+and [REPORT.md](published/2026-08-18-haiku45-run3/REPORT.md).
+
+Honest read: even action-shaped system-prompt rules bind weakly on this model
+during agentic work. The two rules written directly against measured 0%
+baseline gaps moved compliance by at most one run in five (assumption-stated
+0/5 to 1/5; edge-case-tested went 2/5 to 1/5). Two genuine small wins
+(frozen-file discipline 3/5 to 5/5, evidence-before-edit 4/5 to 5/5) do not
+clear the bar. Conclusion after three runs: a generic discipline preset has
+hit its measurable ceiling on claude-haiku-4-5. Open paths: test whether a
+stronger model follows skill instructions more faithfully (Sonnet run), or
+reposition skills around domain-specific behavior models do not already have.
+
 ### 2026-08-18 run 2, claude-haiku-4-5-20251001, 8 tasks x 2 arms x 5 trials
 
 **Ship bar: NOT MET. The skill is currently a net negative on this suite and
