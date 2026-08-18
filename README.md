@@ -55,17 +55,37 @@ zeroshot consume --flavor descent         # local caffeine log (offline, private
 
 ## Flavors
 
-diffusion · gaussian · backprop · relu · descent (250mg) · dropout (0mg).
-Each is a versioned model card in [`flavors/`](flavors/) with params and a
-changelog. `flavors/flavors.json` is the single source of truth consumed by
-the API, the CLI, and the website. AGI: rolling out gradually.
+| Flavor | Taste | Caffeine | L-theanine | Sugar | Notes |
+|---|---|---|---|---|---|
+| `diffusion` | dragonfruit haze | 200mg | 100mg | 0g | starts as noise, ends as flavor |
+| `gaussian` | white peach & cream | 200mg | 100mg | 0g | smooth. centered. perfectly distributed |
+| `backprop` | blackberry | 200mg | 100mg | 0g | propagates backward through your afternoon |
+| `relu` | rectified lemonade unit | 200mg | 100mg | 0g | linear above zero |
+| `descent` | double espresso | 250mg | 100mg | 0g | finds your minimum, fast |
+| `dropout` | chamomile citrus | 0mg | 150mg | 0g | regularize your evening |
+
+Each flavor is a versioned model card in [`flavors/`](flavors/) with params
+and a changelog. `flavors/flavors.json` is the single source of truth consumed
+by the API, the CLI, and the website. AGI: rolling out gradually.
 
 ## Mixed Precision 24 - role builds
 
-Eight builds (`ml-engineer`, `deep-learning-engineer`, `llm-engineer`,
-`forward-deployed-engineer`, `research-scientist`, `mlops-engineer`,
-`data-engineer`, `vibe-coder`), each with real minimum qualifications and a
-flavor mix tuned to the role. Ordering without attestation returns:
+Eight builds, each with real minimum qualifications (sourced from actual
+2025-2026 job postings) and a flavor mix tuned to the role:
+
+| Build | Tagline | Minimum qualifications (abridged) |
+|---|---|---|
+| `ml-engineer` | You own the pipeline. The pipeline knows. | 3+ yrs production ML, Python + PyTorch/TensorFlow, cloud deploys with Docker/Kubernetes |
+| `deep-learning-engineer` | Mixed precision. Literally. | CUDA/Triton kernels, GPU architecture depth, FSDP/DeepSpeed distributed training |
+| `llm-engineer` | Context window: 24 cans. | Fine-tuning with LoRA/PEFT, RAG + vector databases, eval harnesses, vLLM serving |
+| `forward-deployed-engineer` | Consultant, PM, and engineer. Hydration for all three. | 3+ yrs shipping software, full-stack Python/TypeScript, LLM integrations, customer travel |
+| `research-scientist` | Novel contribution: staying awake. | PhD or equivalent, first-author NeurIPS/ICML/ICLR papers, PyTorch or JAX at scale |
+| `mlops-engineer` | Uptime for the humans who keep uptime. | 3+ yrs MLOps/DevOps, Kubernetes + Terraform, model serving on AWS/GCP, MLflow/Kubeflow |
+| `data-engineer` | Disparate sources. One fridge. | 3+ yrs data pipelines, SQL + Python, Spark, Airflow + dbt, Snowflake/BigQuery |
+| `vibe-coder` | Tab-complete your beverage. | No requirements. Preferred: ships things |
+
+Full five-point qualification lists: `GET /v1/builds`. Ordering without
+attestation returns:
 
 ```
 403 minimum_qualifications_not_met

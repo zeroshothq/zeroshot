@@ -32,11 +32,11 @@
       "tagline": "You own the pipeline. The pipeline knows.",
       "mix": { "backprop": 6, "relu": 5, "gaussian": 5, "diffusion": 4, "dropout": 4 },
       "requirements": [
-        "3+ years designing, training, and deploying machine learning models in production environments",
-        "Proficiency with PyTorch or TensorFlow and the Python ML ecosystem (scikit-learn, NumPy, pandas)",
-        "Experience building and maintaining data pipelines that feed production models",
-        "Track record of model evaluation, monitoring, and iteration after deployment",
-        "Experience shipping end-to-end ML systems with data and product teams"
+        "Bachelor's degree in computer science, engineering, or a related quantitative field, or equivalent practical experience",
+        "3+ years of experience building, deploying, and maintaining machine learning models in production environments",
+        "Strong Python programming skills and proficiency with ML frameworks such as PyTorch, TensorFlow, or scikit-learn",
+        "Experience with cloud platforms (AWS, GCP, or Azure) and containerized deployment using Docker or Kubernetes",
+        "Experience designing scalable data and ML pipelines, including distributed training and model serving at scale"
       ]
     },
     "deep-learning-engineer": {
@@ -44,11 +44,11 @@
       "tagline": "Mixed precision. Literally.",
       "mix": { "backprop": 8, "descent": 8, "relu": 4, "dropout": 4 },
       "requirements": [
-        "Hands-on experience with CUDA or Triton kernel development and GPU performance optimization",
-        "Distributed training experience (data, pipeline, and tensor parallelism) with libraries such as NCCL",
-        "Working knowledge of mixed- and low-precision arithmetic (FP16/FP8/INT8) and training stability",
-        "Proficiency with PyTorch or JAX and profiling tools for locating bottlenecks",
-        "Experience scaling workloads across multi-node GPU clusters"
+        "3+ years writing and optimizing GPU kernels in CUDA, Triton, or CUTLASS for production ML systems",
+        "Deep knowledge of GPU architecture, including memory hierarchy, warps, Tensor Cores, and kernel fusion",
+        "Hands-on experience with large-scale distributed training using FSDP, DeepSpeed, or Megatron-style parallelism",
+        "Strong proficiency in Python and C++, plus PyTorch or JAX internals such as torch.compile or XLA",
+        "Experience profiling and removing performance bottlenecks with Nsight, including NCCL collective communication tuning"
       ]
     },
     "llm-engineer": {
@@ -56,11 +56,11 @@
       "tagline": "Context window: 24 cans.",
       "mix": { "diffusion": 6, "backprop": 6, "gaussian": 4, "relu": 4, "dropout": 4 },
       "requirements": [
-        "Experience fine-tuning large language models (SFT, RLHF, or DPO) and evaluating output quality",
-        "Built retrieval-augmented generation systems using vector databases and embedding models",
-        "Designed and maintained evaluation pipelines covering quality, safety, and regression testing",
-        "Inference optimization experience: quantization, batching, and serving frameworks such as vLLM",
-        "Experience with prompt design and agent or tool-orchestration frameworks"
+        "3+ years of software or ML engineering experience building and deploying production systems in Python",
+        "Hands-on experience fine-tuning open-source LLMs with PyTorch, Hugging Face Transformers, and PEFT methods such as LoRA",
+        "Experience building RAG pipelines with embeddings, chunking, hybrid search, reranking, and vector databases like Pinecone or Weaviate",
+        "Experience designing evaluation harnesses and benchmarks for LLM quality using frameworks such as LangSmith or Promptfoo",
+        "Familiarity with LLM inference serving and optimization using vLLM, TensorRT, or Ray, plus provider APIs like OpenAI and Anthropic"
       ]
     },
     "forward-deployed-engineer": {
@@ -68,11 +68,11 @@
       "tagline": "Consultant, PM, and engineer. Hydration for all three.",
       "mix": { "descent": 6, "gaussian": 6, "relu": 6, "dropout": 6 },
       "requirements": [
-        "3+ years shipping production software, including customer-facing or client-embedded work",
-        "Ability to translate ambiguous business requirements into deployed technical solutions end-to-end",
-        "Full-stack proficiency (Python or TypeScript) with API, data-system, and cloud integration experience",
-        "Strong communication with technical and executive stakeholders",
-        "Willingness to travel to customer sites (25-75%)"
+        "3+ years of software engineering experience building and shipping production systems",
+        "Proficiency in Python and JavaScript or TypeScript, including full-stack application development",
+        "Hands-on experience integrating LLM APIs, building RAG pipelines, and evaluating model outputs",
+        "Experience in customer-facing technical work such as pilots, demos, and enterprise integrations",
+        "Ability to travel to and embed with customers, translating business requirements into deployed solutions"
       ]
     },
     "research-scientist": {
@@ -80,11 +80,11 @@
       "tagline": "Novel contribution: staying awake.",
       "mix": { "dropout": 14, "descent": 6, "diffusion": 4 },
       "requirements": [
-        "PhD in machine learning, computer science, or a related field, or equivalent research experience",
-        "Publication record at venues such as NeurIPS, ICML, or ICLR",
-        "Deep familiarity with modern architectures and training methods; rigorous experimental design",
-        "Proficiency with JAX or PyTorch for research prototyping at scale",
-        "Ability to take research from idea to reproducible result under deadline"
+        "PhD in computer science, machine learning, statistics, or related field, or equivalent research experience",
+        "First-author publications at top venues such as NeurIPS, ICML, ICLR, or CVPR",
+        "Strong proficiency in Python and deep learning frameworks such as PyTorch or JAX",
+        "2+ years of experience designing, training, and evaluating deep learning models at scale",
+        "Solid grounding in ML mathematics, experimental design, and empirical analysis of model behavior"
       ]
     },
     "mlops-engineer": {
@@ -92,11 +92,11 @@
       "tagline": "Uptime for the humans who keep uptime.",
       "mix": { "dropout": 8, "descent": 8, "relu": 4, "gaussian": 4 },
       "requirements": [
-        "Experience operating Kubernetes and cloud infrastructure (AWS or GCP) for ML workloads",
-        "Infrastructure-as-code proficiency (Terraform or equivalent) and CI/CD for training and deployment",
-        "Built model monitoring, drift detection, and alerting for production systems",
-        "Experience managing GPU fleets, job schedulers, and compute cost optimization",
-        "Production on-call experience for ML services"
+        "3+ years of experience in MLOps, DevOps, or ML infrastructure engineering roles",
+        "Strong Python proficiency and experience with containerization and orchestration using Docker and Kubernetes",
+        "Hands-on experience deploying and serving models on AWS, GCP, or Azure, such as SageMaker or Vertex AI",
+        "Experience building CI/CD pipelines and infrastructure as code with tools like Terraform, Ansible, or Helm",
+        "Working knowledge of ML lifecycle tooling such as MLflow, Kubeflow, or similar experiment tracking and model registry systems"
       ]
     },
     "data-engineer": {
@@ -104,11 +104,11 @@
       "tagline": "Disparate sources. One fridge.",
       "mix": { "backprop": 6, "gaussian": 6, "relu": 6, "dropout": 6 },
       "requirements": [
-        "Mastery in building data products using generative AI, RLHF, and fine-tuning LLMs",
-        "End-to-end experience training, evaluating, testing, and deploying machine learning products at scale",
-        "Experience building data pipelines and driving ETL design decisions using disparate data sources",
-        "Proficiency in Python, shell scripting, streaming and batch pipelines, vector databases, DBT, BigQuery, BigTable or equivalent, and orchestration tools",
-        "Experience running machine learning in parallel environments (distributed clusters, GPU optimization)"
+        "3+ years of professional experience building and maintaining production data pipelines as a data engineer",
+        "Strong proficiency in SQL and Python for data modeling, transformation, and pipeline development",
+        "Experience with distributed processing frameworks such as Apache Spark, Hadoop, or Flink",
+        "Hands-on experience with orchestration tools such as Airflow, Dagster, or Prefect, plus dbt",
+        "Experience with cloud data warehouses and platforms such as Snowflake, Databricks, BigQuery, or AWS"
       ]
     },
     "vibe-coder": {

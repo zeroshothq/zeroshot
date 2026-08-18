@@ -19,6 +19,9 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
 - Operator deploy runbook at `packages/api/DEPLOY.md`.
 
 ### Changed
+- Build minimum qualifications refreshed from real 2025-2026 job postings
+  (researched across OpenAI, Anthropic, Meta, Scale, Databricks, and others);
+  README flavors and builds sections are now tables.
 - npm package renamed to `@zeroshothq/zeroshot` (the bare name is squatted);
   the command is still `zeroshot`.
 - Home is now `zeroshothq.dev` / `api.zeroshothq.dev` under the `zeroshothq`
