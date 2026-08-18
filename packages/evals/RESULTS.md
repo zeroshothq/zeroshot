@@ -2,6 +2,31 @@
 
 ## Published runs
 
+### 2026-08-18 run 4, claude-sonnet-5, skill v1.3.0, 17 tasks x 2 arms x 5 trials
+
+**Ship bar: MET** via the pre-registered discipline clause: pass-rate delta
+0pp (zero regressions, first run with none) and blind-graded expectation gap
+closure of 50% (bar: 30%; pooled compliance 84.2% to 92.1%). Largest gains
+were exactly where the v1.3 rules aimed: edge-case-tested 40% to 100%,
+assumption-stated 20% to 80%. Full data:
+[benchmark.json](published/2026-08-18-sonnet5-run4/benchmark.json) and
+[REPORT.md](published/2026-08-18-sonnet5-run4/REPORT.md).
+
+Reported honestly alongside the pass: the skill costs about +16% per run
+(+0.9 turns), one loop incident occurred in 85 skill-arm runs (control: zero),
+two tasks scored micro-losses on tiebreaks, and feature-batch expectation
+compliance dipped in the skill arm (100% to 73%). One transient-API ghost run
+was detected by audit and its task re-run cleanly before this verdict; the
+re-run turned an apparent skill win into a tie, and the bar still clears.
+This result is model-specific: on claude-haiku-4-5 the same skill measured
+no meaningful effect (runs 2-3). n=5 per arm meets the protocol minimum;
+replication before marketing claims is recommended and planned.
+
+Method notes: skill v1.3.0 was rewritten from transcript evidence (verbatim
+rationalizations from 400+ prior runs became an explicit rebuttal table) after
+control-only discovery measured the baseline gaps. The bar metric was
+pre-registered before any skill-arm run on this suite.
+
 ### 2026-08-18 run 3, claude-haiku-4-5-20251001, 17 tasks x 2 arms x 5 trials
 
 **Ship bar: NOT MET.** Skill v1.2.0 on the expanded 17-task suite with the
