@@ -1,4 +1,4 @@
-// Zero Shot API smoke tests — run with `node --test packages/api/test/`.
+// Zero Shot API smoke tests - run with `node --test packages/api/test/`.
 //
 //   ZEROSHOT_API_URL        target base URL (default http://localhost:8787, i.e. `wrangler dev`)
 //   ZEROSHOT_TEST_WRITES=1  also run tests that insert rows (recommend → stacks)

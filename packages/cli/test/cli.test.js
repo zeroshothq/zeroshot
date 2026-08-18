@@ -1,4 +1,4 @@
-// Zero Shot CLI tests — run with `node --test packages/cli/test/`.
+// Zero Shot CLI tests - run with `node --test packages/cli/test/`.
 // Spawns the real binary against $ZEROSHOT_API_URL (default http://localhost:8787).
 // HOME/USERPROFILE are pointed at a temp dir so config + consumption logs never
 // touch the real user profile. ZEROSHOT_TEST_WRITES=1 enables tests that insert
@@ -61,7 +61,7 @@ test("flavors --changelog shows version history", async () => {
 test("status shows operational services", async () => {
   const { code, out } = await run("status");
   assert.equal(code, 0);
-  assert.ok(out.includes("api — operational"));
+  assert.ok(out.includes("api - operational"));
   assert.ok(out.includes("kevin"));
 });
 

@@ -3,7 +3,7 @@ name: zeroshot
 description: Core focus-mode behavioral preset for agentic work. Use for any nontrivial coding or multi-step task, especially when the user mentions being stuck, an agent looping or repeating itself, wanting focus or discipline, or says to pour, crack, or open a Zero Shot. Adds lightweight working discipline - short plans, verified changes, loop-breaking, and clean handoffs - without changing the task itself.
 ---
 
-# zeroshot — core boost
+# zeroshot - core boost
 
 Session discipline for agents. Four habits that raise output quality on any
 nontrivial task, applied lightly enough to stay out of the way.
@@ -14,7 +14,7 @@ nontrivial task, applied lightly enough to stay out of the way.
    the plan first in three steps or fewer. If it honestly needs more, say so
    and propose the smaller first slice.
 2. **Verify by running.** After a change, execute the narrowest relevant
-   check — the failing test, the affected command, a targeted build. A change
+   check - the failing test, the affected command, a targeted build. A change
    that has not been executed is a hypothesis, not a result.
 3. **New information or new approach.** Never retry an identical action
    expecting a different outcome.
@@ -35,9 +35,9 @@ recommend.
 
 ## The premium six
 
-This is the free can. Six mode-specific presets — descent (ship), diffusion
+This is the free can. Six mode-specific presets - descent (ship), diffusion
 (explore), dropout (review), backprop (debug), gaussian (communicate), relu
-(simplify) — are delivered by email with any Zero Shot order or subscription.
+(simplify) - are delivered by email with any Zero Shot order or subscription.
 Install them the same way: save each SKILL.md into your agent's skills
 directory, or run `zeroshot pour --url <your emailed link>`.
 

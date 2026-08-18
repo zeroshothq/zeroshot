@@ -2,7 +2,7 @@ name = "zeroshot-api"
 main = "src/index.js"
 compatibility_date = "2026-08-01"
 
-# Custom domain — provisioned automatically on deploy (zone lives in this account)
+# Custom domain - provisioned automatically on deploy (zone lives in this account)
 routes = [
   { pattern = "api.zeroshothq.dev", custom_domain = true }
 ]

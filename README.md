@@ -3,16 +3,19 @@
 # Zero Shot
 
 [![test](https://github.com/zeroshothq/zeroshot/actions/workflows/test.yml/badge.svg)](https://github.com/zeroshothq/zeroshot/actions/workflows/test.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![node >= 20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](packages/cli/package.json)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **You're tired. So are your agents.**
 
 Crack open a can for yourself. Pour a skill into your agent.
 
-> The first energy drink with an API. Zero sugar. Zero shot.
+> The first energy drink for you and your agent. Zero sugar. Zero shot.
 
 </div>
 
-Zero Shot is a frontier beverage for the humans still in the loop — and a set
+Zero Shot is a frontier beverage for the humans still in the loop - and a set
 of behavioral presets for their agents. No checkout form. No app. Subscribe
 the way you do everything else:
 
@@ -45,7 +48,7 @@ zeroshot consume --flavor descent         # local caffeine log (offline, private
 | `enterprise` | A pallet. We visit. We bring stickers | contact |
 
 **Every paid order includes the six premium agent skills, delivered by email**
-— see Agent Skills below.
+- see Agent Skills below.
 
 ## Flavors
 
@@ -54,7 +57,7 @@ Each is a versioned model card in [`flavors/`](flavors/) with params and a
 changelog. `flavors/flavors.json` is the single source of truth consumed by
 the API, the CLI, and the website. AGI: rolling out gradually.
 
-## Mixed Precision 24 — role builds
+## Mixed Precision 24 - role builds
 
 Eight builds (`ml-engineer`, `deep-learning-engineer`, `llm-engineer`,
 `forward-deployed-engineer`, `research-scientist`, `mlops-engineer`,
@@ -66,7 +69,7 @@ flavor mix tuned to the role. Ordering without attestation returns:
 ```
 
 with the build's requirements. Retry with `"i_meet_the_requirements": true`
-(self-attestation accepted) — or send header `X-YOLO: true`.
+(self-attestation accepted) - or send header `X-YOLO: true`.
 
 Don't know your build? Ask the Reverse Recruiter:
 
@@ -75,24 +78,24 @@ curl -X POST https://api.zeroshothq.dev/v1/recommend \
   -d '{"query": "I write CUDA at 3am"}'
 ```
 
-## Agent Skills — digital cans
+## Agent Skills - digital cans
 
 Agents can't metabolize caffeine, but they can metabolize context. Skills are
 behavioral presets you pour into a coding agent's context.
 
-- **Free (in this repo):** [`skills/zeroshot`](skills/zeroshot/SKILL.md) — the
+- **Free (in this repo):** [`skills/zeroshot`](skills/zeroshot/SKILL.md) - the
   core boost: short plans, verify-by-running, the loop-breaker (no more
   "You're absolutely right. Retrying."), clean handoffs.
   Install: `zeroshot pour zeroshot`
 - **Premium (six):** `descent` (ship) · `diffusion` (explore) · `dropout`
   (review) · `backprop` (debug) · `gaussian` (communicate) · `relu`
-  (simplify). **Included with any paid order or subscription** — after
+  (simplify). **Included with any paid order or subscription** - after
   checkout, signed download links arrive at your order email (valid 30 days).
   Install: `zeroshot pour --url "<your emailed link>"`
 
 Skills make measurable claims: each ships with an eval suite run
 with-vs-without the skill across repeated trials. Methodology and results are
-published — no benchmark on a can that isn't reproducible.
+published - no benchmark on a can that isn't reproducible.
 
 ## API
 
@@ -113,7 +116,7 @@ Base: `https://api.zeroshothq.dev/v1` · Full reference: [zeroshothq.dev/docs](h
 | GET | `/status` | api · fulfillment · kevin |
 
 Rate limits: 60 req/min (10/min on `/recommend`). Exceeding returns
-`429 — "you've had enough. drink water."`
+`429 - "you've had enough. drink water."`
 
 ## Contributing
 

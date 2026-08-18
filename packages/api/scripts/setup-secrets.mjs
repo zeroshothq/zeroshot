@@ -2,7 +2,7 @@
 // One-shot production setup: reads the repo-root .env, ensures the Stripe
 // product + three prices exist (idempotent via lookup_keys), generates
 // SKILL_SIGNING_SECRET / ADMIN_BEARER if absent, and pushes everything to the
-// Worker with `wrangler secret bulk`. Prints secret NAMES and price IDs only —
+// Worker with `wrangler secret bulk`. Prints secret NAMES and price IDs only -
 // never values. With --webhook it also creates the Stripe webhook endpoint
 // and stores its signing secret.
 //
@@ -36,7 +36,7 @@ const byPrefix = (re) => Object.entries(env).filter(([, v]) => re.test(v));
 const pick = (label, re) => {
   const hits = byPrefix(re);
   if (hits.length === 0) return null;
-  if (hits.length > 1) fail(`multiple .env values look like a ${label} key (${hits.map(([k]) => k).join(", ")}) — remove the extras`);
+  if (hits.length > 1) fail(`multiple .env values look like a ${label} key (${hits.map(([k]) => k).join(", ")}) - remove the extras`);
   console.log(`  found ${label.padEnd(9)} → .env var ${hits[0][0]}`);
   return hits[0][1];
 };
@@ -47,8 +47,8 @@ const RESEND_KEY = pick("resend", /^re_/);
 const ANTHROPIC_KEY = pick("anthropic", /^sk-ant-/);
 const WEBHOOK_SECRET_EXISTING = pick("webhook", /^whsec_/);
 if (!STRIPE_KEY) fail("no Stripe secret key (sk_test_/sk_live_) found in .env");
-if (!RESEND_KEY) console.log("  (no Resend key found — emails will silently no-op)");
-if (!ANTHROPIC_KEY) console.log("  (no Anthropic key found — /recommend uses keyword fallback)");
+if (!RESEND_KEY) console.log("  (no Resend key found - emails will silently no-op)");
+if (!ANTHROPIC_KEY) console.log("  (no Anthropic key found - /recommend uses keyword fallback)");
 const stripeMode = STRIPE_KEY.includes("_test_") ? "TEST" : "LIVE";
 console.log(`Stripe mode: ${stripeMode}`);
 
@@ -67,8 +67,8 @@ async function stripe(method, p, params) {
 
 // ---- ensure product + prices (idempotent via lookup_keys) ------------------
 const WANT = [
-  { secret: "PRICE_STANDARD_MONTHLY", lookup: "zeroshot_standard_monthly", amount: 3600, recurring: true,  nickname: "standard — 12 cans/month" },
-  { secret: "PRICE_TEAM_MONTHLY",     lookup: "zeroshot_team_monthly",     amount: 9900, recurring: true,  nickname: "team — 48 cans/month" },
+  { secret: "PRICE_STANDARD_MONTHLY", lookup: "zeroshot_standard_monthly", amount: 3600, recurring: true,  nickname: "standard - 12 cans/month" },
+  { secret: "PRICE_TEAM_MONTHLY",     lookup: "zeroshot_team_monthly",     amount: 9900, recurring: true,  nickname: "team - 48 cans/month" },
   { secret: "PRICE_MIXED24",          lookup: "zeroshot_mixed24",          amount: 6000, recurring: false, nickname: "Mixed Precision 24" },
 ];
 
@@ -108,7 +108,7 @@ let webhookSecret = WEBHOOK_SECRET_EXISTING || env.STRIPE_WEBHOOK_SECRET || null
 if (doWebhook && !webhookSecret) {
   const existing = await stripe("GET", "webhook_endpoints?limit=100");
   const dup = (existing.data || []).find((w) => w.url === WEBHOOK_URL);
-  if (dup) fail(`webhook for ${WEBHOOK_URL} already exists (${dup.id}) but its secret is not in .env — delete it in the Stripe dashboard and re-run, or add its whsec_ to .env`);
+  if (dup) fail(`webhook for ${WEBHOOK_URL} already exists (${dup.id}) but its secret is not in .env - delete it in the Stripe dashboard and re-run, or add its whsec_ to .env`);
   const wh = await stripe("POST", "webhook_endpoints", { url: WEBHOOK_URL, "enabled_events[]": "checkout.session.completed" });
   webhookSecret = wh.secret;
   appendFileSync(ENV_PATH, `\nSTRIPE_WEBHOOK_SECRET=${webhookSecret}`);
@@ -130,4 +130,4 @@ try {
 } finally {
   unlinkSync(tmp);
 }
-console.log("✓ done" + (doWebhook ? "" : " — run again with --webhook once api.zeroshothq.dev is live"));
+console.log("✓ done" + (doWebhook ? "" : " - run again with --webhook once api.zeroshothq.dev is live"));

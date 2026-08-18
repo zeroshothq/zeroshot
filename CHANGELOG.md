@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Zero Shot — the API, the CLI, and the flavors — are
+All notable changes to Zero Shot - the API, the CLI, and the flavors - are
 documented here. Format follows [Keep a Changelog](https://keepachangelog.com/);
 versions track releases cut from this repo (`cli-v*` tags publish the CLI).
 
@@ -31,7 +31,7 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
   Node 22 (wrangler ≥4.123 requirement), lockfile + `npm ci` for
   reproducible runs, valid YAML in the publish workflow.
 
-## [1.0.2] — 2026-08-18
+## [1.0.2] - 2026-08-18
 
 Initial public release.
 
@@ -45,7 +45,7 @@ Initial public release.
 - **CLI** (`zeroshot`): recommend, order, subscribe, waitlist, pour, flavors,
   status, cancel, and a fully local `consume` caffeine log. Zero
   dependencies. Zero telemetry.
-- **Flavors**: six model cards in `flavors/flavors.json` — the single source
+- **Flavors**: six model cards in `flavors/flavors.json` - the single source
   of truth for API, CLI, and site.
 - **Skills**: the free `zeroshot` core preset in-repo; six premium presets
   delivered by signed email links with any paid order.

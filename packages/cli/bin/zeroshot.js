@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// zeroshot — the CLI for the first energy drink with an API.
+// zeroshot - the CLI for the first energy drink with an API.
 // Zero dependencies. Zero telemetry. Obviously.
 
 const fs = require("fs");
@@ -70,7 +70,7 @@ async function cmdFlavors() {
   const cl = opt("changelog");
   if (cl) {
     const f = data.find((x) => x.id === cl) || die(`no flavor: ${cl}`);
-    console.log(`${c(G, f.id)} v${f.version} — ${f.taste}`);
+    console.log(`${c(G, f.id)} v${f.version} - ${f.taste}`);
     f.changelog.forEach((l) => console.log("  · " + l));
     return;
   }
@@ -84,7 +84,7 @@ async function cmdRecommend() {
   if (!query) die('usage: zeroshot recommend "staff LLM engineer, mostly RAG"');
   const { data } = await api("POST", "/v1/recommend", { query });
   if (jsonOut) return console.log(JSON.stringify(data, null, 2));
-  console.log("\n  " + c(G, (data.pack_name || "").toUpperCase()) + c(D, " — 24 cans"));
+  console.log("\n  " + c(G, (data.pack_name || "").toUpperCase()) + c(D, " - 24 cans"));
   const entries = Object.entries(data.mix || {});
   for (let i = 0; i < entries.length; i += 2) {
     const cell = ([f, n]) => "▓".repeat(Math.min(n, 14)) + ` ${f} ×${n}`;
@@ -107,7 +107,7 @@ async function cmdOrder() {
     // Fetch the build's real requirements from the API and prompt for attestation.
     const { data: builds } = await api("GET", "/v1/builds");
     const b = builds[build] || builds["ml-engineer"];
-    console.log("\n  " + c(G, "MIXED PRECISION 24") + c(D, ` — ${b.name} · Minimum Qualifications`));
+    console.log("\n  " + c(G, "MIXED PRECISION 24") + c(D, ` - ${b.name} · Minimum Qualifications`));
     b.requirements.forEach((r) => console.log("  • " + r));
     console.log(c(D, "  Self-attestation accepted at checkout."));
     const a = (await ask("\n  Do you meet these requirements? (y/N): ")).toLowerCase();
@@ -166,7 +166,7 @@ async function cmdPour() {
     body = await res.text();
     skillName = "zeroshot";
   } else if (name) {
-    return console.log(c(A, `  "${name}" is a premium skill — it's delivered by email with any order.\n  Then: zeroshot pour --url "<your emailed link>"`));
+    return console.log(c(A, `  "${name}" is a premium skill - it's delivered by email with any order.\n  Then: zeroshot pour --url "<your emailed link>"`));
   } else {
     die('usage: zeroshot pour zeroshot | zeroshot pour --url "<emailed link>" [--to <dir>]');
   }
@@ -179,7 +179,7 @@ async function cmdPour() {
 async function cmdStatus() {
   const { data } = await api("GET", "/v1/status");
   if (jsonOut) return console.log(JSON.stringify(data));
-  Object.entries(data).forEach(([k, v]) => console.log(`  ${c(G, "●")} ${k} — ${v}`));
+  Object.entries(data).forEach(([k, v]) => console.log(`  ${c(G, "●")} ${k} - ${v}`));
   const id = opt("order");
   if (id) {
     const r = await api("GET", `/v1/orders/${id}`);
@@ -211,7 +211,7 @@ function cmdConsume() {
     .reduce((s, e) => s + e.mg, 0);
   console.log(c(G, `  ✓ Logged: ${flavor} (${MG[flavor]}mg) at ${new Date().toTimeString().slice(0, 5)}`));
   console.log(`  Today: ${today}mg.` + (today >= 400
-    ? c(A, " FDA cites 400mg/day as generally safe for healthy adults — you're at the line. Maybe water next.")
+    ? c(A, " FDA cites 400mg/day as generally safe for healthy adults - you're at the line. Maybe water next.")
     : ""));
 }
 

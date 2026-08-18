@@ -1,4 +1,4 @@
-// Zero Shot API — Cloudflare Worker (plain JS module, no framework)
+// Zero Shot API - Cloudflare Worker (plain JS module, no framework)
 // Endpoints: waitlist, flavors, builds, recommend, subscriptions, orders,
 // skills (free + signed premium downloads), status, stripe webhook.
 // Premium skill delivery: on checkout.session.completed we email the buyer
@@ -104,7 +104,7 @@ async function sendSkillDeliveryEmail(env, apiBase, email, orderId) {
     <div style="font-family:monospace">
       <h2>Your digital cans are ready</h2>
       <p>Order <b>${orderId}</b> confirmed. Alongside the physical cans, every
-      Zero Shot order includes the six premium agent skills — behavioral
+      Zero Shot order includes the six premium agent skills - behavioral
       presets you pour into your coding agent.</p>
       <ul>${links.join("")}</ul>
       <p>Install: save each SKILL.md into your agent's skills directory, or run
@@ -114,7 +114,7 @@ async function sendSkillDeliveryEmail(env, apiBase, email, orderId) {
       Not recommended for children or persons sensitive to caffeine.</p>
       <p><i>Ship more PRs.&trade;</i></p>
     </div>`;
-  await sendEmail(env, email, "Zero Shot — your order + your six agent skills", html);
+  await sendEmail(env, email, "Zero Shot - your order + your six agent skills", html);
 }
 
 // ---------------------------------------------------------------- recommend
@@ -220,7 +220,7 @@ export default {
 
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
 
-    // Global rate limit (webhook exempt — Stripe retries must not be dropped)
+    // Global rate limit (webhook exempt - Stripe retries must not be dropped)
     if (path !== "/v1/stripe/webhook") {
       const limit = path === "/v1/recommend" ? 10 : 60;
       if (await rateLimited(env, ip, path === "/v1/recommend" ? "rec" : "all", limit))
@@ -239,7 +239,7 @@ export default {
       if (path === "/v1/flavors" && request.method === "GET")
         return json(FLAVORS_DATA.flavors, 200, cors);
 
-      // ---- GET /v1/builds  (names, taglines, mixes, requirements — used by CLI + site)
+      // ---- GET /v1/builds  (names, taglines, mixes, requirements - used by CLI + site)
       if (path === "/v1/builds" && request.method === "GET")
         return json(FLAVORS_DATA.builds, 200, cors);
 
@@ -274,8 +274,8 @@ export default {
         }
         await env.DB.prepare("INSERT INTO waitlist (email, pk_key, referred_by, position) VALUES (?,?,?,?)")
           .bind(email, pk, ref || null, position).run();
-        await sendEmail(env, email, "Zero Shot — you're on the list",
-          `<div style="font-family:monospace"><p>You're #${position}.</p><p>Your key: <b>${pk}</b> — it doubles as a referral code. Every signup that uses it moves you up 10 spots.</p><p>Meanwhile, pour the free agent skill: <a href="${apiBase}/v1/skills/zeroshot">zeroshot core</a>.</p></div>`);
+        await sendEmail(env, email, "Zero Shot - you're on the list",
+          `<div style="font-family:monospace"><p>You're #${position}.</p><p>Your key: <b>${pk}</b> - it doubles as a referral code. Every signup that uses it moves you up 10 spots.</p><p>Meanwhile, pour the free agent skill: <a href="${apiBase}/v1/skills/zeroshot">zeroshot core</a>.</p></div>`);
         return json({ public_key: pk, position,
           note: "Your key is your referral code. +10 spots per signup." }, 201, cors);
       }
@@ -316,7 +316,7 @@ export default {
           cancel_url: `${env.SITE_URL}/pricing`,
           "shipping_address_collection[allowed_countries][0]": "US",
           // consent_collection[terms_of_service] requires a ToS URL in the
-          // Stripe dashboard — re-add once the site has a /terms page.
+          // Stripe dashboard - re-add once the site has a /terms page.
           "metadata[order_id]": orderId, "metadata[plan]": plan,
           "metadata[flavors]": flavors.join(","),
         });
@@ -337,7 +337,7 @@ export default {
         return json({ portal_url: portal.url, note: "we will be sad" }, 200, cors);
       }
 
-      // ---- POST /v1/orders  (Mixed Precision 24 — qualification-gated)
+      // ---- POST /v1/orders  (Mixed Precision 24 - qualification-gated)
       if (path === "/v1/orders" && request.method === "POST") {
         const body = await request.json().catch(() => ({}));
         if (body.sku !== "mixed-precision-24") return err(400, "sku must be mixed-precision-24", cors);
@@ -391,7 +391,7 @@ export default {
         const email = url.searchParams.get("email") || "";
         const exp = url.searchParams.get("exp") || "0";
         const sig = url.searchParams.get("sig") || "";
-        if (Number(exp) < Date.now() / 1000) return err(403, "link expired — contact support@zeroshothq.dev", cors);
+        if (Number(exp) < Date.now() / 1000) return err(403, "link expired - contact support@zeroshothq.dev", cors);
         const expected = await hmacHex(env.SKILL_SIGNING_SECRET, `${email}|${id}|${exp}`);
         if (sig !== expected) return err(403, "invalid signature", cors);
         const body = await env.PREMIUM_SKILLS.get(id);
@@ -435,10 +435,10 @@ export default {
         return json({ id, status });
       }
 
-      return err(404, "not found — see " + env.SITE_URL + "/docs", cors);
+      return err(404, "not found - see " + env.SITE_URL + "/docs", cors);
     } catch (e) {
       console.log("error", path, e.message);
-      return err(500, "internal error — it's not you, it's us", cors);
+      return err(500, "internal error - it's not you, it's us", cors);
     }
   },
 };
