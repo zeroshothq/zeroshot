@@ -19,6 +19,10 @@ jobs:
         env:
           WRANGLER_SEND_METRICS: "false"
         run: |
-          (cd packages/api && npx wrangler dev --port 8787 &)
+          cd packages/api
+          printf 'SKILL_SIGNING_SECRET=ci-test-secret\nADMIN_BEARER=ci-test-admin\n' > .dev.vars
+          npx wrangler d1 execute zeroshot --file=./schema.sql -y
+          npx wrangler dev --port 8787 &
           for i in $(seq 1 90); do curl -sf http://localhost:8787/v1/status >/dev/null && break; sleep 2; done
+          cd ../..
           ZEROSHOT_API_URL=http://localhost:8787 ZEROSHOT_TEST_WRITES=1 node --test packages/api/test/*.test.js packages/cli/test/*.test.js
