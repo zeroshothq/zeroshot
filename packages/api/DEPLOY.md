@@ -92,3 +92,25 @@ Read-only by default. `ZEROSHOT_API_URL` targets a deployment (default
 `http://localhost:8787` for `wrangler dev`); `ZEROSHOT_TEST_WRITES=1` adds
 row-inserting tests; `ZEROSHOT_TEST_STRIPE=1` adds tests that create real
 checkout sessions (use a test-mode key).
+
+## Website contract (separate repo)
+
+The website lives in its own repo and serves `SITE_URL`
+(`https://zeroshothq.dev`, set in `wrangler.toml`). The API hardcodes
+expectations the site must fulfill:
+
+Required pages:
+
+- `/thanks?o=<order_id>` - Stripe checkout success redirect
+- `/pricing` - Stripe checkout cancel redirect
+- `/stack/<id>` - shared recommendation pages; render from
+  `GET /v1/stacks/<id>`
+- `/docs` - linked from the API root, 404s, and the README
+- `/terms` - once it exists, re-enable the
+  `consent_collection[terms_of_service]` lines in `src/index.js` and set the
+  Terms URL in the Stripe dashboard
+
+Data: the site reads flavors and builds from `GET /v1/flavors` and
+`GET /v1/builds` (never import `flavors.json` across repos - the API is the
+contract). CORS already allows `SITE_URL`, plus `http://localhost:4321` and
+`http://localhost:3000` for site development against production.
