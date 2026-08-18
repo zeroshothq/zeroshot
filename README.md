@@ -1,8 +1,16 @@
-# zeroshot
+<div align="center">
+
+# Zero Shot
 
 [![test](https://github.com/zeroshothq/zeroshot/actions/workflows/test.yml/badge.svg)](https://github.com/zeroshothq/zeroshot/actions/workflows/test.yml)
 
+**You're tired. So are your agents.**
+
+Crack open a can for yourself. Pour a skill into your agent.
+
 > The first energy drink with an API. Zero sugar. Zero shot.
+
+</div>
 
 Zero Shot is a frontier beverage for the humans still in the loop — and a set
 of behavioral presets for their agents. No checkout form. No app. Subscribe
