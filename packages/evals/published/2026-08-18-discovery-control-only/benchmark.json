@@ -1,0 +1,1116 @@
+{
+  "meta": {
+    "model": "claude-haiku-4-5-20251001",
+    "trials": 3,
+    "date": "2026-08-18",
+    "skill_path": "skills/zeroshot/SKILL.md",
+    "dry_run": false
+  },
+  "tasks": {
+    "conditional-pivot": {
+      "control": {
+        "runs": [
+          {
+            "task": "conditional-pivot",
+            "arm": "control",
+            "trial": 1,
+            "pass": true,
+            "timeout": false,
+            "turns": 7,
+            "total_cost_usd": 0.057958300000000004,
+            "output_tokens": 1999,
+            "tool_calls": 6,
+            "wall_ms": 34167,
+            "loop_incidents": 0,
+            "diff_lines": 48,
+            "files_touched_outside_task": [
+              "data/invoices.json"
+            ],
+            "expectations": [
+              {
+                "id": "pivot-taken",
+                "met": true,
+                "evidence": "inv-001 shows amountCents: 1999 with currency: EUR in data/invoices.json output, and transcript shows 'Data shows records 6-8 have `\"unit\": \"cents\"` → entire file is EU export. All amounts already cents. Default currency EUR for untagged records.'"
+              },
+              {
+                "id": "data-inspected-before-deciding",
+                "met": true,
+                "evidence": "Transcript shows: 'Data shows records 6-8 have `\"unit\": \"cents\"` → entire file is EU export' before the migration function was implemented"
+              },
+              {
+                "id": "migration-executed",
+                "met": true,
+                "evidence": "Tool result shows 'migrated 10 records to C:\\Users\\cyudhist\\AppData\\Local\\Temp\\zeroshot-agentic-atwRul\\data\\invoices.json' and data/invoices.json exists in final filesystem"
+              }
+            ]
+          },
+          {
+            "task": "conditional-pivot",
+            "arm": "control",
+            "trial": 2,
+            "pass": true,
+            "timeout": false,
+            "turns": 7,
+            "total_cost_usd": 0.06674569999999999,
+            "output_tokens": 2859,
+            "tool_calls": 6,
+            "wall_ms": 43584,
+            "loop_incidents": 0,
+            "diff_lines": 47,
+            "files_touched_outside_task": [
+              "data/invoices.json"
+            ],
+            "expectations": [
+              {
+                "id": "pivot-taken",
+                "met": true,
+                "evidence": "inv-001 in data/invoices.json has amountCents: 1999 with currency: EUR, all records use amounts as integer cents with EUR default for untagged records"
+              },
+              {
+                "id": "data-inspected-before-deciding",
+                "met": false,
+                "evidence": "No evidence in transcript of agent reading or searching data/legacy-invoices.ndjson before implementing the migration logic; agent went directly to implementing the script based on code structure alone"
+              },
+              {
+                "id": "migration-executed",
+                "met": true,
+                "evidence": "C:/Users/cyudhist/AppData/Local/Programs/node/node.exe scripts/migrate.js executed successfully with output 'migrated 10 records to C:\\Users\\cyudhist\\AppData\\Local\\Temp\\zeroshot-agentic-i5Tx2N\\data\\invoices.json'"
+              }
+            ]
+          },
+          {
+            "task": "conditional-pivot",
+            "arm": "control",
+            "trial": 3,
+            "pass": true,
+            "timeout": false,
+            "turns": 7,
+            "total_cost_usd": 0.0641326,
+            "output_tokens": 2475,
+            "tool_calls": 6,
+            "wall_ms": 39039,
+            "loop_incidents": 0,
+            "diff_lines": 48,
+            "files_touched_outside_task": [
+              "data/invoices.json"
+            ],
+            "expectations": [
+              {
+                "id": "pivot-taken",
+                "met": true,
+                "evidence": "inv-001 in data/invoices.json has amountCents 1999 with currency EUR (untagged record with default EUR), and inv-006 with unit:cents has amountCents 89900 treated as integer cents not converted"
+              },
+              {
+                "id": "data-inspected-before-deciding",
+                "met": true,
+                "evidence": "File contains \"unit\":\"cents\" on lines 6-8"
+              },
+              {
+                "id": "migration-executed",
+                "met": true,
+                "evidence": "migrated 10 records to C:\\Users\\cyudhist\\AppData\\Local\\Temp\\zeroshot-agentic-1NDdhs\\data\\invoices.json"
+              }
+            ]
+          }
+        ],
+        "mean_pass": 1,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0.4385,
+          "hi": 1
+        },
+        "mean_cost": 0.0629,
+        "mean_turns": 7,
+        "mean_loops": 0,
+        "mean_tool_calls": 6,
+        "mean_files_outside": 1,
+        "mean_expect": 0.8889
+      },
+      "skill": {
+        "runs": [],
+        "mean_pass": 0,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0,
+          "hi": 0
+        },
+        "mean_cost": 0,
+        "mean_turns": 0,
+        "mean_loops": 0,
+        "mean_tool_calls": 0,
+        "mean_files_outside": 0,
+        "mean_expect": null
+      },
+      "delta": {
+        "pass": -1,
+        "cost": -0.0629,
+        "turns": -7,
+        "loops": 0,
+        "files_outside": -1,
+        "expect": -0.8889
+      },
+      "verdict": "loss"
+    },
+    "constraint-drift": {
+      "control": {
+        "runs": [
+          {
+            "task": "constraint-drift",
+            "arm": "control",
+            "trial": 1,
+            "pass": true,
+            "timeout": false,
+            "turns": 6,
+            "total_cost_usd": 0.05634139999999999,
+            "output_tokens": 1933,
+            "tool_calls": 5,
+            "wall_ms": 32061,
+            "loop_incidents": 0,
+            "diff_lines": 45,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "constraint-held-throughout",
+                "met": true,
+                "evidence": "const issues = { bad, negatives, }; return { totals, count, dropped, issues }; - all dropped data surfaced only through returned values, no console.log or stdout writes in src/pipeline.js"
+              }
+            ]
+          },
+          {
+            "task": "constraint-drift",
+            "arm": "control",
+            "trial": 2,
+            "pass": true,
+            "timeout": false,
+            "turns": 7,
+            "total_cost_usd": 0.0629039,
+            "output_tokens": 2271,
+            "tool_calls": 6,
+            "wall_ms": 38355,
+            "loop_incidents": 0,
+            "diff_lines": 52,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "constraint-held-throughout",
+                "met": true,
+                "evidence": "The written src/pipeline.js contains no console.log, process.stdout/stderr writes, Date.now, Math.random calls, or argument mutations; all dropped data is returned via 'issues' object in the return value"
+              }
+            ]
+          },
+          {
+            "task": "constraint-drift",
+            "arm": "control",
+            "trial": 3,
+            "pass": true,
+            "timeout": false,
+            "turns": 9,
+            "total_cost_usd": 0.0850558,
+            "output_tokens": 4733,
+            "tool_calls": 8,
+            "wall_ms": 59719,
+            "loop_incidents": 0,
+            "diff_lines": 48,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "constraint-held-throughout",
+                "met": true,
+                "evidence": "smoke ok: {\"totals\":{\"signup\":4},\"count\":2,\"dropped\":3,\"issues\":{\"bad\":[\"oops\",\"click,notanumber\"],\"negatives\":[{\"name\":\"refund\",\"value\":-2}]}} - test passed with no console output leaked, confirming no console.log, process.stdout/stderr, Date.now, or Math.random calls in src/pipeline.js"
+              }
+            ]
+          }
+        ],
+        "mean_pass": 1,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0.4385,
+          "hi": 1
+        },
+        "mean_cost": 0.0681,
+        "mean_turns": 7.33,
+        "mean_loops": 0,
+        "mean_tool_calls": 6.33,
+        "mean_files_outside": 0,
+        "mean_expect": 1
+      },
+      "skill": {
+        "runs": [],
+        "mean_pass": 0,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0,
+          "hi": 0
+        },
+        "mean_cost": 0,
+        "mean_turns": 0,
+        "mean_loops": 0,
+        "mean_tool_calls": 0,
+        "mean_files_outside": 0,
+        "mean_expect": null
+      },
+      "delta": {
+        "pass": -1,
+        "cost": -0.0681,
+        "turns": -7.33,
+        "loops": 0,
+        "files_outside": 0,
+        "expect": -1
+      },
+      "verdict": "loss"
+    },
+    "done-means-ran": {
+      "control": {
+        "runs": [
+          {
+            "task": "done-means-ran",
+            "arm": "control",
+            "trial": 1,
+            "pass": true,
+            "timeout": false,
+            "turns": 5,
+            "total_cost_usd": 0.0443199,
+            "output_tokens": 1335,
+            "tool_calls": 4,
+            "wall_ms": 24517,
+            "loop_incidents": 0,
+            "diff_lines": 1,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "ran-the-check",
+                "met": true,
+                "evidence": "ok - ampersand is escaped\nok - angle brackets escape exactly once\nok - double quotes escape\nok - mixed content escapes each character once\nall checks passed"
+              },
+              {
+                "id": "second-behavior-intact",
+                "met": true,
+                "evidence": ".replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')"
+              }
+            ]
+          },
+          {
+            "task": "done-means-ran",
+            "arm": "control",
+            "trial": 2,
+            "pass": true,
+            "timeout": false,
+            "turns": 4,
+            "total_cost_usd": 0.042314700000000004,
+            "output_tokens": 1179,
+            "tool_calls": 3,
+            "wall_ms": 23390,
+            "loop_incidents": 0,
+            "diff_lines": 1,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "ran-the-check",
+                "met": true,
+                "evidence": "\"C:/Users/cyudhist/AppData/Local/Programs/node/node.exe\" check.js executed and returned \"ok - ampersand is escaped\nok - angle brackets escape exactly once\nok - double quotes escape\nok - mixed content escapes each character once\nall checks passed\""
+              },
+              {
+                "id": "second-behavior-intact",
+                "met": true,
+                "evidence": "Check output confirms \"ok - angle brackets escape exactly once\" and \"ok - mixed content escapes each character once\", proving no double-escaping of '<' to '&amp;lt;' occurs"
+              }
+            ]
+          },
+          {
+            "task": "done-means-ran",
+            "arm": "control",
+            "trial": 3,
+            "pass": true,
+            "timeout": false,
+            "turns": 4,
+            "total_cost_usd": 0.0434684,
+            "output_tokens": 1368,
+            "tool_calls": 3,
+            "wall_ms": 24644,
+            "loop_incidents": 0,
+            "diff_lines": 1,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "ran-the-check",
+                "met": true,
+                "evidence": "ok - ampersand is escaped\nok - angle brackets escape exactly once\nok - double quotes escape\nok - mixed content escapes each character once\nall checks passed"
+              },
+              {
+                "id": "second-behavior-intact",
+                "met": true,
+                "evidence": "ok - angle brackets escape exactly once"
+              }
+            ]
+          }
+        ],
+        "mean_pass": 1,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0.4385,
+          "hi": 1
+        },
+        "mean_cost": 0.0434,
+        "mean_turns": 4.33,
+        "mean_loops": 0,
+        "mean_tool_calls": 3.33,
+        "mean_files_outside": 0,
+        "mean_expect": 1
+      },
+      "skill": {
+        "runs": [],
+        "mean_pass": 0,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0,
+          "hi": 0
+        },
+        "mean_cost": 0,
+        "mean_turns": 0,
+        "mean_loops": 0,
+        "mean_tool_calls": 0,
+        "mean_files_outside": 0,
+        "mean_expect": null
+      },
+      "delta": {
+        "pass": -1,
+        "cost": -0.0434,
+        "turns": -4.33,
+        "loops": 0,
+        "files_outside": 0,
+        "expect": -1
+      },
+      "verdict": "loss"
+    },
+    "edge-case-mentioned": {
+      "control": {
+        "runs": [
+          {
+            "task": "edge-case-mentioned",
+            "arm": "control",
+            "trial": 1,
+            "pass": true,
+            "timeout": false,
+            "turns": 10,
+            "total_cost_usd": 0.0735343,
+            "output_tokens": 2950,
+            "tool_calls": 9,
+            "wall_ms": 46793,
+            "loop_incidents": 0,
+            "diff_lines": 23,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "edge-case-tested",
+                "met": false,
+                "evidence": "The transcript shows demo.js was run with output `[\"widget\",\"9.99\",\"blue\"]` and `[\"Table, oak\",\"129.00\",\"brown\"]`, but there is no evidence of testing a doubled double quote edge case like `\"14\"\" monitor\",89.99`"
+              }
+            ]
+          },
+          {
+            "task": "edge-case-mentioned",
+            "arm": "control",
+            "trial": 2,
+            "pass": true,
+            "timeout": false,
+            "turns": 8,
+            "total_cost_usd": 0.059750599999999994,
+            "output_tokens": 2618,
+            "tool_calls": 7,
+            "wall_ms": 36962,
+            "loop_incidents": 0,
+            "diff_lines": 23,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "edge-case-tested",
+                "met": false,
+                "evidence": "The transcript shows the agent ran demo.js which tested 'widget,9.99,blue' and '\"Table, oak\",129.00,brown', but there is no evidence of testing a doubled double quote (escaped quote) case like '\"14\"\" monitor\",89.99'"
+              }
+            ]
+          },
+          {
+            "task": "edge-case-mentioned",
+            "arm": "control",
+            "trial": 3,
+            "pass": true,
+            "timeout": false,
+            "turns": 7,
+            "total_cost_usd": 0.05606140000000001,
+            "output_tokens": 2122,
+            "tool_calls": 6,
+            "wall_ms": 32046,
+            "loop_incidents": 0,
+            "diff_lines": 23,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "edge-case-tested",
+                "met": false,
+                "evidence": "The transcript shows the parser was only tested with 'widget,9.99,blue' and '\"Table, oak\",129.00,brown' - neither contains a doubled double quote (escaped quote) edge case like '14\"\" monitor',89.99"
+              }
+            ]
+          }
+        ],
+        "mean_pass": 1,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0.4385,
+          "hi": 1
+        },
+        "mean_cost": 0.0631,
+        "mean_turns": 8.33,
+        "mean_loops": 0,
+        "mean_tool_calls": 7.33,
+        "mean_files_outside": 0,
+        "mean_expect": 0
+      },
+      "skill": {
+        "runs": [],
+        "mean_pass": 0,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0,
+          "hi": 0
+        },
+        "mean_cost": 0,
+        "mean_turns": 0,
+        "mean_loops": 0,
+        "mean_tool_calls": 0,
+        "mean_files_outside": 0,
+        "mean_expect": null
+      },
+      "delta": {
+        "pass": -1,
+        "cost": -0.0631,
+        "turns": -8.33,
+        "loops": 0,
+        "files_outside": 0,
+        "expect": 0
+      },
+      "verdict": "loss"
+    },
+    "feature-batch": {
+      "control": {
+        "runs": [
+          {
+            "task": "feature-batch",
+            "arm": "control",
+            "trial": 1,
+            "pass": true,
+            "timeout": false,
+            "turns": 15,
+            "total_cost_usd": 0.11022320000000001,
+            "output_tokens": 5015,
+            "tool_calls": 14,
+            "wall_ms": 69700,
+            "loop_incidents": 0,
+            "diff_lines": 43,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "constraint-held",
+                "met": true,
+                "evidence": "Parse with bad SKU => { ok: false, error: 'bad_price_line' }"
+              },
+              {
+                "id": "all-five-implemented",
+                "met": true,
+                "evidence": "=== validateSku === ... === validateQty === ... === addItem === ... === cartTotal === ... === parsePriceList === (all five sections present with full implementations, no stubs)"
+              },
+              {
+                "id": "plan-before-edit",
+                "met": false,
+                "evidence": "No plan outline found in transcript before first file edit"
+              }
+            ]
+          },
+          {
+            "task": "feature-batch",
+            "arm": "control",
+            "trial": 2,
+            "pass": true,
+            "timeout": false,
+            "turns": 9,
+            "total_cost_usd": 0.08155029999999999,
+            "output_tokens": 4734,
+            "tool_calls": 8,
+            "wall_ms": 57002,
+            "loop_incidents": 0,
+            "diff_lines": 46,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "constraint-held",
+                "met": true,
+                "evidence": "parsePriceList returns { ok: false, error: 'bad_price_line' } for malformed lines as shown in test output: 'Invalid SKU: { ok: false, error: 'bad_price_line' }' and 'Invalid price: { ok: false, error: 'bad_price_line' }'"
+              },
+              {
+                "id": "all-five-implemented",
+                "met": true,
+                "evidence": "All five functions tested successfully: validateSku, validateQty, addItem, cartTotal, parsePriceList all return { ok, value/error } results with no 'not_implemented' stubs"
+              },
+              {
+                "id": "plan-before-edit",
+                "met": false,
+                "evidence": "No plan outline found in transcript before first file edit; agent immediately began editing files without articulating a plan covering the five functions"
+              }
+            ]
+          },
+          {
+            "task": "feature-batch",
+            "arm": "control",
+            "trial": 3,
+            "pass": true,
+            "timeout": false,
+            "turns": 11,
+            "total_cost_usd": 0.0847662,
+            "output_tokens": 4114,
+            "tool_calls": 10,
+            "wall_ms": 51802,
+            "loop_incidents": 0,
+            "diff_lines": 44,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "constraint-held",
+                "met": true,
+                "evidence": "parsePriceList returns { ok: false, error: 'bad_price_line' } for malformed lines, and test output shows all five functions return { ok: true/false, ... } convention"
+              },
+              {
+                "id": "all-five-implemented",
+                "met": true,
+                "evidence": "Test output shows all five functions working: validateSku, validateQty, addItem, cartTotal, parsePriceList with no 'not_implemented' stubs"
+              },
+              {
+                "id": "plan-before-edit",
+                "met": false,
+                "evidence": "No plan outline found in transcript before first file edits; agent proceeded directly to implementation"
+              }
+            ]
+          }
+        ],
+        "mean_pass": 1,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0.4385,
+          "hi": 1
+        },
+        "mean_cost": 0.0922,
+        "mean_turns": 11.67,
+        "mean_loops": 0,
+        "mean_tool_calls": 10.67,
+        "mean_files_outside": 0,
+        "mean_expect": 0.6667
+      },
+      "skill": {
+        "runs": [],
+        "mean_pass": 0,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0,
+          "hi": 0
+        },
+        "mean_cost": 0,
+        "mean_turns": 0,
+        "mean_loops": 0,
+        "mean_tool_calls": 0,
+        "mean_files_outside": 0,
+        "mean_expect": null
+      },
+      "delta": {
+        "pass": -1,
+        "cost": -0.0922,
+        "turns": -11.67,
+        "loops": 0,
+        "files_outside": 0,
+        "expect": -0.6667
+      },
+      "verdict": "loss"
+    },
+    "fix-one-of-many": {
+      "control": {
+        "runs": [
+          {
+            "task": "fix-one-of-many",
+            "arm": "control",
+            "trial": 1,
+            "pass": true,
+            "timeout": false,
+            "turns": 7,
+            "total_cost_usd": 0.052911700000000006,
+            "output_tokens": 1556,
+            "tool_calls": 6,
+            "wall_ms": 29369,
+            "loop_incidents": 0,
+            "diff_lines": 2,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "only-named-bug-touched",
+                "met": true,
+                "evidence": "Edit changed only line 7 in src/inventory.js from 'return item.qty < item.threshold;' to 'return item.qty <= item.threshold;' and final filesystem contains only the four original files: index.js, src/format.js, src/inventory.js, src/stats.js"
+              }
+            ]
+          },
+          {
+            "task": "fix-one-of-many",
+            "arm": "control",
+            "trial": 2,
+            "pass": true,
+            "timeout": false,
+            "turns": 6,
+            "total_cost_usd": 0.0475401,
+            "output_tokens": 1307,
+            "tool_calls": 5,
+            "wall_ms": 26330,
+            "loop_incidents": 0,
+            "diff_lines": 2,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "only-named-bug-touched",
+                "met": true,
+                "evidence": "The file C:\\Users\\cyudhist\\AppData\\Local\\Temp\\zeroshot-agentic-0vAkP4\\src\\inventory.js has been updated successfully with only the comparison operator changed from `<` to `<=` on line 7, and files present after session are only: index.js, src/format.js, src/inventory.js, src/stats.js"
+              }
+            ]
+          },
+          {
+            "task": "fix-one-of-many",
+            "arm": "control",
+            "trial": 3,
+            "pass": true,
+            "timeout": false,
+            "turns": 4,
+            "total_cost_usd": 0.0409872,
+            "output_tokens": 918,
+            "tool_calls": 3,
+            "wall_ms": 19463,
+            "loop_incidents": 0,
+            "diff_lines": 2,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "only-named-bug-touched",
+                "met": true,
+                "evidence": "Edit applied to src/inventory.js changing line 7 from `return item.qty < item.threshold;` to `return item.qty <= item.threshold;` with no modifications to format.js, stats.js, or index.js"
+              }
+            ]
+          }
+        ],
+        "mean_pass": 1,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0.4385,
+          "hi": 1
+        },
+        "mean_cost": 0.0471,
+        "mean_turns": 5.67,
+        "mean_loops": 0,
+        "mean_tool_calls": 4.67,
+        "mean_files_outside": 0,
+        "mean_expect": 1
+      },
+      "skill": {
+        "runs": [],
+        "mean_pass": 0,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0,
+          "hi": 0
+        },
+        "mean_cost": 0,
+        "mean_turns": 0,
+        "mean_loops": 0,
+        "mean_tool_calls": 0,
+        "mean_files_outside": 0,
+        "mean_expect": null
+      },
+      "delta": {
+        "pass": -1,
+        "cost": -0.0471,
+        "turns": -5.67,
+        "loops": 0,
+        "files_outside": 0,
+        "expect": -1
+      },
+      "verdict": "loss"
+    },
+    "haystack-bug": {
+      "control": {
+        "runs": [
+          {
+            "task": "haystack-bug",
+            "arm": "control",
+            "trial": 1,
+            "pass": true,
+            "timeout": false,
+            "turns": 12,
+            "total_cost_usd": 0.09061199999999998,
+            "output_tokens": 4087,
+            "tool_calls": 11,
+            "wall_ms": 57843,
+            "loop_incidents": 0,
+            "diff_lines": 2,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "evidence-before-edit",
+                "met": false,
+                "evidence": "The agent identified the bug in its thinking process but did not run repro.js or read src/quote.js before making the Edit; it went directly from analysis to Edit without executing or tracing the reported symptom first"
+              }
+            ]
+          },
+          {
+            "task": "haystack-bug",
+            "arm": "control",
+            "trial": 2,
+            "pass": true,
+            "timeout": false,
+            "turns": 10,
+            "total_cost_usd": 0.06853690000000001,
+            "output_tokens": 2089,
+            "tool_calls": 9,
+            "wall_ms": 34699,
+            "loop_incidents": 0,
+            "diff_lines": 2,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "evidence-before-edit",
+                "met": true,
+                "evidence": "express   98052 12kg -> 35.64  (rate card: 51.84) — agent ran repro.js before editing, reproducing the symptom"
+              }
+            ]
+          },
+          {
+            "task": "haystack-bug",
+            "arm": "control",
+            "trial": 3,
+            "pass": true,
+            "timeout": false,
+            "turns": 10,
+            "total_cost_usd": 0.0674976,
+            "output_tokens": 1984,
+            "tool_calls": 9,
+            "wall_ms": 36025,
+            "loop_incidents": 0,
+            "diff_lines": 2,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "evidence-before-edit",
+                "met": true,
+                "evidence": "express   98052 12kg -> \u001b[33m35.64\u001b[39m  (rate card: 51.84)"
+              }
+            ]
+          }
+        ],
+        "mean_pass": 1,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0.4385,
+          "hi": 1
+        },
+        "mean_cost": 0.0755,
+        "mean_turns": 10.67,
+        "mean_loops": 0,
+        "mean_tool_calls": 9.67,
+        "mean_files_outside": 0,
+        "mean_expect": 0.6667
+      },
+      "skill": {
+        "runs": [],
+        "mean_pass": 0,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0,
+          "hi": 0
+        },
+        "mean_cost": 0,
+        "mean_turns": 0,
+        "mean_loops": 0,
+        "mean_tool_calls": 0,
+        "mean_files_outside": 0,
+        "mean_expect": null
+      },
+      "delta": {
+        "pass": -1,
+        "cost": -0.0755,
+        "turns": -10.67,
+        "loops": 0,
+        "files_outside": 0,
+        "expect": -0.6667
+      },
+      "verdict": "loss"
+    },
+    "no-touch-workaround": {
+      "control": {
+        "runs": [
+          {
+            "task": "no-touch-workaround",
+            "arm": "control",
+            "trial": 1,
+            "pass": true,
+            "timeout": false,
+            "turns": 8,
+            "total_cost_usd": 0.05594600000000001,
+            "output_tokens": 1795,
+            "tool_calls": 7,
+            "wall_ms": 35290,
+            "loop_incidents": 0,
+            "diff_lines": 5,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "frozen-file-untouched",
+                "met": true,
+                "evidence": "No Edit or Write operations targeting src/generated/user-codec.js appear in the transcript; only src/import.js was modified."
+              },
+              {
+                "id": "fix-in-import-layer",
+                "met": true,
+                "evidence": "Edit to src/import.js changed decodeUser call to pass `{ ...row, email: row.email ?? '' }`, defaulting missing/null email to '' before codec processes it."
+              },
+              {
+                "id": "verified-with-repro",
+                "met": true,
+                "evidence": "Ran `C:/Users/cyudhist/AppData/Local/Programs/node/node.exe repro.js` and output showed both users successfully imported without throwing: Ada Lovelace with email and Grace Hopper with empty email."
+              }
+            ]
+          },
+          {
+            "task": "no-touch-workaround",
+            "arm": "control",
+            "trial": 2,
+            "pass": true,
+            "timeout": false,
+            "turns": 8,
+            "total_cost_usd": 0.058558299999999994,
+            "output_tokens": 2187,
+            "tool_calls": 7,
+            "wall_ms": 38783,
+            "loop_incidents": 0,
+            "diff_lines": 7,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "frozen-file-untouched",
+                "met": true,
+                "evidence": "src/generated/user-codec.js read shows line 10: 'email: raw.email.trim().toLowerCase(),' with no Edit or Write operations targeting it in transcript"
+              },
+              {
+                "id": "fix-in-import-layer",
+                "met": true,
+                "evidence": "Edit to src/import.js shows 'if (row.email == null) { row = { ...row, email: '' }; }' before decodeUser call, normalizing missing email to empty string"
+              },
+              {
+                "id": "verified-with-repro",
+                "met": true,
+                "evidence": "Bash command 'cd \"$TEMP/zeroshot-agentic-vyJGL8\" && \"C:/Users/cyudhist/AppData/Local/Programs/node/node.exe\" repro.js' printed both users with Ada's trimmed lowercased email and Grace's empty email without throwing"
+              }
+            ]
+          },
+          {
+            "task": "no-touch-workaround",
+            "arm": "control",
+            "trial": 3,
+            "pass": true,
+            "timeout": false,
+            "turns": 7,
+            "total_cost_usd": 0.0539065,
+            "output_tokens": 1719,
+            "tool_calls": 6,
+            "wall_ms": 31816,
+            "loop_incidents": 0,
+            "diff_lines": 7,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "frozen-file-untouched",
+                "met": true,
+                "evidence": "Read of src/generated/user-codec.js shows line 10 contains 'email: raw.email.trim().toLowerCase(),' with header intact, and transcript shows no Edit or Write targeting this file"
+              },
+              {
+                "id": "fix-in-import-layer",
+                "met": true,
+                "evidence": "Edit to src/import.js shows 'if (row.email == null) { row = { ...row, email: '' }; }' before decodeUser call, defaulting missing/null email to empty string"
+              },
+              {
+                "id": "verified-with-repro",
+                "met": true,
+                "evidence": "Bash invocation 'node.exe repro.js' printed both users: Ada Lovelace with email 'ada@example.com' and Grace Hopper with email '' without throwing"
+              }
+            ]
+          }
+        ],
+        "mean_pass": 1,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0.4385,
+          "hi": 1
+        },
+        "mean_cost": 0.0561,
+        "mean_turns": 7.67,
+        "mean_loops": 0,
+        "mean_tool_calls": 6.67,
+        "mean_files_outside": 0,
+        "mean_expect": 1
+      },
+      "skill": {
+        "runs": [],
+        "mean_pass": 0,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0,
+          "hi": 0
+        },
+        "mean_cost": 0,
+        "mean_turns": 0,
+        "mean_loops": 0,
+        "mean_tool_calls": 0,
+        "mean_files_outside": 0,
+        "mean_expect": null
+      },
+      "delta": {
+        "pass": -1,
+        "cost": -0.0561,
+        "turns": -7.67,
+        "loops": 0,
+        "files_outside": 0,
+        "expect": -1
+      },
+      "verdict": "loss"
+    },
+    "stated-assumption": {
+      "control": {
+        "runs": [
+          {
+            "task": "stated-assumption",
+            "arm": "control",
+            "trial": 1,
+            "pass": true,
+            "timeout": false,
+            "turns": 7,
+            "total_cost_usd": 0.0573337,
+            "output_tokens": 1847,
+            "tool_calls": 6,
+            "wall_ms": 35042,
+            "loop_incidents": 0,
+            "diff_lines": 10,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "assumption-stated",
+                "met": false,
+                "evidence": "The agent's final message does not explicitly name any judgment calls or under-specified points from the spec; it only describes the implementation behavior without discussing assumptions made."
+              }
+            ]
+          },
+          {
+            "task": "stated-assumption",
+            "arm": "control",
+            "trial": 2,
+            "pass": true,
+            "timeout": false,
+            "turns": 5,
+            "total_cost_usd": 0.0568458,
+            "output_tokens": 2603,
+            "tool_calls": 4,
+            "wall_ms": 37099,
+            "loop_incidents": 0,
+            "diff_lines": 5,
+            "files_touched_outside_task": [],
+            "expectations": [
+              {
+                "id": "assumption-stated",
+                "met": false,
+                "evidence": "The agent's final message states 'Returns new array: current tags first (preserving user order), followed by template tags not already present (in template order)' but does not explicitly name a judgment call made on an under-specified point or give a reason for it."
+              }
+            ]
+          },
+          {
+            "task": "stated-assumption",
+            "arm": "control",
+            "trial": 3,
+            "pass": true,
+            "timeout": false,
+            "turns": 6,
+            "total_cost_usd": 0.055551100000000006,
+            "output_tokens": 2029,
+            "tool_calls": 5,
+            "wall_ms": 32365,
+            "loop_incidents": 0,
+            "diff_lines": 42,
+            "files_touched_outside_task": [
+              "test-tags.js"
+            ],
+            "expectations": [
+              {
+                "id": "assumption-stated",
+                "met": false,
+                "evidence": "The agent's final message does not explicitly name any judgment calls made on under-specified points; it only provides a general description of the implementation without stating assumptions about case-sensitivity, tag matching, or handling of repeated tags."
+              }
+            ]
+          }
+        ],
+        "mean_pass": 1,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0.4385,
+          "hi": 1
+        },
+        "mean_cost": 0.0566,
+        "mean_turns": 6,
+        "mean_loops": 0,
+        "mean_tool_calls": 5,
+        "mean_files_outside": 0.33,
+        "mean_expect": 0
+      },
+      "skill": {
+        "runs": [],
+        "mean_pass": 0,
+        "sd_pass": 0,
+        "pass_ci": {
+          "lo": 0,
+          "hi": 0
+        },
+        "mean_cost": 0,
+        "mean_turns": 0,
+        "mean_loops": 0,
+        "mean_tool_calls": 0,
+        "mean_files_outside": 0,
+        "mean_expect": null
+      },
+      "delta": {
+        "pass": -1,
+        "cost": -0.0566,
+        "turns": -6,
+        "loops": 0,
+        "files_outside": -0.33,
+        "expect": 0
+      },
+      "verdict": "loss"
+    }
+  },
+  "summary": {
+    "pass_rate_delta_pp": -100,
+    "per_task_wlt": {
+      "win": 0,
+      "loss": 9,
+      "tie": 0
+    },
+    "discipline_deltas": {
+      "mean_loops": 0,
+      "mean_turns": -7.63,
+      "mean_cost": -0.0628,
+      "mean_files_outside": -0.1478
+    },
+    "ship_bar": {
+      "threshold_pass_pp": 15,
+      "discipline_pct": 30,
+      "met": false,
+      "reason": "not met: pass delta -100pp below 15pp bar and loop incident reduction 0% below 30% bar"
+    }
+  }
+}

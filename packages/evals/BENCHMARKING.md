@@ -42,8 +42,14 @@ so diff size only counts when the task passed.
 - Report mean and stddev, and per-task win/loss/tie. Never a best run.
 - All runs are published, including the ones the skill loses.
 - Ship bar: claim improvement only if the pass-rate delta is at least +15
-  points, or pass rate holds while loop/scope metrics improve by 30%+, across
-  5+ runs per arm. Below the bar: iterate the skill and re-run. No chart.
+  points, or pass rate holds while discipline metrics improve by 30%+, across
+  5+ runs per arm. Discipline metrics are loop-incident reduction and
+  expectation-gap closure (how much of the baseline's unmet blind-graded
+  process expectations the skill closes). The expectation-gap metric was
+  pre-registered 2026-08-18 after a control-only discovery round measured the
+  baseline at 100% task pass with 0% compliance on several process
+  expectations, and before any skill-arm runs on the expanded suite. Below
+  the bar: iterate the skill and re-run. No chart.
 - Results are stamped with the exact model ID and date. Public claims need a
   15-30 task suite; the current 8 tasks are a development suite.
 

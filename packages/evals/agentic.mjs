@@ -27,6 +27,7 @@ const MAX_TURNS = parseInt(opt("max-turns", "15"), 10) || 15;
 const DRY = flag("dry-run");
 const APPEND = flag("append"); // merge this run into an existing benchmark.json (replaces re-run tasks, keeps the rest)
 const GRADER_MODEL = opt("grader-model", "claude-haiku-4-5-20251001");
+const CONC = parseInt(opt("concurrency", "2"), 10) || 2;
 const DATE = new Date().toISOString().slice(0, 10);
 const ARMS = opt("arms", "control,skill").split(",").map((s) => s.trim()).filter((s) => ["control", "skill"].includes(s));
 if (!ARMS.length) die("--arms must name control and/or skill");
@@ -337,16 +338,29 @@ function summarize(tasks, byTask, trials) {
   const cLoops = mean(Object.values(byTask).map((t) => t.control.mean_loops));
   const sLoops = mean(Object.values(byTask).map((t) => t.skill.mean_loops));
   const loopReductionPct = cLoops > 0 ? round(((cLoops - sLoops) / cLoops) * 100, 1) : (sLoops > 0 ? -100 : 0);
+  // Expectation-gap closure: how much of the baseline's unmet process-expectation
+  // gap the skill closes, pooled over tasks that have expectations. Pre-registered
+  // 2026-08-18 after control-only discovery, before any skill-arm runs on the
+  // expanded suite.
+  const poolExpect = (arm) => {
+    const vals = Object.values(byTask).map((t) => t[arm].mean_expect).filter((v) => v !== null);
+    return vals.length ? mean(vals) : null;
+  };
+  const cExp = poolExpect("control"), sExp = poolExpect("skill");
+  const expGapClosurePct = cExp !== null && sExp !== null && cExp < 1
+    ? round(((sExp - cExp) / (1 - cExp)) * 100, 1) : null;
   const passMet = pass_rate_delta_pp >= 15;
-  const discMet = loopReductionPct >= 30 && pass_rate_delta_pp >= 0;
+  const discSignal = loopReductionPct >= 30 || (expGapClosurePct !== null && expGapClosurePct >= 30);
+  const discMet = discSignal && pass_rate_delta_pp >= 0;
   const met = passMet || discMet;
   const reason = met
-    ? `met: pass delta ${signed(pass_rate_delta_pp, "pp")} (bar 15pp)${passMet ? "" : ` below bar, but loop incidents down ${loopReductionPct}% (bar 30%) with no pass regression`}`
-    : `not met: pass delta ${signed(pass_rate_delta_pp, "pp")} below 15pp bar and loop incident reduction ${loopReductionPct}% below 30% bar`;
+    ? `met: pass delta ${signed(pass_rate_delta_pp, "pp")} (bar 15pp)${passMet ? "" : ` below bar, but discipline improved with no pass regression (loops down ${loopReductionPct}%, expectation gap closed ${expGapClosurePct === null ? "n/a" : expGapClosurePct + "%"}; bar 30%)`}`
+    : `not met: pass delta ${signed(pass_rate_delta_pp, "pp")} below 15pp bar; loop reduction ${loopReductionPct}% and expectation gap closure ${expGapClosurePct === null ? "n/a" : expGapClosurePct + "%"} below 30% bar (or pass regressed)`;
   return {
     pass_rate_delta_pp,
     per_task_wlt: wlt,
     discipline_deltas,
+    expectation_compliance: { control: cExp, skill: sExp, gap_closure_pct: expGapClosurePct },
     ship_bar: { threshold_pass_pp: 15, discipline_pct: 30, met, reason },
   };
 }
@@ -439,7 +453,7 @@ function printTable(tasks, byTask) {
       }
     });
   }
-  const trials = await pool(jobs, DRY ? 4 : 2);
+  const trials = await pool(jobs, DRY ? 4 : CONC);
   let aggTasks = tasks, aggTrials = trials;
   if (APPEND && fs.existsSync(BENCH_JSON)) {
     const prev = JSON.parse(fs.readFileSync(BENCH_JSON, "utf8"));
