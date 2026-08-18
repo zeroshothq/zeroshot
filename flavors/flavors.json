@@ -1,0 +1,133 @@
+{
+  "flavors": [
+    { "id": "diffusion", "version": "1.0.2", "taste": "dragonfruit haze",
+      "params": { "caffeine_mg": 200, "l_theanine_mg": 100, "sugar_g": 0 },
+      "notes": "starts as noise, ends as flavor",
+      "changelog": ["1.0.2 smoother finish", "1.0.1 carbonation tuning"] },
+    { "id": "gaussian", "version": "1.0.1", "taste": "white peach & cream",
+      "params": { "caffeine_mg": 200, "l_theanine_mg": 100, "sugar_g": 0 },
+      "notes": "smooth. centered. perfectly distributed",
+      "changelog": ["1.0.1 narrowed the variance"] },
+    { "id": "backprop", "version": "1.0.3", "taste": "blackberry",
+      "params": { "caffeine_mg": 200, "l_theanine_mg": 100, "sugar_g": 0 },
+      "notes": "propagates backward through your afternoon",
+      "changelog": ["1.0.3 reduced vanishing aftertaste"] },
+    { "id": "relu", "version": "1.0.0", "taste": "rectified lemonade unit",
+      "params": { "caffeine_mg": 200, "l_theanine_mg": 100, "sugar_g": 0 },
+      "notes": "linear above zero",
+      "changelog": ["1.0.0 initial activation"] },
+    { "id": "descent", "version": "1.1.0", "taste": "double espresso",
+      "params": { "caffeine_mg": 250, "l_theanine_mg": 100, "sugar_g": 0 },
+      "notes": "finds your minimum, fast",
+      "changelog": ["1.1.0 steeper"] },
+    { "id": "dropout", "version": "1.0.1", "taste": "chamomile citrus",
+      "params": { "caffeine_mg": 0, "l_theanine_mg": 150, "sugar_g": 0 },
+      "notes": "regularize your evening",
+      "changelog": ["1.0.1 now 20% calmer"] }
+  ],
+
+  "builds": {
+    "ml-engineer": {
+      "name": "ML Engineer Build",
+      "tagline": "You own the pipeline. The pipeline knows.",
+      "mix": { "backprop": 6, "relu": 5, "gaussian": 5, "diffusion": 4, "dropout": 4 },
+      "requirements": [
+        "3+ years designing, training, and deploying machine learning models in production environments",
+        "Proficiency with PyTorch or TensorFlow and the Python ML ecosystem (scikit-learn, NumPy, pandas)",
+        "Experience building and maintaining data pipelines that feed production models",
+        "Track record of model evaluation, monitoring, and iteration after deployment",
+        "Experience shipping end-to-end ML systems with data and product teams"
+      ]
+    },
+    "deep-learning-engineer": {
+      "name": "Deep Learning Engineer Build",
+      "tagline": "Mixed precision. Literally.",
+      "mix": { "backprop": 8, "descent": 8, "relu": 4, "dropout": 4 },
+      "requirements": [
+        "Hands-on experience with CUDA or Triton kernel development and GPU performance optimization",
+        "Distributed training experience (data, pipeline, and tensor parallelism) with libraries such as NCCL",
+        "Working knowledge of mixed- and low-precision arithmetic (FP16/FP8/INT8) and training stability",
+        "Proficiency with PyTorch or JAX and profiling tools for locating bottlenecks",
+        "Experience scaling workloads across multi-node GPU clusters"
+      ]
+    },
+    "llm-engineer": {
+      "name": "LLM Engineer Build",
+      "tagline": "Context window: 24 cans.",
+      "mix": { "diffusion": 6, "backprop": 6, "gaussian": 4, "relu": 4, "dropout": 4 },
+      "requirements": [
+        "Experience fine-tuning large language models (SFT, RLHF, or DPO) and evaluating output quality",
+        "Built retrieval-augmented generation systems using vector databases and embedding models",
+        "Designed and maintained evaluation pipelines covering quality, safety, and regression testing",
+        "Inference optimization experience: quantization, batching, and serving frameworks such as vLLM",
+        "Experience with prompt design and agent or tool-orchestration frameworks"
+      ]
+    },
+    "forward-deployed-engineer": {
+      "name": "Forward Deployed Build",
+      "tagline": "Consultant, PM, and engineer. Hydration for all three.",
+      "mix": { "descent": 6, "gaussian": 6, "relu": 6, "dropout": 6 },
+      "requirements": [
+        "3+ years shipping production software, including customer-facing or client-embedded work",
+        "Ability to translate ambiguous business requirements into deployed technical solutions end-to-end",
+        "Full-stack proficiency (Python or TypeScript) with API, data-system, and cloud integration experience",
+        "Strong communication with technical and executive stakeholders",
+        "Willingness to travel to customer sites (25-75%)"
+      ]
+    },
+    "research-scientist": {
+      "name": "Research Scientist Build",
+      "tagline": "Novel contribution: staying awake.",
+      "mix": { "dropout": 14, "descent": 6, "diffusion": 4 },
+      "requirements": [
+        "PhD in machine learning, computer science, or a related field, or equivalent research experience",
+        "Publication record at venues such as NeurIPS, ICML, or ICLR",
+        "Deep familiarity with modern architectures and training methods; rigorous experimental design",
+        "Proficiency with JAX or PyTorch for research prototyping at scale",
+        "Ability to take research from idea to reproducible result under deadline"
+      ]
+    },
+    "mlops-engineer": {
+      "name": "MLOps Build",
+      "tagline": "Uptime for the humans who keep uptime.",
+      "mix": { "dropout": 8, "descent": 8, "relu": 4, "gaussian": 4 },
+      "requirements": [
+        "Experience operating Kubernetes and cloud infrastructure (AWS or GCP) for ML workloads",
+        "Infrastructure-as-code proficiency (Terraform or equivalent) and CI/CD for training and deployment",
+        "Built model monitoring, drift detection, and alerting for production systems",
+        "Experience managing GPU fleets, job schedulers, and compute cost optimization",
+        "Production on-call experience for ML services"
+      ]
+    },
+    "data-engineer": {
+      "name": "Data Engineer Build",
+      "tagline": "Disparate sources. One fridge.",
+      "mix": { "backprop": 6, "gaussian": 6, "relu": 6, "dropout": 6 },
+      "requirements": [
+        "Mastery in building data products using generative AI, RLHF, and fine-tuning LLMs",
+        "End-to-end experience training, evaluating, testing, and deploying machine learning products at scale",
+        "Experience building data pipelines and driving ETL design decisions using disparate data sources",
+        "Proficiency in Python, shell scripting, streaming and batch pipelines, vector databases, DBT, BigQuery, BigTable or equivalent, and orchestration tools",
+        "Experience running machine learning in parallel environments (distributed clusters, GPU optimization)"
+      ]
+    },
+    "vibe-coder": {
+      "name": "Vibe Coder Build",
+      "tagline": "Tab-complete your beverage.",
+      "mix": null,
+      "requirements": ["No requirements", "Preferred: ships things"]
+    }
+  },
+
+  "skills": {
+    "free": ["zeroshot"],
+    "premium": ["descent", "diffusion", "dropout", "gaussian", "backprop", "relu"],
+    "note": "The free skill ships in this repo. Premium skills are delivered by signed email links on any paid order or subscription."
+  },
+
+  "plans": {
+    "standard": { "price_usd": 36, "cadence": "monthly", "cans": 12 },
+    "team": { "price_usd": 99, "cadence": "monthly", "cans": 48 },
+    "mixed-precision-24": { "price_usd": 60, "cadence": "one-time", "cans": 24 }
+  }
+}
