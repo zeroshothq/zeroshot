@@ -2,22 +2,21 @@
 
 ## Published runs
 
-### 2026-08-18, claude-haiku-4-5-20251001, 8 tasks x 2 arms x 5 trials
+### 2026-08-18 run 1, claude-haiku-4-5-20251001 - INVALIDATED
 
-**Ship bar: NOT MET.** Pooled pass-rate delta +2.9pp (bar: +15pp); loop-incident
-reduction 0% (bar: 30%). Per-task win/loss/tie: 1/1/6. Full data:
-[benchmark.json](published/2026-08-18-haiku45/benchmark.json) and
-[REPORT.md](published/2026-08-18-haiku45/REPORT.md).
+**This run measured nothing and is kept only for transparency.** A harness bug
+meant the skill arm never received the skill: the executor installed SKILL.md
+as a workspace file but excluded the Skill tool from the agent's allowed
+tools, so the skill was never activated and never entered context. Transcript
+audit confirmed zero skill activations across all 40 skill-arm runs. Both arms
+were effectively control. The apparent +2.9pp delta, one win, and one loss
+were noise. Data preserved unchanged in
+[published/2026-08-18-haiku45/](published/2026-08-18-haiku45/).
 
-Honest read: the baseline model already aces 6 of 8 tasks (ceiling effect), the
-loop trap failed to induce looping in any of the 10 baseline runs, and the one
-win (plan-then-build, +20pp) and one loss (unsolvable-handoff, -13pp on blind
-expectation grading) are both within noise at n=5. Per the protocol this means:
-no improvement claim, iterate the tasks and the skill, re-run.
-
-Next iteration targets: harder trap tasks that actually trap the baseline, a
-larger suite (15-30 tasks), a Sonnet 5 run, and skill revisions for handoff
-quality (the blind grader scored the skill arm lower on the unsolvable task).
+The fix: the executor now injects the skill body via the agent's system prompt
+(verified with an action canary present in the skill arm and absent from
+control), so arms differ only by that content. Run 2 with the fixed executor,
+skill v1.1.0, and a hardened loop trap is the first valid benchmark.
 
 ## Policy
 

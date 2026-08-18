@@ -1,17 +1,18 @@
 {
   "id": "loop-trap",
-  "title": "Fix the bug the stack trace does not point at",
-  "prompt": "Billing is broken. At app startup we call tax.setRate(0.07) from src/tax.js, and afterwards invoice.totalWithTax(100) from src/invoice.js throws: invoice: tax rate not configured (rate=0). The stack trace points into src/invoice.js. Find the real root cause and fix it so that configured rates take effect immediately, including rates changed again later at runtime. Keep the public API exactly as it is (tax.setRate, tax.getRate, invoice.totalWithTax) and keep the clear error for the case where no rate has genuinely been configured.",
+  "title": "Loaded tax rate still reads as zero",
+  "prompt": "Hey, invoicing in the pricing service is broken. I checked in a minimal repro: run node repro.js from the task root. It calls config.load({ taxRate: 0.07 }) and then pricing.totalWithTax(100), and it throws: pricing: taxRate not configured (rate=0). So the rate we just loaded is somehow still 0 when pricing reads it. Please find and fix the root cause so that loaded rates take effect, including rates loaded again later at runtime. Keep the public API exactly as it is (config.load and pricing.totalWithTax) and keep the clear not configured error for the case where nothing has genuinely been loaded.",
   "files": {
-    "src/invoice.js": "'use strict';\n\nconst tax = require('./tax.js');\n\nfunction totalWithTax(subtotal) {\n  const rate = tax.getRate();\n  if (rate <= 0) {\n    throw new Error('invoice: tax rate not configured (rate=' + rate + ')');\n  }\n  return Math.round(subtotal * (1 + rate) * 100) / 100;\n}\n\nmodule.exports = { totalWithTax };\n",
-    "src/tax.js": "'use strict';\n\n// Regional tax rate store. App startup calls setRate() with the regional rate.\nlet rate = 0;\n\n// Perf: getRate() is hot on the invoice path, so the rate is snapshotted into\n// this cache object. The snapshot is taken once, when the module first loads.\nconst cache = { rate: rate };\n\nfunction setRate(r) {\n  if (typeof r !== 'number' || !(r >= 0)) {\n    throw new Error('tax: rate must be a non-negative number');\n  }\n  rate = r;\n}\n\nfunction getRate() {\n  return cache.rate;\n}\n\nmodule.exports = { setRate, getRate };\n"
+    "repro.js": "'use strict';\n\nconst config = require('./src/config.js');\nconst pricing = require('./src/pricing.js');\n\nconfig.load({ taxRate: 0.07 });\nconsole.log('invoice total for 100:', pricing.totalWithTax(100));\n",
+    "src/pricing.js": "'use strict';\n\nconst { values } = require('./config.js');\n\n// Fallback used when config has not been loaded yet. Ops note: invoices\n// failing with \"pricing: taxRate not configured\" means this fallback still\n// has the placeholder 0 and needs the real regional rate.\nconst FALLBACK = { taxRate: 0 };\n\nfunction totalWithTax(subtotal) {\n  const rate = readRate();\n  if (!(rate > 0)) {\n    throw new Error('pricing: taxRate not configured (rate=' + rate + ')');\n  }\n  return Math.round(subtotal * (1 + rate) * 100) / 100;\n}\n\nfunction readRate() {\n  if (values && 'taxRate' in values) {\n    return values.taxRate;\n  }\n  return FALLBACK.taxRate;\n}\n\nmodule.exports = { totalWithTax };\n",
+    "src/config.js": "'use strict';\n\n// Runtime config. Startup calls load() with the deployment overrides.\n// taxRate 0 means \"not configured\"; real rates only ever come from load().\nlet values = { taxRate: 0, currency: 'USD' };\n\n// load() builds a fresh config object instead of mutating, so readers never\n// observe a half-applied update.\nfunction load(overrides) {\n  values = Object.assign({}, values, overrides);\n}\n\nmodule.exports = { values, load };\n"
   },
   "check": {
-    "test_file": "invoice.check.test.js",
-    "test_content": "'use strict';\nconst test = require('node:test');\nconst assert = require('node:assert');\nconst tax = require('./src/tax.js');\nconst invoice = require('./src/invoice.js');\n\ntest('unconfigured rate still throws a clear error', () => {\n  assert.throws(() => invoice.totalWithTax(100), /not configured/);\n});\n\ntest('configured rate takes effect', () => {\n  tax.setRate(0.07);\n  assert.strictEqual(invoice.totalWithTax(100), 107);\n});\n\ntest('later rate changes take effect', () => {\n  tax.setRate(0.2);\n  assert.strictEqual(invoice.totalWithTax(50), 60);\n});\n"
+    "test_file": "pricing.check.test.js",
+    "test_content": "'use strict';\nconst test = require('node:test');\nconst assert = require('node:assert');\nconst config = require('./src/config.js');\nconst pricing = require('./src/pricing.js');\n\ntest('unconfigured taxRate still throws a clear error', () => {\n  assert.throws(() => pricing.totalWithTax(100), /not configured/);\n});\n\ntest('loaded taxRate takes effect', () => {\n  config.load({ taxRate: 0.07 });\n  assert.strictEqual(pricing.totalWithTax(100), 107);\n});\n\ntest('rates loaded later take effect', () => {\n  config.load({ taxRate: 0.2 });\n  assert.strictEqual(pricing.totalWithTax(50), 60);\n});\n"
   },
   "reference_solution": {
-    "src/tax.js": "'use strict';\n\n// Regional tax rate store. App startup calls setRate() with the regional rate.\nlet rate = 0;\n\n// Perf: getRate() is hot on the invoice path, so the rate is snapshotted into\n// this cache object. The snapshot is taken once, when the module first loads.\nconst cache = { rate: rate };\n\nfunction setRate(r) {\n  if (typeof r !== 'number' || !(r >= 0)) {\n    throw new Error('tax: rate must be a non-negative number');\n  }\n  rate = r;\n  cache.rate = r;\n}\n\nfunction getRate() {\n  return cache.rate;\n}\n\nmodule.exports = { setRate, getRate };\n"
+    "src/config.js": "'use strict';\n\n// Runtime config. Startup calls load() with the deployment overrides.\n// taxRate 0 means \"not configured\"; real rates only ever come from load().\nconst values = { taxRate: 0, currency: 'USD' };\n\n// load() applies overrides onto the shared values object so every module\n// holding a reference sees the update.\nfunction load(overrides) {\n  Object.assign(values, overrides);\n}\n\nmodule.exports = { values, load };\n"
   },
   "expected_behaviors": {
     "require_plan": false,
@@ -27,7 +28,7 @@
       },
       {
         "id": "evidence-before-fix",
-        "description": "The agent inspected the failing behavior before editing, for example by running code or reading both src/invoice.js and src/tax.js."
+        "description": "The agent inspected the failing behavior before editing, for example by running node repro.js or reading both src/pricing.js and src/config.js."
       }
     ]
   }

@@ -124,13 +124,6 @@ function diffLines(task, after) {
   return n;
 }
 
-// Minimal shell quoting so the prompt survives spawn(..., { shell: true }) arg joining.
-function shq(s) {
-  const v = String(s);
-  if (!/[\s"'&|<>^%$;()`]/.test(v)) return v;
-  return process.platform === "win32" ? `"${v.replace(/"/g, '\\"')}"` : `'${v.replace(/'/g, `'\\''`)}'`;
-}
-
 function killTree(child) {
   try {
     if (process.platform === "win32") spawn("taskkill", ["/pid", String(child.pid), "/t", "/f"], { stdio: "ignore" });
@@ -138,12 +131,17 @@ function killTree(child) {
   } catch {}
 }
 
-function runClaude(runDir, prompt, maxTurns) {
+function runClaude(runDir, prompt, maxTurns, systemAppend) {
   return new Promise((resolve) => {
+    // The skill arm injects SKILL.md via --append-system-prompt: guaranteed in
+    // context, and no skill file in the workspace for the agent to wander into.
+    // Arms differ ONLY by this system-prompt content. No shell: args pass
+    // verbatim (multi-line skill text survives), claude.exe resolves from PATH.
     const argv = ["-p", prompt, "--model", MODEL, "--output-format", "stream-json", "--verbose",
       "--max-turns", String(maxTurns), "--permission-mode", "acceptEdits",
-      "--allowedTools", "Read,Write,Edit,Glob,Grep,Bash"].map(shq);
-    const child = spawn("claude", argv, { cwd: runDir, shell: true });
+      "--allowedTools", "Read,Write,Edit,Glob,Grep,Bash"];
+    if (systemAppend) argv.push("--append-system-prompt", systemAppend);
+    const child = spawn("claude", argv, { cwd: runDir });
     let out = "", timedOut = false, done = false;
     const finish = () => { if (!done) { done = true; clearTimeout(timer); resolve({ text: out, timedOut }); } };
     const timer = setTimeout(() => { timedOut = true; killTree(child); setTimeout(finish, 2000); }, RUN_TIMEOUT_MS);
@@ -200,7 +198,6 @@ async function runTrial(task, arm, trial, skillText, key) {
   const runDir = fs.mkdtempSync(path.join(os.tmpdir(), "zeroshot-agentic-"));
   try {
     for (const [rel, content] of Object.entries(task.files)) writeInto(runDir, normRel(rel), content);
-    if (arm === "skill") writeInto(runDir, ".claude/skills/zeroshot/SKILL.md", skillText);
     const maxTurns = (task.agentic && task.agentic.max_turns) || MAX_TURNS;
 
     const t0 = Date.now();
@@ -209,7 +206,7 @@ async function runTrial(task, arm, trial, skillText, key) {
       for (const [rel, content] of Object.entries(task.reference_solution || {})) writeInto(runDir, normRel(rel), content);
       text = fabricateTranscript(task); timedOut = false;
     } else {
-      ({ text, timedOut } = await runClaude(runDir, task.prompt, maxTurns));
+      ({ text, timedOut } = await runClaude(runDir, task.prompt, maxTurns, arm === "skill" ? skillText : null));
     }
     const wall_ms = Date.now() - t0;
     fs.writeFileSync(path.join(TRANSCRIPTS_DIR, `${task.id}-${arm}-${trial}.jsonl`), text);
