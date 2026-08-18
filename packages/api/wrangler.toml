@@ -1,0 +1,30 @@
+name = "zeroshot-api"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+
+# Custom domain — provisioned automatically on deploy (zone lives in this account)
+routes = [
+  { pattern = "api.zeroshothq.dev", custom_domain = true }
+]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "zeroshot"
+database_id = "fe511dbe-3b25-4d3b-b27d-9153f901b1a1"
+
+[[kv_namespaces]]
+binding = "CACHE"            # recommend cache + rate limiting
+id = "ef39ed6027434bf7965e9db0e537d0fb"
+
+[[kv_namespaces]]
+binding = "PREMIUM_SKILLS"   # premium SKILL.md bodies (admin-uploaded, never in git)
+id = "69e86b63f1764f37b11fada845b80503"
+
+[vars]
+SITE_URL = "https://zeroshothq.dev"
+
+# Secrets (set with `wrangler secret put NAME`):
+# STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+# PRICE_STANDARD_MONTHLY, PRICE_TEAM_MONTHLY, PRICE_MIXED24,
+# RESEND_API_KEY, ANTHROPIC_API_KEY,
+# SKILL_SIGNING_SECRET, ADMIN_BEARER, TURNSTILE_SECRET (optional)
