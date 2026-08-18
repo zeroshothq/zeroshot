@@ -1,5 +1,7 @@
 # zeroshot
 
+[![test](https://github.com/zeroshothq/zeroshot/actions/workflows/test.yml/badge.svg)](https://github.com/zeroshothq/zeroshot/actions/workflows/test.yml)
+
 > The first energy drink with an API. Zero sugar. Zero shot.
 
 Zero Shot is a frontier beverage for the humans still in the loop — and a set
