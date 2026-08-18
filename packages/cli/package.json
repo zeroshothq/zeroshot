@@ -1,5 +1,5 @@
 {
-  "name": "zeroshot",
+  "name": "@zeroshothq/zeroshot",
   "version": "1.0.2",
   "description": "The first energy drink with an API. Zero sugar. Zero shot.",
   "bin": { "zeroshot": "bin/zeroshot.js" },

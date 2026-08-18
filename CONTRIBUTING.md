@@ -7,7 +7,7 @@ flavors/           source of truth (flavors.json) + model cards — PR new flavo
 skills/zeroshot/   the free agent skill
 skills-premium/    gitignored — premium skill sources, uploaded to KV, emailed on purchase
 packages/api/      Cloudflare Worker (Stripe, Resend, D1, KV, the Recruiter)
-packages/cli/      npm "zeroshot" — zero dependencies, zero telemetry
+packages/cli/      npm "@zeroshothq/zeroshot" — zero dependencies, zero telemetry
 .github/workflows/ test · deploy-api (on main) · publish-cli (on cli-v* tags)
 ```
 

@@ -16,7 +16,7 @@ curl -X POST https://api.zeroshothq.dev/v1/subscriptions \
 ## Install the CLI
 
 ```bash
-npm install -g zeroshot
+npm install -g @zeroshothq/zeroshot
 
 zeroshot recommend "staff LLM engineer"   # your job title → your 24-can build
 zeroshot order mixed-precision-24 --build llm-engineer
