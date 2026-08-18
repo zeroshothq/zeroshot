@@ -8,6 +8,7 @@
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![node >= 20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](packages/cli/package.json)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![skills.sh](https://skills.sh/b/zeroshothq/zeroshot)](https://skills.sh/zeroshothq/zeroshot)
 
 **You're tired. So are your agents.**
 
