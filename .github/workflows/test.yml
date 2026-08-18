@@ -14,7 +14,7 @@ jobs:
       - name: flavors.json valid + mixes sum to 24
         run: node -e "const f=require('./flavors/flavors.json');for(const[k,b]of Object.entries(f.builds)){if(!b.mix)continue;const s=Object.values(b.mix).reduce((a,c)=>a+c,0);if(s!==24)throw new Error(k+' sums to '+s)};console.log('ok')"
       - name: Install API deps
-        run: cd packages/api && npm install
+        run: cd packages/api && npm ci
       - name: API + CLI tests (against local wrangler dev)
         env:
           WRANGLER_SEND_METRICS: "false"

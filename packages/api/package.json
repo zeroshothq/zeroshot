@@ -7,5 +7,5 @@
     "deploy": "wrangler deploy",
     "db:init": "wrangler d1 execute zeroshot --file=./schema.sql"
   },
-  "devDependencies": { "wrangler": "^4.0.0" }
+  "devDependencies": { "wrangler": "^4.123.0" }
 }
