@@ -26,6 +26,7 @@ const ONLY = opt("only");
 const MAX_TURNS = parseInt(opt("max-turns", "15"), 10) || 15;
 const DRY = flag("dry-run");
 const APPEND = flag("append"); // merge this run into an existing benchmark.json (replaces re-run tasks, keeps the rest)
+const BILL_API = flag("bill-api"); // bill headless runs to ANTHROPIC_API_KEY instead of the Claude Code plan
 const GRADER_MODEL = opt("grader-model", "claude-haiku-4-5-20251001");
 const CONC = parseInt(opt("concurrency", "2"), 10) || 2;
 const DATE = new Date().toISOString().slice(0, 10);
@@ -133,7 +134,7 @@ function killTree(child) {
   } catch {}
 }
 
-function runClaude(runDir, prompt, maxTurns, systemAppend) {
+function runClaude(runDir, prompt, maxTurns, systemAppend, billKey) {
   return new Promise((resolve) => {
     // The skill arm injects SKILL.md via --append-system-prompt: guaranteed in
     // context, and no skill file in the workspace for the agent to wander into.
@@ -143,7 +144,8 @@ function runClaude(runDir, prompt, maxTurns, systemAppend) {
       "--max-turns", String(maxTurns), "--permission-mode", "acceptEdits",
       "--allowedTools", "Read,Write,Edit,Glob,Grep,Bash"];
     if (systemAppend) argv.push("--append-system-prompt", systemAppend);
-    const child = spawn("claude", argv, { cwd: runDir });
+    const env = billKey ? { ...process.env, ANTHROPIC_API_KEY: billKey } : process.env;
+    const child = spawn("claude", argv, { cwd: runDir, env });
     let out = "", timedOut = false, done = false;
     const finish = () => { if (!done) { done = true; clearTimeout(timer); resolve({ text: out, timedOut }); } };
     const timer = setTimeout(() => { timedOut = true; killTree(child); setTimeout(finish, 2000); }, RUN_TIMEOUT_MS);
@@ -208,7 +210,7 @@ async function runTrial(task, arm, trial, skillText, key) {
       for (const [rel, content] of Object.entries(task.reference_solution || {})) writeInto(runDir, normRel(rel), content);
       text = fabricateTranscript(task); timedOut = false;
     } else {
-      ({ text, timedOut } = await runClaude(runDir, task.prompt, maxTurns, arm === "skill" ? skillText : null));
+      ({ text, timedOut } = await runClaude(runDir, task.prompt, maxTurns, arm === "skill" ? skillText : null, BILL_API ? key : null));
     }
     const wall_ms = Date.now() - t0;
     fs.writeFileSync(path.join(TRANSCRIPTS_DIR, `${task.id}-${arm}-${trial}.jsonl`), text);
@@ -439,6 +441,7 @@ function printTable(tasks, byTask) {
   const needsGrading = tasks.some((t) => t.agentic && t.agentic.expectations && t.agentic.expectations.length);
   const key = DRY ? null : apiKey();
   if (!DRY && needsGrading && !key) die("ANTHROPIC_API_KEY not found (env or repo-root .env), required to grade expectations");
+  if (BILL_API && !key) die("--bill-api requires ANTHROPIC_API_KEY (env or repo-root .env)");
   fs.mkdirSync(TRANSCRIPTS_DIR, { recursive: true });
   console.log(`zeroshot agentic evals: ${tasks.length} task(s) x 2 arms x ${TRIALS} trials, model ${MODEL}${DRY ? " (dry run)" : ""}`);
 
