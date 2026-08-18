@@ -4,11 +4,9 @@
 
 [![test](https://github.com/zeroshothq/zeroshot/actions/workflows/test.yml/badge.svg)](https://github.com/zeroshothq/zeroshot/actions/workflows/test.yml)
 [![npm](https://img.shields.io/npm/v/%40zeroshothq%2Fzeroshot?logo=npm&color=cb3837)](https://www.npmjs.com/package/@zeroshothq/zeroshot)
-[![downloads](https://img.shields.io/npm/dm/%40zeroshothq%2Fzeroshot)](https://www.npmjs.com/package/@zeroshothq/zeroshot)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![node >= 20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](packages/cli/package.json)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![skills.sh](https://skills.sh/b/zeroshothq/zeroshot)](https://skills.sh/zeroshothq/zeroshot)
 
 **You're tired. So are your agents.**
 
