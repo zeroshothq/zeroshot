@@ -7,6 +7,10 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
 ## [Unreleased]
 
 ### Added
+- The free skill is installable via the open skills ecosystem
+  (`npx skills add zeroshothq/zeroshot`) and as a Claude Code plugin
+  (`.claude-plugin/` manifests). The repo layout already matched the
+  `skills/<name>/SKILL.md` convention; no changes to the skill itself.
 - Automated Stripe setup: `setup-secrets.mjs` creates the product + prices,
   generates internal secrets, and pushes Worker secrets from a local `.env`
   (values never printed), with `--webhook` wiring checkout webhooks.

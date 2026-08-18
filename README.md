@@ -88,7 +88,9 @@ behavioral presets you pour into a coding agent's context.
 - **Free (in this repo):** [`skills/zeroshot`](skills/zeroshot/SKILL.md) - the
   core boost: short plans, verify-by-running, the loop-breaker (no more
   "You're absolutely right. Retrying."), clean handoffs.
-  Install: `zeroshot pour zeroshot`
+  Install: `zeroshot pour zeroshot`, or with the open skills ecosystem:
+  `npx skills add zeroshothq/zeroshot`, or as a Claude Code plugin:
+  `/plugin marketplace add zeroshothq/zeroshot`
 - **Premium (six):** `descent` (ship) · `diffusion` (explore) · `dropout`
   (review) · `backprop` (debug) · `gaussian` (communicate) · `relu`
   (simplify). **Included with any paid order or subscription** - after

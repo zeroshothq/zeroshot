@@ -1,0 +1,11 @@
+{
+  "name": "zeroshot",
+  "owner": { "name": "Zero Shot Labs", "url": "https://zeroshothq.dev" },
+  "plugins": [
+    {
+      "name": "zeroshot",
+      "source": "./",
+      "description": "The free Zero Shot skill: short plans, verify-by-running, the loop-breaker, clean handoffs. The six premium skills ship with any paid order at zeroshothq.dev."
+    }
+  ]
+}

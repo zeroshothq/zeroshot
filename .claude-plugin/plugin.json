@@ -1,0 +1,10 @@
+{
+  "name": "zeroshot",
+  "description": "Zero Shot core boost - focus-mode behavioral preset for coding agents. Short plans, verify-by-running, loop-breaking, clean handoffs.",
+  "version": "1.0.2",
+  "author": { "name": "Zero Shot Labs", "url": "https://zeroshothq.dev" },
+  "homepage": "https://zeroshothq.dev",
+  "repository": "https://github.com/zeroshothq/zeroshot",
+  "license": "MIT",
+  "keywords": ["skills", "agents", "focus", "energy-drink"]
+}
