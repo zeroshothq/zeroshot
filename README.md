@@ -129,14 +129,14 @@ days). Sources are not in this public repo; each ships with its own eval
 suite under [`packages/evals/skills/`](packages/evals/) and no skill gets a
 benchmark chart before its published run clears the ship bar.
 
-| Skill (folder) | Install name | Job | Status |
-|---|---|---|---|
-| `skills-premium/descent` | `descent` | Ship mode: the smallest correct change under time pressure, verified by running | drafted, pre-benchmark |
-| `skills-premium/diffusion` | `diffusion` | Explore mode: three genuinely distinct approaches before converging on one | drafted, pre-benchmark |
-| `skills-premium/dropout` | `dropout` | Review mode: find what is wrong in existing work; verdict first, style last | drafted, pre-benchmark |
-| `skills-premium/backprop` | `backprop` | Debug mode: reproduce first, read logs before editing, change one variable at a time | planned |
-| `skills-premium/gaussian` | `gaussian` | Communicate mode: PR descriptions, status updates, stakeholder summaries | planned |
-| `skills-premium/relu` | `relu` | Simplify mode: cut scope, remove abstraction, prefer the boring linear solution | planned |
+| Skill (folder) | Install name | Job |
+|---|---|---|
+| `skills-premium/descent` | `descent` | Ship mode: the smallest correct change under time pressure, verified by running |
+| `skills-premium/diffusion` | `diffusion` | Explore mode: three genuinely distinct approaches before converging on one |
+| `skills-premium/dropout` | `dropout` | Review mode: find what is wrong in existing work; verdict first, style last |
+| `skills-premium/backprop` | `backprop` | Debug mode: reproduce first, read logs before editing, change one variable at a time |
+| `skills-premium/gaussian` | `gaussian` | Communicate mode: PR descriptions, status updates, stakeholder summaries |
+| `skills-premium/relu` | `relu` | Simplify mode: cut scope, remove abstraction, prefer the boring linear solution |
 
 Skills make measurable claims: the [eval harness](packages/evals/) runs each
 skill with-vs-without across repeated trials, scored by real test execution
