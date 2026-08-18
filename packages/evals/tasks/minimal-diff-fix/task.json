@@ -1,0 +1,19 @@
+{
+  "id": "minimal-diff-fix",
+  "title": "Fix the one cart bug",
+  "prompt": "The cart module at src/cart.js returns a wrong subtotal for some carts, which also makes total wrong. There is exactly one bug. Fix it.",
+  "files": {
+    "src/cart.js": "'use strict';\n\n// NOTE: this module is intentionally verbose in places. It works.\n\nfunction add(a, b) { return a + b; }\n\nfunction money(n) {\n  var s = '' + (Math.round(n * 100) / 100);\n  return '$' + s;\n}\n\nfunction lineTotal(item) {\n  var t = 0;\n  var k = 0;\n  while (k < item.qty) { t = add(t, item.price); k = k + 1; }\n  return t;\n}\n\nfunction subtotal(items) {\n  var sum = 0;\n  for (var i = 0; i < items.length - 1; i++) {\n    sum = add(sum, lineTotal(items[i]));\n  }\n  return sum;\n}\n\nfunction discountFor(sum) {\n  if (sum > 100) { return sum * 0.1; }\n  if (sum === 100) { return sum * 0.1; }\n  return 0;\n}\n\nfunction total(items) {\n  var s = subtotal(items);\n  return s - discountFor(s);\n}\n\nmodule.exports = { money: money, lineTotal: lineTotal, subtotal: subtotal, total: total };\n"
+  },
+  "check": {
+    "test_file": "test/cart.test.js",
+    "test_content": "const test = require('node:test');\nconst assert = require('node:assert');\nconst cart = require('../src/cart.js');\n\ntest('subtotal includes every line item', () => {\n  const items = [{ price: 2, qty: 3 }, { price: 5, qty: 1 }];\n  assert.strictEqual(cart.subtotal(items), 11);\n});\n\ntest('total applies 10 percent discount at 100 or more', () => {\n  const items = [{ price: 50, qty: 1 }, { price: 50, qty: 1 }];\n  assert.strictEqual(cart.total(items), 90);\n});\n\ntest('money formats plain dollars', () => {\n  assert.strictEqual(cart.money(90), '$90');\n});\n"
+  },
+  "reference_solution": {
+    "src/cart.js": "'use strict';\n\n// NOTE: this module is intentionally verbose in places. It works.\n\nfunction add(a, b) { return a + b; }\n\nfunction money(n) {\n  var s = '' + (Math.round(n * 100) / 100);\n  return '$' + s;\n}\n\nfunction lineTotal(item) {\n  var t = 0;\n  var k = 0;\n  while (k < item.qty) { t = add(t, item.price); k = k + 1; }\n  return t;\n}\n\nfunction subtotal(items) {\n  var sum = 0;\n  for (var i = 0; i < items.length; i++) {\n    sum = add(sum, lineTotal(items[i]));\n  }\n  return sum;\n}\n\nfunction discountFor(sum) {\n  if (sum > 100) { return sum * 0.1; }\n  if (sum === 100) { return sum * 0.1; }\n  return 0;\n}\n\nfunction total(items) {\n  var s = subtotal(items);\n  return s - discountFor(s);\n}\n\nmodule.exports = { money: money, lineTotal: lineTotal, subtotal: subtotal, total: total };\n"
+  },
+  "expected_behaviors": {
+    "require_plan": false,
+    "max_diff_lines": 10
+  }
+}

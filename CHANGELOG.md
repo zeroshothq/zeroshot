@@ -7,6 +7,10 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
 ## [Unreleased]
 
 ### Added
+- Skill eval harness (`packages/evals/`): with-vs-without A/B benchmark,
+  zero dependencies. Six adversarially hardened tasks with real failing
+  tests, Wilson confidence intervals, anti-cheat rules, and a CI dry-run
+  smoke test. Results publish only after clearing the ship bar.
 - The free skill is installable via the open skills ecosystem
   (`npx skills add zeroshothq/zeroshot`) and as a Claude Code plugin
   (`.claude-plugin/` manifests). The repo layout already matched the

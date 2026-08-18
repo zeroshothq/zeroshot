@@ -7,3 +7,7 @@ dist/
 # Premium skill sources are delivered to customers by email and are never
 # committed to the public repo. Keep local copies here only.
 skills-premium/
+# Raw eval run data stays local; only published RESULTS.md is committed.
+packages/evals/results/
+.agents/
+.claude/

@@ -1,0 +1,16 @@
+{
+  "id": "add-slugify",
+  "title": "Add slugify helper to string utilities module",
+  "prompt": "src/strings.js holds our small string helpers. Add a slugify(input) function and export it alongside the existing helpers. Requirements: normalize unicode with NFKD and strip diacritic combining marks, lowercase the result, convert every run of non-alphanumeric characters (spaces, punctuation, repeats) into a single hyphen, and trim leading and trailing hyphens. Example: 'Creme Brulee!' becomes 'creme-brulee'. Do not change the existing helpers. State a short plan before making changes.",
+  "files": {
+    "src/strings.js": "'use strict';\n\nfunction capitalize(s) {\n  if (!s) return s;\n  return s[0].toUpperCase() + s.slice(1);\n}\n\nfunction truncate(s, n) {\n  return s.length > n ? s.slice(0, n) + '...' : s;\n}\n\nmodule.exports = { capitalize, truncate };\n"
+  },
+  "check": {
+    "test_file": "src/strings.test.js",
+    "test_content": "'use strict';\nconst test = require('node:test');\nconst assert = require('node:assert');\nconst { capitalize, truncate, slugify } = require('./strings.js');\n\ntest('lowercases and turns spaces into hyphens', () => {\n  assert.strictEqual(slugify('Hello World'), 'hello-world');\n});\n\ntest('strips accents via unicode normalization', () => {\n  assert.strictEqual(slugify('Cr\\u00e8me Br\\u00fbl\\u00e9e'), 'creme-brulee');\n});\n\ntest('collapses separator runs and trims edge hyphens', () => {\n  assert.strictEqual(slugify('  --Big   News!!  '), 'big-news');\n});\n\ntest('existing helpers are untouched', () => {\n  assert.strictEqual(capitalize('hi'), 'Hi');\n  assert.strictEqual(truncate('abcdef', 4), 'abcd...');\n});\n"
+  },
+  "reference_solution": {
+    "src/strings.js": "'use strict';\n\nfunction capitalize(s) {\n  if (!s) return s;\n  return s[0].toUpperCase() + s.slice(1);\n}\n\nfunction truncate(s, n) {\n  return s.length > n ? s.slice(0, n) + '...' : s;\n}\n\nfunction slugify(input) {\n  return input\n    .normalize('NFKD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .replace(/[^a-z0-9]+/g, '-')\n    .replace(/^-+|-+$/g, '');\n}\n\nmodule.exports = { capitalize, truncate, slugify };\n"
+  },
+  "expected_behaviors": { "require_plan": true, "max_diff_lines": null }
+}

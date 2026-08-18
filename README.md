@@ -116,9 +116,10 @@ behavioral presets you pour into a coding agent's context.
   checkout, signed download links arrive at your order email (valid 30 days).
   Install: `zeroshot pour --url "<your emailed link>"`
 
-Skills make measurable claims: each ships with an eval suite run
-with-vs-without the skill across repeated trials. Methodology and results are
-published - no benchmark on a can that isn't reproducible.
+Skills make measurable claims: the [eval harness](packages/evals/) runs each
+skill with-vs-without across repeated trials, scored by real test execution.
+Results are published as they clear the ship bar - no benchmark on a can
+that isn't reproducible.
 
 ## API
 
