@@ -1,0 +1,24 @@
+name: test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: CLI syntax check
+        run: node --check packages/cli/bin/zeroshot.js
+      - name: Worker syntax check
+        run: node --check packages/api/src/index.js
+      - name: flavors.json valid + mixes sum to 24
+        run: node -e "const f=require('./flavors/flavors.json');for(const[k,b]of Object.entries(f.builds)){if(!b.mix)continue;const s=Object.values(b.mix).reduce((a,c)=>a+c,0);if(s!==24)throw new Error(k+' sums to '+s)};console.log('ok')"
+      - name: Install API deps
+        run: cd packages/api && npm install
+      - name: API + CLI tests (against local wrangler dev)
+        env:
+          WRANGLER_SEND_METRICS: "false"
+        run: |
+          (cd packages/api && npx wrangler dev --port 8787 &)
+          for i in $(seq 1 90); do curl -sf http://localhost:8787/v1/status >/dev/null && break; sleep 2; done
+          ZEROSHOT_API_URL=http://localhost:8787 ZEROSHOT_TEST_WRITES=1 node --test packages/api/test/*.test.js packages/cli/test/*.test.js
