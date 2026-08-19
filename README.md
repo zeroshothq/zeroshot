@@ -35,6 +35,8 @@ npm install -g @zeroshothq/zeroshot
 zeroshot recommend "staff LLM engineer"   # your job title → your 24-can build
 zeroshot order mixed-precision-24 --build llm-engineer
 zeroshot pour warmup                      # install the free agent skill
+zeroshot skills                           # every skill: tier + version
+zeroshot spot                             # your waitlist position + referrals
 zeroshot consume --flavor descent         # local caffeine log (offline, private)
 ```
 
