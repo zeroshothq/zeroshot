@@ -1,6 +1,14 @@
-<div align="center">
+<div align="center"><pre>
+ _____   __________  ____     _____ __  ______  ______
+/__  /  / ____/ __ \/ __ \   / ___// / / / __ \/_  __/
+  / /  / __/ / /_/ / / / /   \__ \/ /_/ / / / / / /
+ / /__/ /___/ _, _/ /_/ /   ___/ / __  / /_/ / / /
+/____/_____/_/ |_|\____/   /____/_/ /_/\____/ /_/
 
-# Zero Shot
+                   Merge more PRs.™
+</pre></div>
+
+<div align="center">
 
 [![test](https://github.com/zeroshothq/zeroshot/actions/workflows/test.yml/badge.svg)](https://github.com/zeroshothq/zeroshot/actions/workflows/test.yml)
 [![npm](https://img.shields.io/npm/v/%40zeroshothq%2Fzeroshot?logo=npm&color=cb3837)](https://www.npmjs.com/package/@zeroshothq/zeroshot)
@@ -13,6 +21,10 @@
 Crack open a can for yourself. Pour a skill into your agent.
 
 > The first energy drink for you and your agent. Zero sugar. Zero shot.
+
+[Install](#install-the-cli) · [Plans](#plans) · [Flavors](#flavors) · [Skills](#skills) · [API](#api) · [Contributing](#contributing)
+
+AI agents / LLMs: start with [`llms.txt`](llms.txt).
 
 </div>
 
