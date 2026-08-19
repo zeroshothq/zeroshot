@@ -53,7 +53,7 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
   the command is still `zeroshot`.
 - Home is now `zeroshothq.dev` / `api.zeroshothq.dev` under the `zeroshothq`
   GitHub org; custom domain is provisioned from `wrangler.toml` on deploy.
-- API root motto: "Push to main."
+- API root motto: "git push --force origin main"
 
 ### Fixed
 - Error responses now send CORS headers as HTTP headers instead of leaking

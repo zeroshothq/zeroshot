@@ -279,7 +279,7 @@ export default {
 
       // ---- GET /openapi.yaml is served by the site; API root points at docs
       if (path === "" || path === "/v1")
-        return json({ name: "zeroshot", docs: `${env.SITE_URL}/docs`, motto: "Push to main." }, 200, cors);
+        return json({ name: "zeroshot", docs: `${env.SITE_URL}/docs`, motto: "git push --force origin main" }, 200, cors);
 
       // ---- POST /v1/waitlist
       if (path === "/v1/waitlist" && request.method === "POST") {
