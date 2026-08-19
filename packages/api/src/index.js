@@ -260,7 +260,9 @@ export default {
         const v = S.versions || {};
         const skills = [
           { id: freeId, tier: "free", version: v[freeId] || null, aliases: S.free.slice(1),
-            install: `zeroshot pour ${freeId}`, url: `${apiBase}/v1/skills/${freeId}` },
+            install: `zeroshot pour ${freeId} --key pk_zs_...`,
+            url: `${apiBase}/v1/skills/${freeId}?key=pk_zs_...`,
+            requires: "waitlist key - join via POST /v1/waitlist" },
           ...S.premium.map((id) => ({ id, tier: "premium", version: v[id] || null,
             install: "delivered by email with any paid order" })),
         ];
@@ -307,7 +309,7 @@ export default {
         await env.DB.prepare("INSERT INTO waitlist (email, pk_key, referred_by, position) VALUES (?,?,?,?)")
           .bind(email, pk, ref || null, position).run();
         await sendEmail(env, email, "Zero Shot - you're on the list",
-          `<div style="font-family:monospace"><p>You're #${position}.</p><p>Your key: <b>${pk}</b> - it doubles as a referral code. Every signup that uses it moves you up 10 spots.</p><p>Meanwhile, pour the free agent skill: <a href="${apiBase}/v1/skills/warmup">warmup</a>.</p></div>`);
+          `<div style="font-family:monospace"><p>You're #${position}.</p><p>Your key: <b>${pk}</b> - it doubles as a referral code. Every signup that uses it moves you up 10 spots.</p><p>Your key also unlocks the free agent skill: <a href="${apiBase}/v1/skills/warmup?key=${pk}">warmup</a> - or run <code>zeroshot pour warmup --key ${pk}</code>.</p></div>`);
         return json({ public_key: pk, position,
           note: "Your key is your referral code. +10 spots per signup." }, 201, cors);
       }
@@ -443,14 +445,21 @@ export default {
         return row ? json(row, 200, cors) : err(404, "order not found", cors);
       }
 
-      // ---- GET /v1/skills/:id  (free skill is open; premium requires a signed link)
+      // ---- GET /v1/skills/:id  (free skill requires a waitlist key; premium a signed link)
       if (path.startsWith("/v1/skills/") && request.method === "GET") {
         const id = path.split("/").pop();
         if (FLAVORS_DATA.skills.free.includes(id)) {
-          // Free skill is bundled from the public repo at deploy time via KV too,
-          // or fetched from raw GitHub as fallback:
-          const body = await env.PREMIUM_SKILLS.get("free:" + id)
-            || "See github.com/zeroshothq/zeroshot/skills/" + id;
+          // The free skill is delivered on waitlist signup: the pk_ key is the
+          // credential. Same server-side check as everything else - membership
+          // is a D1 row, the source lives only in KV, never in the public repo.
+          const key = url.searchParams.get("key") || "";
+          const member = key.startsWith("pk_zs_") &&
+            await env.DB.prepare("SELECT 1 AS ok FROM waitlist WHERE pk_key=?").bind(key).first();
+          if (!member)
+            return err(403, "join the waitlist first: POST /v1/waitlist (your pk_ key unlocks this skill)", cors);
+          const canonical = FLAVORS_DATA.skills.free[0]; // aliases serve the same body
+          const body = await env.PREMIUM_SKILLS.get("free:" + canonical);
+          if (!body) return err(404, "skill not uploaded yet", cors);
           return new Response(body, { headers: { "content-type": "text/markdown", ...cors } });
         }
         if (!PREMIUM.includes(id)) return err(404, "skill not found", cors);

@@ -117,12 +117,23 @@ test("subscriptions: unknown plan is 400", async () => {
   assert.equal((await post("/v1/subscriptions", { plan: "mega" })).status, 400);
 });
 
-test("skills: free skill is served openly (warmup + legacy alias)", async () => {
+test("skills: free skill requires a waitlist key", async () => {
   const res = await get("/v1/skills/warmup");
+  assert.equal(res.status, 403);
+  assert.ok((await res.json()).error.includes("join the waitlist"));
+  assert.equal((await get("/v1/skills/warmup?key=pk_zs_bogus")).status, 403);
+  assert.equal((await get("/v1/skills/zeroshot")).status, 403, "legacy alias is gated too");
+});
+
+test("skills: waitlist key unlocks the free skill (warmup + legacy alias)", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
+  const join = await post("/v1/waitlist", { email: "skill-gate-test@example.com" });
+  assert.ok([200, 201].includes(join.status));
+  const pk = (await join.json()).public_key;
+  const res = await get(`/v1/skills/warmup?key=${pk}`);
   assert.equal(res.status, 200);
   assert.match(res.headers.get("content-type"), /text\/markdown/);
   assert.ok((await res.text()).length > 0);
-  assert.equal((await get("/v1/skills/zeroshot")).status, 200);
+  assert.equal((await get(`/v1/skills/zeroshot?key=${pk}`)).status, 200);
 });
 
 test("skills: premium requires a valid signed link", async () => {
