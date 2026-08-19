@@ -135,7 +135,26 @@ zeroshot pour --url "<your emailed link>"   # premium, link from your order emai
 
 | Skill | Install name | Description |
 |---|---|---|
-| `warmup` | `warmup` | The core boost. The request is the spec: re-read it before declaring done, run named edge cases, never repeat a failed action unchanged (no more "You're absolutely right. Retrying."), close every session with a required template. Your `pk_` key (from signup) unlocks it - by link in the signup email or `zeroshot pour warmup`. Benchmarked: [ship bar met on claude-sonnet-5](packages/evals/skills/warmup/RESULTS.md). |
+| `warmup` | `warmup` | The core boost. The request is the spec: re-read it before declaring done, run named edge cases, never repeat a failed action unchanged (no more "You're absolutely right. Retrying."), close every session with a required template. Benchmarked: [ship bar met on claude-sonnet-5](packages/evals/skills/warmup/RESULTS.md). |
+
+**How you get it**: joining the waitlist returns your `pk_` key - the key is
+the credential, it never expires, and re-signing up with the same email
+returns the same key. Any of these unlocks the skill:
+
+```bash
+# 1. CLI - signup saves your key, pour uses it
+zeroshot waitlist you@example.com
+zeroshot pour warmup                       # → .claude/skills/warmup/SKILL.md
+
+# 2. Email - the signup email contains your personal one-click link
+
+# 3. Raw API - key from any signup method
+curl "https://api.zeroshothq.dev/v1/skills/warmup?key=pk_zs_..."
+zeroshot pour warmup --key pk_zs_...       # same, on a machine without the saved key
+```
+
+No key → `403 join the waitlist first`. Same check on every route: your key
+is looked up server-side, nothing is trusted client-side.
 
 ### Premium - the six, included with any paid order or subscription
 
