@@ -53,8 +53,8 @@ the transcript. A grader that knows the answer key is a rubber stamp.
 ## How to run
 
 ```bash
-node packages/evals/run.mjs --skill skills/zeroshot/SKILL.md --trials 5 --model claude-haiku-4-5           # api smoke mode
-node packages/evals/run.mjs --mode agentic --skill skills/zeroshot/SKILL.md --trials 5                     # the real eval
+node packages/evals/run.mjs --skill skills-premium/warmup/SKILL.md --trials 5 --model claude-haiku-4-5           # api smoke mode
+node packages/evals/run.mjs --mode agentic --skill skills-premium/warmup/SKILL.md --trials 5                     # the real eval
 ```
 
 Flags: `--skill <path>`, `--trials <n>`, `--model <id>`, `--only <task-id>`,

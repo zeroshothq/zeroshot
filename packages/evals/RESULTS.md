@@ -30,5 +30,5 @@ packages/evals/
     RESULTS.md         the skill's results story and run history
 ```
 
-Defaults point at `skills/warmup/`; benchmark another skill with
+Defaults point at `skills-premium/warmup/` (skill sources are untracked); benchmark another skill with
 `--skill <path-to-SKILL.md> --tasks skills/<name>/tasks`.

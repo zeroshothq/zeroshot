@@ -4,7 +4,7 @@ Named `zeroshot` during runs 1-4 below; renamed to `warmup` on 2026-08-18
 (zeroshot is the product, warmup is its free skill). Same file, same content
 lineage.
 
-The claim on the can: pouring `skills/warmup/SKILL.md` into a coding agent
+The claim on the can: pouring the warmup SKILL.md (delivered on waitlist signup) into a coding agent
 improves its working discipline. This page is the evidence, all of it - four
 runs, two failures, one invalidated run, and one pass. Method:
 [BENCHMARKING.md](../../BENCHMARKING.md).

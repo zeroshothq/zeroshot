@@ -17,7 +17,7 @@ const flag = (n) => args.includes(`--${n}`);
 const opt = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 && args[i + 1] !== undefined ? args[i + 1] : d; };
 const die = (msg) => { console.error(msg); process.exit(1); };
 
-const SKILL = opt("skill", path.join(ROOT, "skills", "warmup", "SKILL.md"));
+const SKILL = opt("skill", path.join(ROOT, "skills-premium", "warmup", "SKILL.md"));
 const TASKS_DIR = opt("tasks", path.join(HERE, "skills", "warmup", "tasks"));
 const TRIALS = parseInt(opt("trials", "5"), 10) || 5;
 const MODEL = opt("model", "claude-haiku-4-5-20251001");
