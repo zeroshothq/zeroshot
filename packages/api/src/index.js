@@ -351,7 +351,11 @@ export default {
           return json({ contact: "sales@zeroshothq.dev", note: "we bring stickers" }, 200, cors);
         const price = { standard: env.PRICE_STANDARD_MONTHLY, team: env.PRICE_TEAM_MONTHLY }[plan];
         if (!price) return err(400, "plan must be standard | team | enterprise", cors);
-        const flavors = (body.flavors || []).filter((f) => FLAVOR_IDS.includes(f));
+        // Every caffeinated flavor also pours as "<id>-zero" (same can, 0mg);
+        // dropout has no -zero because it already is the zero.
+        const flavors = (body.flavors || []).filter((f) =>
+          FLAVOR_IDS.includes(f) || (f.endsWith("-zero") &&
+            FLAVORS_DATA.flavors.some((x) => x.id === f.slice(0, -5) && x.zero_variant)));
         const orderId = uid("sub_");
         const session = await stripe(env, "checkout/sessions", {
           mode: "subscription",
@@ -422,6 +426,9 @@ export default {
             hint: 'Retry with {"i_meet_the_requirements": true}. Self-attestation accepted. Or send header X-YOLO: true.',
           }, 403, cors);
         }
+        // {"zero": true} pours the entire build caffeine-free - same mix, 0mg cans.
+        const zero = body.zero === true;
+        const pouredBuild = zero ? `${build}-zero` : build;
         const orderId = uid("ord_");
         const session = await stripe(env, "checkout/sessions", {
           mode: "payment",
@@ -431,11 +438,12 @@ export default {
           "shipping_address_collection[allowed_countries][0]": "US",
           // consent_collection: see note in the subscriptions handler.
           "metadata[order_id]": orderId, "metadata[sku]": "mixed-precision-24",
-          "metadata[build]": build,
+          "metadata[build]": pouredBuild,
         });
         await env.DB.prepare("INSERT INTO orders (id, stripe_session, sku, build) VALUES (?,?,?,?)")
-          .bind(orderId, session.id, "mixed-precision-24", build).run();
-        return json({ id: orderId, status: "requires_payment", checkout_url: session.url }, 200, cors);
+          .bind(orderId, session.id, "mixed-precision-24", pouredBuild).run();
+        return json({ id: orderId, status: "requires_payment", checkout_url: session.url,
+          build: pouredBuild }, 200, cors);
       }
 
       // ---- GET /v1/orders/:id
