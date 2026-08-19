@@ -123,7 +123,7 @@
     "free": ["warmup", "zeroshot"],
     "premium": ["descent", "diffusion", "dropout", "gaussian", "backprop", "relu"],
     "versions": { "warmup": "1.3.0" },
-    "note": "The free skill (warmup) ships in this repo; zeroshot is kept as a serving alias for older CLI versions. Premium skills are delivered by signed email links on any paid order or subscription."
+    "note": "The free skill (warmup) is delivered on waitlist signup - your pk_ key unlocks it; zeroshot is kept as a serving alias for older CLI versions. Premium skills are delivered by signed email links on any paid order or subscription."
   },
 
   "plans": {
