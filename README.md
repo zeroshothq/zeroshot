@@ -77,6 +77,11 @@ zeroshot consume --flavor descent         # local caffeine log (offline, private
 | `descent` | double espresso | 250mg | 100mg | 0g | finds your minimum, fast |
 | `dropout` | chamomile citrus | 0mg | 150mg | 0g | regularize your evening |
 
+**Every flavor pours with caffeine and without.** The caffeinated five also
+come as `<flavor>-zero` - same can, same taste, 0mg. Order them like any
+flavor: `"flavors": ["descent-zero"]`. `dropout` needs no variant; it is
+already the zero.
+
 Each flavor is a versioned model card in [`flavors/`](flavors/) with params
 and a changelog. `flavors/flavors.json` is the single source of truth consumed
 by the API, the CLI, and the website. AGI: rolling out gradually.
@@ -106,6 +111,9 @@ attestation returns:
 
 with the build's requirements. Retry with `"i_meet_the_requirements": true`
 (self-attestation accepted) - or send header `X-YOLO: true`.
+
+Need it caffeine-free? Add `"zero": true` and the whole build pours as zero
+variants - same mix, same taste, 0mg across all 24 cans.
 
 Don't know your build? Ask the Reverse Recruiter:
 
@@ -196,7 +204,7 @@ Base: `https://api.zeroshothq.dev/v1` · Full reference: [zeroshothq.dev/docs](h
 | POST | `/subscriptions` | standard/team → Stripe checkout URL |
 | GET | `/subscriptions/{id}` | Plan, status, flavors, renewal date |
 | DELETE | `/subscriptions/{id}` | Stripe customer portal handoff |
-| POST | `/orders` | Mixed Precision 24 (403 without attestation; `X-YOLO` bypass) |
+| POST | `/orders` | Mixed Precision 24 (403 without attestation; `X-YOLO` bypass; `"zero": true` = decaf build) |
 | GET | `/orders/{id}` | pending → paid → packed → shipped → delivered |
 | GET | `/skills` | Skill index: ids, tiers, versions, install commands |
 | GET | `/skills/{id}` | Free skill: your waitlist `pk_` key; premium: the signed email link |

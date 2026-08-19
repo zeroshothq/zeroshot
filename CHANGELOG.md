@@ -22,6 +22,11 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
   pointer, never the skill.
 
 ### Added
+- Zero-caffeine variants: every caffeinated flavor also pours as
+  `<flavor>-zero` (same can, 0mg) - flagged per model card
+  (`zero_variant`), accepted in subscription flavor lists, noted by
+  `zeroshot flavors`. Mixed Precision 24 orders take `"zero": true` to pour
+  the whole build decaf. `dropout` has no variant; it is already the zero.
 - Four new endpoints: `GET /v1/skills` (skill index with ids, tiers,
   versions), `GET /v1/waitlist/{pk_key}` (position + referrals earned),
   `GET /v1/subscriptions/{id}` (plan, status, renewal date), and

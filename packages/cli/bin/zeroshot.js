@@ -78,6 +78,8 @@ async function cmdFlavors() {
   console.log(c(D, "id           ver     mg    taste"));
   for (const f of data)
     console.log(`${f.id.padEnd(12)} ${("v" + f.version).padEnd(7)} ${String(f.params.caffeine_mg).padEnd(5)} ${f.taste}`);
+  if (data.some((f) => f.zero_variant))
+    console.log(c(D, "  every caffeinated flavor also pours as <id>-zero: same can, 0mg"));
 }
 
 async function cmdRecommend() {
