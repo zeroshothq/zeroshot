@@ -147,10 +147,11 @@ async function cmdWaitlist() {
   console.log(c(D, "  Every signup using your key moves you up 10 spots:"));
   console.log(c(D, `  zeroshot waitlist friend@corp.com --ref ${data.public_key}`));
   const cfg = readCfg(); cfg.pk = data.public_key; writeCfg(cfg);
+  console.log(c(D, "  Key saved. It unlocks the free agent skill: zeroshot pour warmup"));
 }
 
 // pour: install a skill into the current project's agent skills directory.
-// Free skill: zeroshot pour zeroshot
+// Free skill (waitlist key required): zeroshot pour warmup [--key pk_zs_...]
 // Premium (from your order email): zeroshot pour --url "<signed link>"
 async function cmdPour() {
   const urlArg = opt("url");
@@ -163,13 +164,19 @@ async function cmdPour() {
     body = await res.text();
     skillName = (body.match(/^name:\s*(\S+)/m) || [])[1] || "skill";
   } else if (name === "warmup" || name === "zeroshot") { // zeroshot: legacy alias
-    const res = await fetch(`${API}/v1/skills/warmup`);
+    // The free skill is delivered on waitlist signup - your pk_ key unlocks it.
+    // `zeroshot waitlist` saves the key; --key overrides.
+    const key = opt("key") || readCfg().pk;
+    if (!key) die("  The free skill unlocks when you join the waitlist:\n  zeroshot waitlist you@example.com   (saves your pk_ key)\n  then: zeroshot pour warmup");
+    const res = await fetch(`${API}/v1/skills/warmup?key=${encodeURIComponent(key)}`);
+    if (res.status === 403) die("  That key isn't on the waitlist. Join first:\n  zeroshot waitlist you@example.com");
+    if (!res.ok) die(`[${res.status}] ` + (await res.text()).slice(0, 200));
     body = await res.text();
     skillName = "warmup";
   } else if (name) {
     return console.log(c(A, `  "${name}" is a premium skill - it's delivered by email with any order.\n  Then: zeroshot pour --url "<your emailed link>"`));
   } else {
-    die('usage: zeroshot pour warmup | zeroshot pour --url "<emailed link>" [--to <dir>]');
+    die('usage: zeroshot pour warmup [--key pk_zs_...] | zeroshot pour --url "<emailed link>" [--to <dir>]');
   }
   const dir = path.join(dest, skillName);
   fs.mkdirSync(dir, { recursive: true });

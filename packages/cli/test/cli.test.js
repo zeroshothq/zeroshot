@@ -87,7 +87,17 @@ test("consume rejects unknown flavors", async () => {
   assert.ok(err.includes("unknown flavor"));
 });
 
-test("pour warmup installs SKILL.md into --to dir", async () => {
+test("pour warmup without a key explains the waitlist gate", async () => {
+  const { code, err } = await run("pour", "warmup");
+  assert.equal(code, 1);
+  assert.ok(err.includes("waitlist"));
+});
+
+test("waitlist signup saves the pk_ key, which unlocks pour", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
+  const w = await run("waitlist", "cli-gate-test@example.com");
+  assert.equal(w.code, 0);
+  assert.ok(w.out.includes("pk_zs_"));
+
   const dest = path.join(FAKE_HOME, "skills");
   const { code, out } = await run("pour", "warmup", "--to", dest);
   assert.equal(code, 0);
@@ -97,12 +107,18 @@ test("pour warmup installs SKILL.md into --to dir", async () => {
   assert.ok(readFileSync(file, "utf8").length > 0);
 });
 
-test("pour zeroshot (legacy alias) still installs the warmup skill", async () => {
+test("pour zeroshot (legacy alias) still installs the warmup skill", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
   const dest = path.join(FAKE_HOME, "skills-alias");
   const { code, out } = await run("pour", "zeroshot", "--to", dest);
   assert.equal(code, 0);
   assert.ok(out.includes("Poured warmup"));
   assert.ok(existsSync(path.join(dest, "warmup", "SKILL.md")));
+});
+
+test("pour warmup with a bogus --key is rejected", async () => {
+  const { code, err } = await run("pour", "warmup", "--key", "pk_zs_bogus");
+  assert.equal(code, 1);
+  assert.ok(err.includes("Join first") || err.includes("waitlist"));
 });
 
 test("pour of a premium skill name explains email delivery", async () => {
@@ -139,7 +155,14 @@ test("stats requires the admin bearer env", async () => {
 });
 
 test("spot without key or config shows usage", async () => {
-  const { code, err } = await run("spot");
+  // Fresh HOME: earlier waitlist tests may have saved a pk_ key to config.
+  const home = mkdtempSync(path.join(os.tmpdir(), "zs-cli-spot-"));
+  const { code, err } = await new Promise((resolve) => {
+    execFile("node", [BIN, "spot"], {
+      env: { ...process.env, ZEROSHOT_API_URL: API, NO_COLOR: "1", HOME: home, USERPROFILE: home, ZEROSHOT_ADMIN_BEARER: "" },
+      timeout: 30000,
+    }, (error, stdout, stderr) => resolve({ code: error ? error.code || 1 : 0, err: stderr }));
+  });
   assert.equal(code, 1);
   assert.ok(err.includes("usage"));
 });
