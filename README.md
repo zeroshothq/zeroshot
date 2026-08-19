@@ -185,4 +185,4 @@ securities. Code is MIT ([LICENSE](LICENSE)); the brand is not ([BRAND.md](BRAND
 
 ---
 
-`Push more PRs.™`
+`Merge more PRs.™`

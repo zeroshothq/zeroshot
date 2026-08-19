@@ -112,7 +112,7 @@ async function sendSkillDeliveryEmail(env, apiBase, email, orderId) {
       and tied to this email address.</p>
       <p style="color:#888">Caffeine: 200-250mg per physical can (dropout: 0mg).
       Not recommended for children or persons sensitive to caffeine.</p>
-      <p><i>Push more PRs.&trade;</i></p>
+      <p><i>Merge more PRs.&trade;</i></p>
     </div>`;
   await sendEmail(env, email, "Zero Shot - your order + your six agent skills", html);
 }
