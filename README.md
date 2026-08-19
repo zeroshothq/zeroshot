@@ -151,16 +151,20 @@ Base: `https://api.zeroshothq.dev/v1` · Full reference: [zeroshothq.dev/docs](h
 | Method | Path | What it does |
 |---|---|---|
 | POST | `/waitlist` | Join; returns your `pk_` referral key; emails the free skill |
+| GET | `/waitlist/{pk_key}` | Check your spot: position, referrals, spots gained |
 | GET | `/flavors` | Model cards with params + changelog |
 | GET | `/builds` | Build names, mixes, taglines, requirements |
 | POST | `/recommend` | Job title in → 24-can build out (+ share_url) |
 | GET | `/stacks/{id}` | A shared recommendation result |
 | POST | `/subscriptions` | standard/team → Stripe checkout URL |
+| GET | `/subscriptions/{id}` | Plan, status, flavors, renewal date |
 | DELETE | `/subscriptions/{id}` | Stripe customer portal handoff |
 | POST | `/orders` | Mixed Precision 24 (403 without attestation; `X-YOLO` bypass) |
 | GET | `/orders/{id}` | pending → paid → packed → shipped → delivered |
+| GET | `/skills` | Skill index: ids, tiers, versions, install commands |
 | GET | `/skills/{id}` | Free skill open; premium requires the signed email link |
 | GET | `/status` | api · fulfillment · kevin |
+| GET | `/admin/stats` | Private totals (waitlist, orders, cans) - admin bearer only |
 
 Rate limits: 60 req/min (10/min on `/recommend`). Exceeding returns
 `429 - "you've had enough. drink water."`

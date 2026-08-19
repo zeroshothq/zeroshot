@@ -7,6 +7,13 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
 ## [Unreleased]
 
 ### Added
+- Four new endpoints: `GET /v1/skills` (skill index with ids, tiers,
+  versions), `GET /v1/waitlist/{pk_key}` (position + referrals earned),
+  `GET /v1/subscriptions/{id}` (plan, status, renewal date), and
+  `GET /v1/admin/stats` (private totals, admin bearer only - never callable
+  from the site).
+- CLI 1.2.0: `skills`, `spot`, `subscription <id>`, and `stats` (reads
+  `ZEROSHOT_ADMIN_BEARER` from the environment).
 - Skill eval harness (`packages/evals/`): with-vs-without A/B benchmark,
   zero dependencies. Six adversarially hardened tasks with real failing
   tests, Wilson confidence intervals, anti-cheat rules, and a CI dry-run

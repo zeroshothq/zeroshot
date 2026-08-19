@@ -141,6 +141,39 @@ test("admin endpoint rejects missing bearer", async () => {
   assert.equal(res.status, 401);
 });
 
+test("admin stats rejects missing bearer", async () => {
+  assert.equal((await get("/v1/admin/stats")).status, 401);
+});
+
+test("admin stats returns totals with bearer", { skip: !process.env.ZEROSHOT_ADMIN_BEARER && "set ZEROSHOT_ADMIN_BEARER" }, async () => {
+  const res = await fetch(BASE + "/v1/admin/stats", { headers: { authorization: `Bearer ${process.env.ZEROSHOT_ADMIN_BEARER}` } });
+  assert.equal(res.status, 200);
+  const s = await res.json();
+  for (const k of ["waitlist", "orders_placed", "orders_paid", "cans_allocated"]) assert.equal(typeof s[k], "number", k);
+  assert.equal(s.flavors, 6);
+  assert.equal(s.sugar_g, 0);
+});
+
+test("waitlist spot: unknown key is 404", async () => {
+  assert.equal((await get("/v1/waitlist/pk_zs_doesnotexist")).status, 404);
+});
+
+test("skills index lists free + six premium with versions", async () => {
+  const res = await get("/v1/skills");
+  assert.equal(res.status, 200);
+  const { skills } = await res.json();
+  assert.equal(skills.length, 7);
+  const free = skills.find((s) => s.tier === "free");
+  assert.equal(free.id, "warmup");
+  assert.ok(free.aliases.includes("zeroshot"));
+  assert.match(free.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(skills.filter((s) => s.tier === "premium").length, 6);
+});
+
+test("subscriptions: unknown id is 404 on GET", async () => {
+  assert.equal((await get("/v1/subscriptions/sub_doesnotexist")).status, 404);
+});
+
 // ---- write tests (insert rows) --------------------------------------------
 
 test("recommend → stack share roundtrip", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
@@ -168,6 +201,10 @@ test("subscriptions: standard returns a Stripe checkout URL", { skip: !STRIPE &&
   assert.match(body.checkout_url, /^https:\/\/checkout\.stripe\.com\//);
   const order = await (await get(`/v1/orders/${body.id}`)).json();
   assert.equal(order.status, "pending");
+  const sub = await (await get(`/v1/subscriptions/${body.id}`)).json();
+  assert.equal(sub.plan, "standard");
+  assert.equal(sub.status, "pending");
+  assert.equal(sub.cans_per_month, 12);
 });
 
 test("orders: attested order returns a Stripe checkout URL", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {

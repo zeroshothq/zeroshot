@@ -235,6 +235,38 @@ export default {
       // ---- GET /v1/agi
       if (path === "/v1/agi") return json({ status: "rolling out gradually" }, 404, cors);
 
+      // ---- GET /v1/admin/stats  (private totals - terminal/dashboard only, never the site;
+      //      a bearer in client JS is a published token. Same guard as the other admin route.)
+      if (path === "/v1/admin/stats" && request.method === "GET") {
+        if (request.headers.get("authorization") !== `Bearer ${env.ADMIN_BEARER}`)
+          return err(401, "unauthorized");
+        const waitlist = (await env.DB.prepare("SELECT COUNT(*) AS c FROM waitlist").first()).c;
+        const placed = (await env.DB.prepare("SELECT COUNT(*) AS c FROM orders").first()).c;
+        const rows = (await env.DB.prepare(
+          "SELECT sku, plan, COUNT(*) AS c FROM orders WHERE status != 'pending' GROUP BY sku, plan").all()).results || [];
+        let paid = 0, cans = 0;
+        for (const r of rows) {
+          paid += r.c;
+          cans += ((FLAVORS_DATA.plans[r.sku || r.plan] || {}).cans || 0) * r.c;
+        }
+        return json({ waitlist, orders_placed: placed, orders_paid: paid, cans_allocated: cans,
+          flavors: FLAVOR_IDS.length, sugar_g: 0 });
+      }
+
+      // ---- GET /v1/skills  (skill index - single source of truth for site, docs, CLI)
+      if (path === "/v1/skills" && request.method === "GET") {
+        const S = FLAVORS_DATA.skills;
+        const freeId = S.free[0];
+        const v = S.versions || {};
+        const skills = [
+          { id: freeId, tier: "free", version: v[freeId] || null, aliases: S.free.slice(1),
+            install: `zeroshot pour ${freeId}`, url: `${apiBase}/v1/skills/${freeId}` },
+          ...S.premium.map((id) => ({ id, tier: "premium", version: v[id] || null,
+            install: "delivered by email with any paid order" })),
+        ];
+        return json({ skills, note: S.note }, 200, cors);
+      }
+
       // ---- GET /v1/flavors
       if (path === "/v1/flavors" && request.method === "GET")
         return json(FLAVORS_DATA.flavors, 200, cors);
@@ -280,6 +312,16 @@ export default {
           note: "Your key is your referral code. +10 spots per signup." }, 201, cors);
       }
 
+      // ---- GET /v1/waitlist/:pk_key  (check your spot + referral earnings)
+      if (path.startsWith("/v1/waitlist/") && request.method === "GET") {
+        const pk = path.split("/").pop();
+        const row = await env.DB.prepare("SELECT position, created_at FROM waitlist WHERE pk_key=?").bind(pk).first();
+        if (!row) return err(404, "key not found", cors);
+        const refs = (await env.DB.prepare("SELECT COUNT(*) AS c FROM waitlist WHERE referred_by=?").bind(pk).first()).c;
+        return json({ position: row.position, referrals: refs, spots_gained: refs * 10,
+          joined: row.created_at, note: "Every signup using your key moves you up 10 spots." }, 200, cors);
+      }
+
       // ---- POST /v1/recommend
       if (path === "/v1/recommend" && request.method === "POST") {
         const body = await request.json().catch(() => ({}));
@@ -323,6 +365,28 @@ export default {
         await env.DB.prepare("INSERT INTO orders (id, stripe_session, plan, flavors_json) VALUES (?,?,?,?)")
           .bind(orderId, session.id, plan, JSON.stringify(flavors)).run();
         return json({ id: orderId, status: "requires_payment", checkout_url: session.url }, 200, cors);
+      }
+
+      // ---- GET /v1/subscriptions/:id  (plan, status, renewal date)
+      if (path.startsWith("/v1/subscriptions/") && request.method === "GET") {
+        const row = await env.DB.prepare(
+          "SELECT id, plan, flavors_json, status, stripe_session, created_at FROM orders WHERE id=? AND plan IS NOT NULL")
+          .bind(path.split("/").pop()).first();
+        if (!row) return err(404, "subscription not found", cors);
+        const out = { id: row.id, plan: row.plan, status: row.status,
+          cans_per_month: (FLAVORS_DATA.plans[row.plan] || {}).cans || null,
+          flavors: JSON.parse(row.flavors_json || "[]"), renews_at: null, created_at: row.created_at };
+        if (row.status !== "pending") {
+          try { // renewal info is best-effort from Stripe; our row is the source of truth
+            const session = await stripe(env, `checkout/sessions/${row.stripe_session}`, {});
+            if (session.subscription) {
+              const sub = await stripe(env, `subscriptions/${session.subscription}`, {});
+              if (sub.current_period_end) out.renews_at = new Date(sub.current_period_end * 1000).toISOString();
+              out.stripe_status = sub.status;
+            }
+          } catch {}
+        }
+        return json(out, 200, cors);
       }
 
       // ---- DELETE /v1/subscriptions/:id → Stripe customer portal handles the cancel

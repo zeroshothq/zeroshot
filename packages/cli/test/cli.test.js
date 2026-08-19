@@ -19,7 +19,7 @@ const FAKE_HOME = mkdtempSync(path.join(os.tmpdir(), "zs-cli-test-"));
 function run(...args) {
   return new Promise((resolve) => {
     execFile("node", [BIN, ...args], {
-      env: { ...process.env, ZEROSHOT_API_URL: API, NO_COLOR: "1", HOME: FAKE_HOME, USERPROFILE: FAKE_HOME },
+      env: { ...process.env, ZEROSHOT_API_URL: API, NO_COLOR: "1", HOME: FAKE_HOME, USERPROFILE: FAKE_HOME, ZEROSHOT_ADMIN_BEARER: "" },
       timeout: 30000,
     }, (error, stdout, stderr) => resolve({ code: error ? error.code || 1 : 0, out: stdout, err: stderr }));
   });
@@ -122,6 +122,32 @@ test("recommend renders a 24-can build", { skip: !WRITES && "set ZEROSHOT_TEST_W
   assert.equal(code, 0);
   assert.ok(out.includes("24 cans"));
   assert.ok(out.includes("zeroshot order mixed-precision-24 --build"));
+});
+
+test("skills lists warmup and the premium six", async () => {
+  const { code, out } = await run("skills");
+  assert.equal(code, 0);
+  assert.ok(out.includes("warmup"));
+  assert.ok(out.includes("descent"));
+  assert.ok(out.includes("premium"));
+});
+
+test("stats requires the admin bearer env", async () => {
+  const { code, err } = await run("stats");
+  assert.equal(code, 1);
+  assert.ok(err.includes("admin only"));
+});
+
+test("spot without key or config shows usage", async () => {
+  const { code, err } = await run("spot");
+  assert.equal(code, 1);
+  assert.ok(err.includes("usage"));
+});
+
+test("subscription requires an id", async () => {
+  const { code, err } = await run("subscription");
+  assert.equal(code, 1);
+  assert.ok(err.includes("usage"));
 });
 
 test("order rejects unknown sku", async () => {

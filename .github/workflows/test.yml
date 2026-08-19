@@ -25,6 +25,6 @@ jobs:
           npx wrangler dev --port 8787 &
           for i in $(seq 1 90); do curl -sf http://localhost:8787/v1/status >/dev/null && break; sleep 2; done
           cd ../..
-          ZEROSHOT_API_URL=http://localhost:8787 ZEROSHOT_TEST_WRITES=1 node --test packages/api/test/*.test.js packages/cli/test/*.test.js
+          ZEROSHOT_API_URL=http://localhost:8787 ZEROSHOT_TEST_WRITES=1 ZEROSHOT_ADMIN_BEARER=ci-test-admin node --test packages/api/test/*.test.js packages/cli/test/*.test.js
       - name: Eval harness dry-run smoke
         run: cd packages/evals && node run.mjs --dry-run --trials 1

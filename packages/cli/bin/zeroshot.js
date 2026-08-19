@@ -56,11 +56,12 @@ function die(msg, code = 1) { console.error(c(A, msg)); process.exit(code); }
 
 const CAN = [
   "      ┌─────┐",
-  "      │ ZERO│   ZERO SHOT v1.1.0",
+  "      │ ZERO│   ZERO SHOT v1.2.0",
   "      │ SHOT│   Zero sugar. Zero shot.",
   "      │ ▓▓▓▓│",
-  "      └─────┘   commands: recommend · order · subscribe · pour ·",
-  "                waitlist · flavors · status · consume · cancel",
+  "      └─────┘   commands: recommend · order · subscribe · subscription ·",
+  "                waitlist · spot · pour · skills · flavors · status ·",
+  "                consume · cancel · stats (admin)",
 ].join("\n");
 
 // ---------------------------------------------------------------- commands
@@ -215,6 +216,53 @@ function cmdConsume() {
     : ""));
 }
 
+// Admin-only totals. Token comes from env, never from a config file or the site.
+async function cmdStats() {
+  const token = process.env.ZEROSHOT_ADMIN_BEARER;
+  if (!token) die("admin only: set ZEROSHOT_ADMIN_BEARER (see /v1/admin/stats)");
+  const { status, data } = await api("GET", "/v1/admin/stats", null, { authorization: `Bearer ${token}` });
+  if (status !== 200) die(`[${status}] ` + (data.error || "failed"));
+  if (jsonOut) return console.log(JSON.stringify(data, null, 2));
+  console.log(`  waitlist        ${data.waitlist}`);
+  console.log(`  orders placed   ${data.orders_placed}`);
+  console.log(`  orders paid     ${data.orders_paid}`);
+  console.log(`  cans allocated  ${data.cans_allocated}`);
+  console.log(c(D, `  flavors ${data.flavors} · sugar ${data.sugar_g}g`));
+}
+
+// Check your waitlist spot. Key from arg, or saved config after `zeroshot waitlist`.
+async function cmdSpot() {
+  const pk = (args[1] && !args[1].startsWith("--") ? args[1] : null) || readCfg().pk;
+  if (!pk) die("usage: zeroshot spot pk_zs_...  (join first: zeroshot waitlist you@example.com)");
+  const { status, data } = await api("GET", `/v1/waitlist/${pk}`);
+  if (status !== 200) die(`[${status}] ` + (data.error || "failed"));
+  if (jsonOut) return console.log(JSON.stringify(data, null, 2));
+  console.log(c(G, `  #${data.position} in line`));
+  console.log(`  referrals: ${data.referrals} (${data.spots_gained} spots gained)`);
+  console.log(c(D, `  zeroshot waitlist friend@corp.com --ref ${pk}`));
+}
+
+async function cmdSkills() {
+  const { status, data } = await api("GET", "/v1/skills");
+  if (status !== 200) die(`[${status}] ` + (data.error || "failed"));
+  if (jsonOut) return console.log(JSON.stringify(data, null, 2));
+  console.log(c(D, "id           tier      ver     install"));
+  for (const s of data.skills)
+    console.log(`${s.id.padEnd(12)} ${s.tier.padEnd(9)} ${(s.version ? "v" + s.version : "-").padEnd(7)} ${s.install}`);
+}
+
+async function cmdSubscription() {
+  const id = args[1] || die("usage: zeroshot subscription <sub_...>");
+  const { status, data } = await api("GET", `/v1/subscriptions/${id}`);
+  if (status !== 200) die(`[${status}] ` + (data.error || "failed"));
+  if (jsonOut) return console.log(JSON.stringify(data, null, 2));
+  console.log(`  plan     ${data.plan} (${data.cans_per_month} cans/month)`);
+  console.log(`  status   ${data.status}` + (data.stripe_status ? c(D, ` (stripe: ${data.stripe_status})`) : ""));
+  if (data.flavors && data.flavors.length) console.log(`  flavors  ${data.flavors.join(", ")}`);
+  if (data.renews_at) console.log(`  renews   ${data.renews_at.slice(0, 10)}`);
+  console.log(c(D, `  cancel: zeroshot cancel ${id}`));
+}
+
 async function cmdCancel() {
   const id = args[1] || die("usage: zeroshot cancel <subscription id>");
   const { status, data } = await api("DELETE", `/v1/subscriptions/${id}`);
@@ -236,6 +284,10 @@ async function cmdCancel() {
       case "waitlist": await cmdWaitlist(); break;
       case "pour": await cmdPour(); break;
       case "status": await cmdStatus(); break;
+      case "stats": await cmdStats(); break;
+      case "spot": await cmdSpot(); break;
+      case "skills": await cmdSkills(); break;
+      case "subscription": await cmdSubscription(); break;
       case "consume": cmdConsume(); break;
       case "cancel": await cmdCancel(); break;
       case "agi": console.log(c(A, "  404: rolling out gradually.")); process.exit(1);
