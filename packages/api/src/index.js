@@ -381,7 +381,9 @@ export default {
             const session = await stripe(env, `checkout/sessions/${row.stripe_session}`, {});
             if (session.subscription) {
               const sub = await stripe(env, `subscriptions/${session.subscription}`, {});
-              if (sub.current_period_end) out.renews_at = new Date(sub.current_period_end * 1000).toISOString();
+              // Stripe API 2025-03-31+ moved current_period_end to the subscription items
+              const periodEnd = sub.current_period_end || (sub.items && sub.items.data && sub.items.data[0] || {}).current_period_end;
+              if (periodEnd) out.renews_at = new Date(periodEnd * 1000).toISOString();
               out.stripe_status = sub.status;
             }
           } catch {}
