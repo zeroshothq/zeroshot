@@ -129,6 +129,9 @@ you pass:
 zeroshot waitlist you@example.com           # free skill: join the waitlist (saves your pk_ key)
 zeroshot pour warmup                        # then pour it - your key unlocks it
 zeroshot pour --url "<your emailed link>"   # premium, link from your order email
+
+npx skills add zeroshothq/zeroshot --skill warmup   # installs the signup pointer, not the skill
+/plugin marketplace add zeroshothq/zeroshot         # same pointer, via the plugin marketplace
 ```
 
 ### Free - delivered on waitlist signup

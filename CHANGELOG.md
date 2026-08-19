@@ -16,7 +16,10 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
   serving copy), so the `npx skills add` and Claude Code plugin install
   paths were removed along with the `.claude-plugin/` manifests. Eval suite
   and published results remain public; harness defaults now point at the
-  local (untracked) source copy.
+  local (untracked) source copy. The ecosystem paths were then restored as
+  a funnel: `skills/warmup/SKILL.md` is a signup pointer (join + pour
+  instructions), so `npx skills add` and the plugin marketplace install the
+  pointer, never the skill.
 
 ### Added
 - Four new endpoints: `GET /v1/skills` (skill index with ids, tiers,
