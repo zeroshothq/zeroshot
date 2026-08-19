@@ -46,7 +46,8 @@ npm install -g @zeroshothq/zeroshot
 
 zeroshot recommend "staff LLM engineer"   # your job title → your 24-can build
 zeroshot order mixed-precision-24 --build llm-engineer
-zeroshot pour warmup                      # install the free agent skill
+zeroshot waitlist you@example.com         # join - your pk_ key unlocks the free skill
+zeroshot pour warmup                      # install it (uses your saved key)
 zeroshot skills                           # every skill: tier + version
 zeroshot spot                             # your waitlist position + referrals
 zeroshot consume --flavor descent         # local caffeine log (offline, private)
@@ -56,7 +57,7 @@ zeroshot consume --flavor descent         # local caffeine log (offline, private
 
 | Plan | Contents | Price |
 |---|---|---|
-| `free` | Waitlist + your `pk_` key (doubles as a referral code: +10 spots per signup) | $0 |
+| `free` | Waitlist + your `pk_` key: referral code (+10 spots per signup) and it unlocks the free agent skill | $0 |
 | `standard` | 12 cans/month, your flavors | $36/mo |
 | `mixed-precision-24` | 24 cans, role-based builds, qualification-gated | $60 |
 | `team` | Office fridge standing order, 48/month | $99/mo |
@@ -120,21 +121,21 @@ behavioral presets you pour into a coding agent's context. Zero Shot is the
 product; these are its skills. Each skill does one job - you do not need all
 of them at once.
 
+Skill sources are not in this repo - every skill is delivered, not browsed.
 Install one skill at a time. The **Install name** column is the exact value
 you pass:
 
 ```bash
-zeroshot pour warmup                                # our CLI (free skill)
-npx skills add zeroshothq/zeroshot --skill warmup   # open skills ecosystem
-/plugin marketplace add zeroshothq/zeroshot         # Claude Code plugin marketplace
-zeroshot pour --url "<your emailed link>"           # premium, link from your order email
+zeroshot waitlist you@example.com           # free skill: join the waitlist (saves your pk_ key)
+zeroshot pour warmup                        # then pour it - your key unlocks it
+zeroshot pour --url "<your emailed link>"   # premium, link from your order email
 ```
 
-### Free
+### Free - delivered on waitlist signup
 
-| Skill (folder) | Install name | Description |
+| Skill | Install name | Description |
 |---|---|---|
-| [`skills/warmup`](skills/warmup/SKILL.md) | `warmup` | The core boost. The request is the spec: re-read it before declaring done, run named edge cases, never repeat a failed action unchanged (no more "You're absolutely right. Retrying."), close every session with a required template. Benchmarked: [ship bar met on claude-sonnet-5](packages/evals/skills/warmup/RESULTS.md). |
+| `warmup` | `warmup` | The core boost. The request is the spec: re-read it before declaring done, run named edge cases, never repeat a failed action unchanged (no more "You're absolutely right. Retrying."), close every session with a required template. Your `pk_` key (from signup) unlocks it - by link in the signup email or `zeroshot pour warmup`. Benchmarked: [ship bar met on claude-sonnet-5](packages/evals/skills/warmup/RESULTS.md). |
 
 ### Premium - the six, included with any paid order or subscription
 
@@ -164,7 +165,7 @@ Base: `https://api.zeroshothq.dev/v1` · Full reference: [zeroshothq.dev/docs](h
 
 | Method | Path | What it does |
 |---|---|---|
-| POST | `/waitlist` | Join; returns your `pk_` referral key; emails the free skill |
+| POST | `/waitlist` | Join; returns your `pk_` key; emails your personal free-skill link |
 | GET | `/waitlist/{pk_key}` | Check your spot: position, referrals, spots gained |
 | GET | `/flavors` | Model cards with params + changelog |
 | GET | `/builds` | Build names, mixes, taglines, requirements |
@@ -176,7 +177,7 @@ Base: `https://api.zeroshothq.dev/v1` · Full reference: [zeroshothq.dev/docs](h
 | POST | `/orders` | Mixed Precision 24 (403 without attestation; `X-YOLO` bypass) |
 | GET | `/orders/{id}` | pending → paid → packed → shipped → delivered |
 | GET | `/skills` | Skill index: ids, tiers, versions, install commands |
-| GET | `/skills/{id}` | Free skill open; premium requires the signed email link |
+| GET | `/skills/{id}` | Free skill: your waitlist `pk_` key; premium: the signed email link |
 | GET | `/status` | api · fulfillment · kevin |
 | GET | `/admin/stats` | Private totals (waitlist, orders, cans) - admin bearer only |
 

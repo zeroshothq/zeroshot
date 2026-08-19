@@ -6,6 +6,18 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
 
 ## [Unreleased]
 
+### Changed (delivery gate)
+- The free skill is now delivered on waitlist signup instead of being
+  publicly downloadable. `GET /v1/skills/warmup` requires `?key=pk_zs_...`
+  (waitlist membership, checked server-side in D1); without it: 403 with a
+  join hint. The signup email carries a personal one-click link, and
+  `zeroshot pour warmup` uses the key saved by `zeroshot waitlist` (or
+  `--key`). The skill source moved out of the public repo (KV is the only
+  serving copy), so the `npx skills add` and Claude Code plugin install
+  paths were removed along with the `.claude-plugin/` manifests. Eval suite
+  and published results remain public; harness defaults now point at the
+  local (untracked) source copy.
+
 ### Added
 - Four new endpoints: `GET /v1/skills` (skill index with ids, tiers,
   versions), `GET /v1/waitlist/{pk_key}` (position + referrals earned),
@@ -18,10 +30,6 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
   zero dependencies. Six adversarially hardened tasks with real failing
   tests, Wilson confidence intervals, anti-cheat rules, and a CI dry-run
   smoke test. Results publish only after clearing the ship bar.
-- The free skill is installable via the open skills ecosystem
-  (`npx skills add zeroshothq/zeroshot`) and as a Claude Code plugin
-  (`.claude-plugin/` manifests). The repo layout already matched the
-  `skills/<name>/SKILL.md` convention; no changes to the skill itself.
 - Automated Stripe setup: `setup-secrets.mjs` creates the product + prices,
   generates internal secrets, and pushes Worker secrets from a local `.env`
   (values never printed), with `--webhook` wiring checkout webhooks.
