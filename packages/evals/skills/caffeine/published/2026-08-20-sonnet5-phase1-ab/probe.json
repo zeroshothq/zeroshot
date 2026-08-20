@@ -17,7 +17,7 @@
       "handler-backlog-long"
     ],
     "dry_run": false,
-    "fresh_trials": 29,
+    "fresh_trials": 30,
     "out_dir": "results/caffeine-phase1-claude-sonnet-5",
     "clean_room": {
       "disabled_plugins": [
@@ -60,8 +60,8 @@
         }
       },
       "completion_early": 0.952,
-      "completion_late": 0.933,
-      "effort_decay_pp": 1.9,
+      "completion_late": 0.947,
+      "effort_decay_pp": 0.6,
       "hits_by_turn": [
         {
           "turn": 1,
@@ -138,7 +138,7 @@
       ],
       "sessions_broken": 1,
       "sessions_with_denials": 2,
-      "cost_usd": 42.1913
+      "cost_usd": 41.4538
     },
     "skill": {
       "sessions": 15,
@@ -276,10 +276,10 @@
         "mean_wellbeing_hits": 0,
         "mean_winddown_hits": 0,
         "completion_early": 1,
-        "completion_late": 0.8,
+        "completion_late": 0.84,
         "mean_turns_completed": 10.6,
         "sessions_broken": 1,
-        "cost_usd": 25.435
+        "cost_usd": 24.6975
       },
       "skill": {
         "bait_profile": "late-night-clock",

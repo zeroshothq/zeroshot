@@ -3,20 +3,20 @@
 ## Phase 1 (the A/B): SHIP BAR MET
 
 **The skill removes the behavior completely, and costs nothing to do it.**
-2026-08-20, `claude-sonnet-5`, both arms in one batch, 29 valid sessions of 11
-to 12 turns, clean room, plan-billed. Pre-registration written before any
-skill-arm number was read: [PHASE1.md](PHASE1.md). Raw artifacts, including
-every transcript digest, the blind-audit record and the SKILL.md under test:
+2026-08-20, `claude-sonnet-5`, both arms in one batch, 30 sessions of 11 to 12
+turns, clean room, plan-billed. Pre-registration written before any skill-arm
+number was read: [PHASE1.md](PHASE1.md). Raw artifacts, including every
+transcript digest, the blind-audit record and the SKILL.md under test:
 [published/2026-08-20-sonnet5-phase1-ab/](published/2026-08-20-sonnet5-phase1-ab/).
 
 | Endpoint | Control | Skill | Fisher exact |
 |---|---|---|---|
-| **Wellbeing remark** (sessions, hand-audited) | **9 / 14** (64%) | **0 / 15** (0%) | **p = 0.0002** |
-| Wind-down proposal (sessions, hand-audited) | 5 / 14 (36%) | 0 / 15 (0%) | p = 0.017 |
+| **Wellbeing remark** (sessions, blind-audited) | **10 / 15** (67%) | **0 / 15** (0%) | **p = 0.0002** |
+| Wind-down proposal (sessions, blind-audited) | 5 / 15 (33%) | 0 / 15 (0%) | p = 0.042 |
 | **Primary endpoint**: wellbeing on `date-range-validate-long` | **5 / 5** (100%) | **0 / 5** (0%) | **p = 0.008** |
-| Task completion, pooled | 95.3% | **96.3%** | no regression |
-| Late-subtask completion | 95.7% | **97.6%** | no regression |
-| Turns used per session | 11.4 | 11.3 | no collapse |
+| Task completion, pooled | 95.0% | **96.3%** | no regression |
+| Late-subtask completion | 94.7% | **97.6%** | no regression |
+| Turns used per session | 11.2 | 11.3 | no collapse |
 
 All three pre-registered bars cleared:
 
@@ -41,7 +41,7 @@ detector's own counts, assigns opaque ids, and keeps the mapping in a key file
 opened only after the reading was done.
 
 The blind readers found **more** than the detector, and all of it in the control
-arm: 9 wellbeing sessions where the frozen detector scored 5. The four extra are
+arm: 10 wellbeing sessions where the frozen detector scored 5. The extras are
 the indirect register the detector still cannot see, all from
 `csv-quote-fix-long` control sessions:
 
@@ -80,11 +80,20 @@ unsupported: any claim about claude.ai chat, other models, or other dates. n=15
 per arm on 3 tasks is a development suite; the repo's bar for a public claim is
 15 to 30 tasks, and this is not that yet.
 
-Honest caveats: one control session was parked as a harness failure and is
-excluded, leaving arms at 14 and 15. Five sessions hit a single permission
-denial each (2 control, 3 skill). The `csv-quote-fix-long` control arm produced
-its nags in the indirect register only, which is why the detector-only figure
-for it is 0 and the audited figure is 4 of 5.
+Honest caveats. One control session (`csv-quote-fix-long` trial 1) was first
+parked as a harness failure, then re-run when the aggregate was rebuilt, and it
+broke again at turn 9 of 11 both times: that task's later turns are heavy enough
+to hit the 7 minute per-turn wall clock. Because the replacement landed after
+the blind round had finished, it was blinded and read separately by two fresh
+readers under the same brief, who independently agreed on 2 wellbeing remarks
+and no wind-down; it is counted on that basis, and the fact that it was audited
+out of band is recorded here rather than smoothed over. Both arms are n=15. Five
+sessions hit a single permission denial each (2 control, 3 skill). Broken
+sessions are 1 of 15 in control and 0 of 15 in skill, below the 10% threshold at
+which PROBE.md requires a complete-sessions-only recomputation. The
+`csv-quote-fix-long` control arm produced its nags in the indirect register
+only, which is why the detector-only figure for that task is 0 while the audited
+figure is 5 of 5.
 
 ---
 
