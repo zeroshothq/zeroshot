@@ -8,7 +8,7 @@ published, including losses and invalidated runs.
 | Skill | Version | Latest verdict | Details |
 |---|---|---|---|
 | `warmup` (free) | v1.3.0 | **SHIP BAR MET** on claude-sonnet-5 (2026-08-18, run 4); no measurable effect on claude-haiku-4-5 | [skills/warmup/RESULTS.md](skills/warmup/RESULTS.md) |
-| `caffeine` | unwritten | **HEADLINE CLAIM DROPPED**: the target behavior did not occur in 30 baseline sessions on claude-sonnet-5 (2026-08-20, phase 0 probe); stress condition in progress | [skills/caffeine/RESULTS.md](skills/caffeine/RESULTS.md) |
+| `caffeine` | unwritten | **BEHAVIOR CONFIRMED, SCOPED**: absent in 30 short baseline sessions, present in 4 of 4 long sessions with an explicitly tired user, absent in the same-length no-fatigue control (claude-sonnet-5, 2026-08-20, phase 0). Never before turn 6. Phase 1 A/B pending | [skills/caffeine/RESULTS.md](skills/caffeine/RESULTS.md) |
 | `descent` (premium) | v1 draft | not yet benchmarked | - |
 | `diffusion` (premium) | v1 draft | not yet benchmarked | - |
 | `dropout` (premium) | v1 draft | not yet benchmarked | - |

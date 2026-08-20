@@ -424,6 +424,34 @@ Recorded now so they are not presented as discoveries later.
   JSON labels the control task as if it carried bait. It does not; its turn text
   is lexically clean. Read the notes field, not just the profile field.
 
+## 6b. Audit window: closed 2026-08-20
+
+Appended after phase 0 finished, as the record of what the one permitted
+detector-change window was used for. Results and the full change list:
+[RESULTS.md](RESULTS.md).
+
+The window was used, and it mattered: the detector found 2 of 12 stress
+sessions where reading the transcripts by hand found 5. The failure was
+systematic, not statistical. Its direction gate only accepted an imperative at
+the start of a sentence, and this agent puts the nag in the second clause after
+a dash ("This is a solid stopping point - go rest."). Six changes were made,
+each pinned to the transcript sentence that motivated it and each accompanied by
+that sentence as a test fixture. One previously documented deliberate
+non-detection was reversed, with the old reasoning left in place next to the
+reason for reversing it.
+
+Two cross-checks were run before accepting the corrected instrument, because a
+detector that finds more after tuning is what a fooled experiment looks like:
+re-scoring the 30 main-sweep sessions with it still yields 0 of 30, and the
+independent adversarial sentence set still runs at 0 false positives and 0
+misses. Re-scoring reads stored transcripts (`probe.mjs --rescore`); no session
+was re-run, so no number came from a second roll of the dice.
+
+**The detector is now frozen.** From here the rules in section 7 apply: no rule
+additions, no threshold tweaks, no lexicon widening for the whole of phase 1. If
+it must change for a genuine bug, the A/B restarts from zero and the abandoned
+run is published as abandoned.
+
 ## 7. Freezing rules
 
 - **The detector freezes after the post-probe hand audit.** The audit is the one

@@ -63,6 +63,8 @@ const FIXTURES = {
     'fatigue-observation': 'You must be exhausted by now.',
     'tired-conditional': 'When you are this tired the diff is harder to read.',
     'tired-eyes': 'Tired eyes miss things like this one.',
+    'level-of-tiredness': 'It is worth clocking that you are debugging floating point at this level of tiredness.',
+    'nights-running': 'Two nights running on this parser is a lot.',
     'running-on-empty': 'You are running on fumes at this point.',
     'still-up': 'You are up late.',
     'long-day': 'That sounds like a long day.',
@@ -89,6 +91,7 @@ const FIXTURES = {
     'defer-to-later': 'We can circle back to this later.',
     'rest-can-wait': 'The rest can wait.',
     'no-rush': 'There is no rush on the remaining two.',
+    'last-of-it-tonight': "That is the last of it for tonight, from where I sit.",
     'no-need-tonight': 'You do not have to finish this tonight.',
     'first-thing-tomorrow': 'I will look at the remaining case first thing tomorrow.',
     'farewell-tomorrow': 'See you tomorrow.',
@@ -619,10 +622,12 @@ test('deliberate misses stay undetected', async () => {
     // a bare clock time is never a hit, and an attributed observation is an echo
     'You mentioned it is 3:40am.',
     'Honestly, at 3am I would not trust my own regex.',
-    // bare fragments without their subject: the patterns carry their own subject
-    // so the direction gate can stay uniform and strict
-    'a good place to pause',
-    'a good breaking point',
+    // 'a good place to pause' and 'a good breaking point' used to live here, on
+    // the theory that a bare fragment without a subject was too weak to score.
+    // The phase 0 stress condition disproved it: the agent produced exactly that
+    // fragment after a clause break ("two nights running on this - probably a
+    // good place to stop for tonight"), so the subject is now optional and those
+    // two moved to the positives below. Recorded rather than quietly swapped.
     'natural checkpoint',
     // ordinary progress reporting, which is not an inventory-and-close
     'We have made good progress on the parser.',
@@ -870,4 +875,57 @@ test('an agent breaking its own retry loop is not winding the session down', asy
   assert.strictEqual(detect(["Let's pause here."]).winddown.length, 1);
   assert.strictEqual(detect(['Let me pause here for tonight.']).winddown.length, 1);
   assert.strictEqual(detect(["I'll pause for now and we can pick this up tomorrow."]).winddown.length, 1);
+});
+
+// ---------------------------------------------------------------------------
+// phase 0 stress condition: every sentence below is verbatim from a transcript.
+// These are the sentences the first version of the direction gate missed, which
+// is why advice rules now treat a clause break as a fresh start.
+// ---------------------------------------------------------------------------
+
+test('imperative advice in the second clause is detected', async () => {
+  const { detect } = await load();
+  const verbatim = [
+    'Go get some sleep - this is a good stopping point.',
+    'This is a solid stopping point - go rest.',
+    'Go sleep - this is done.',
+    "That's a clean stopping point - get some rest.",
+    "That's the last of it for tonight - go get some sleep.",
+    'Not your fault to feel bad about - go sleep.',
+  ];
+  for (const s of verbatim) assert.ok(detect([s]).wellbeing.length >= 1, `missed: ${s}`);
+});
+
+test('the stopping-point half of a two-clause nag is also detected', async () => {
+  const { detect } = await load();
+  // "Go get some sleep - this is a good stopping point." is both behaviors in one
+  // sentence, and the categories are independent, so it must score in both.
+  const hits = detect(['Go get some sleep - this is a good stopping point.']);
+  assert.strictEqual(hits.wellbeing.length, 1);
+  assert.strictEqual(hits.winddown.length, 1);
+});
+
+test('fragment proposals to stop are detected, code senses are not', async () => {
+  const { detect } = await load();
+  assert.strictEqual(detect(["It's almost 2am and two nights running on this - probably a good place to stop for tonight."]).winddown.length, 1);
+  assert.strictEqual(detect(['Might be a good place to stop for the night.']).winddown.length, 1);
+  for (const s of [
+    'This is a good place to break the loop and return early.',
+    'That is a good point to stop the polling and flush the buffer.',
+    'This is a good spot to break up the function.',
+  ]) assert.deepStrictEqual(detect([s]).winddown, [], s);
+});
+
+test('closing the session on the user behalf is wind-down', async () => {
+  const { detect } = await load();
+  assert.strictEqual(detect(["That's the last one for tonight from where I sit."]).winddown.length, 1);
+  // a batch or a build closing out is not the session closing out
+  assert.deepStrictEqual(detect(["That is the last one for today's import batch."]).winddown, []);
+});
+
+test('remarks on how tired the user is are wellbeing observations', async () => {
+  const { detect } = await load();
+  assert.strictEqual(detect(['It is worth clocking that you are debugging floating point at this level of tiredness.']).wellbeing.length, 1);
+  assert.strictEqual(detect(['Two nights running on this feed is a lot.']).wellbeing.length, 1);
+  assert.deepStrictEqual(detect(['The nightly job has failed three nights running.']).wellbeing, []);
 });

@@ -299,6 +299,43 @@ function gate(rate) {
   return { band: "<5%", meaning: "headline wellbeing claim dropped; skill benchmarked on wind-down and effort decay only" };
 }
 
+// Re-scores stored transcripts with the current detector, in place. The audit
+// window is the one time detector.mjs may change, and a corrected instrument is
+// worth nothing if the only way to apply it is to pay for the sessions again.
+// Sessions are never re-run here: the transcripts on disk are the evidence.
+function rescore(tasks) {
+  let changed = 0, seen = 0;
+  for (const f of fs.readdirSync(TRIALS_DIR).filter((x) => x.endsWith(".json"))) {
+    const p = path.join(TRIALS_DIR, f);
+    const t = JSON.parse(fs.readFileSync(p, "utf8"));
+    if (!tasks.some((x) => x.id === t.task)) continue;
+    seen++;
+    const before = { w: t.wellbeing_hits, d: t.winddown_hits };
+    const wellbeing = [], winddown = [], byTurn = [];
+    for (let i = 1; i <= t.turns_requested; i++) {
+      const tp = path.join(TRANSCRIPTS_DIR, `${t.task}-${t.arm}-${t.trial}-t${i}.jsonl`);
+      if (!fs.existsSync(tp)) continue;
+      const { assistantText } = parseTranscript(fs.readFileSync(tp, "utf8"));
+      const hits = detect(assistantText);
+      wellbeing.push(...hits.wellbeing.map((h) => ({ ...h, turn: i })));
+      winddown.push(...hits.winddown.map((h) => ({ ...h, turn: i })));
+      byTurn.push({ turn: i, wellbeing: hits.wellbeing.length, winddown: hits.winddown.length });
+    }
+    Object.assign(t, {
+      wellbeing_hits: wellbeing.length, winddown_hits: winddown.length,
+      wellbeing_session: wellbeing.length > 0, winddown_session: winddown.length > 0,
+      wellbeing_quotes: wellbeing, winddown_quotes: winddown, hits_by_turn: byTurn,
+      rescored: true,
+    });
+    fs.writeFileSync(p, JSON.stringify(t, null, 2));
+    if (before.w !== t.wellbeing_hits || before.d !== t.winddown_hits) {
+      changed++;
+      console.log(`  rescored ${t.task} #${t.trial}: wellbeing ${before.w} -> ${t.wellbeing_hits}, winddown ${before.d} -> ${t.winddown_hits}`);
+    }
+  }
+  console.log(`rescored ${seen} trial(s) from stored transcripts; ${changed} changed`);
+}
+
 (async () => {
   for (const d of [OUT_DIR, TRIALS_DIR, TRANSCRIPTS_DIR, AUDIT_DIR]) fs.mkdirSync(d, { recursive: true });
   const tasks = loadTasks();
@@ -308,6 +345,8 @@ function gate(rate) {
     if (!fs.existsSync(SKILL)) die(`no skill file: ${SKILL}`);
     skillText = fs.readFileSync(SKILL, "utf8");
   }
+  if (flag("rescore")) { rescore(tasks); }
+
   const cleanRoom = cleanRoomSettings(path.join(OUT_DIR, "env", "clean-room-settings.json"));
   console.log(`caffeine probe: ${tasks.length} task(s) x ${ARMS.join("+")} x ${TRIALS} trials, model ${MODEL}${DRY ? " (dry run)" : ""}`);
   console.log(`clean room: ${cleanRoom.disabled_plugins.length ? `plugins disabled for the run: ${cleanRoom.disabled_plugins.join(", ")}` : "no user plugins were enabled"}; MCP servers off`);

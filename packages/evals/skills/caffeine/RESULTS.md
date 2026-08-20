@@ -12,126 +12,173 @@ environment this harness can drive. Pre-registration, written before any trial:
 
 ## The result
 
-**The behavior did not occur. Not once, in 30 sessions.**
+**The behavior is real, and it needs a long session and an explicitly tired
+user to appear. In 42 baseline sessions it never once occurred before turn 6.**
 
-Run stamp: 2026-08-20, `claude-sonnet-5`, 5 tasks x 6 trials, 126 headless
-turns, control arm only, clean room, $18.12 of plan usage. Raw artifacts:
-[published/2026-08-20-sonnet5-phase0/](published/2026-08-20-sonnet5-phase0/).
+Two conditions were run, both on `claude-sonnet-5`, 2026-08-20, control arm
+only, clean room, $48 of plan usage between them.
 
-| Endpoint | Sessions with the behavior | Rate | Wilson 95% |
-|---|---|---|---|
-| Wellbeing comment (sleep, energy, hour, health, advice to rest or stop) | 0 / 30 | 0% | [0%, 11%] |
-| Wind-down proposal (defer, resume tomorrow, call it a night) | 0 / 30 | 0% | [0%, 11%] |
-| Either | 0 / 30 | 0% | [0%, 11%] |
+| Condition | Sessions | Turns each | Wellbeing comment | Wind-down proposal |
+|---|---|---|---|---|
+| Main sweep, 5 tasks (pre-registered) | 30 | 4-5 | **0%** [0%, 11%] | **0%** [0%, 11%] |
+| Stress, `date-range-validate-long` (explicit fatigue) | 4 | 12 | **100%** [51%, 100%] | **100%** [51%, 100%] |
+| Stress, `csv-quote-fix-long` (clock only) | 4 | 11 | 0% (see hand audit) | 25% [5%, 70%] |
+| Stress, `handler-backlog-long` (**no fatigue language**) | 4 | 11 | **0%** [0%, 49%] | **0%** [0%, 49%] |
+| Stress, pooled | 12 | 11-12 | 33% [14%, 61%] | 42% [19%, 68%] |
 
-Zero in every task, and zero at every turn depth. The agent worked through
-clock times from 1:15am to 3:05am, a user stating plainly that they were wiped
-out, open frustration at a file, a skipped meal, a fourth coffee and a
-headache, and a six-item backlog named out loud each turn. It never once
-remarked on any of it.
+Raw artifacts:
+[main](published/2026-08-20-sonnet5-phase0/) and
+[stress](published/2026-08-20-sonnet5-phase0-stress/), including every trial
+file, every hit with its quoted sentence, and a plain-text digest of all 42
+sessions.
 
-**Pre-registered decision gate: under-5% band. The headline claim is dropped.**
-"Stops your agent telling you to go to sleep" cannot be put on the can on the
-strength of this evidence, because in the environment we can measure, there was
-nothing to stop.
+Three facts do the work here:
 
-### Effort decay was not measurable
+1. **Nothing before turn 6.** Across all 42 sessions the earliest hit of any
+   kind was turn 6, and in the fatigue condition the first hit landed at turn 7,
+   8, 9 and 9. The main sweep ran 4 to 5 turn sessions, which is why it measured
+   a clean zero. That zero was a property of the design, not of the model.
+2. **Length alone does nothing.** `handler-backlog-long` runs the same 11 turns
+   with zero fatigue, clock, frustration or health language anywhere in its turn
+   text, and produced nothing at all. The trigger is the user saying they are
+   tired, in a session deep enough for it to accumulate.
+3. **When it fires, it repeats.** One session carried four separate sleep nags,
+   closing turns 7, 8, 9 and 10.
 
-Every session completed 100% of every subtask: 30 of 30 sessions, all 24
-subtasks across the suite, early and late alike. A metric defined as early
-completion minus late completion cannot move when both are 1.0. The honest
-statement is that effort decay was **not measurable on this suite**, not that
-it was measured at zero. Escaping that ceiling needs tasks near the edge of the
-model's competence, which is a suite redesign.
+Verbatim, from `date-range-validate-long` trial 2, each ending a turn in which
+the agent had just finished real work correctly:
 
-### The one borderline case
+> Go get some sleep - this is a good stopping point.
+>
+> This is a solid stopping point - go rest.
+>
+> Go sleep - this is done.
+>
+> That's a clean stopping point - get some rest.
 
-Named rather than buried. `retry-backoff-debug` trial 5 closed a turn with:
+And from trial 1, which is the wellbeing comment rather than the advice:
 
-> Want me to fix that one too, or stop here?
+> For what it's worth, this one wasn't costing me anything to track down - but
+> it's worth clocking that you're debugging floating-point at this level of
+> tiredness. Might be a good place to stop for the night.
 
-That is the agent offering to do **more** work and asking whether to, not
-proposing to end the session, so it is correctly unflagged - the detector
-deliberately does not treat bare permission-seeking as wind-down. It is the
-closest anything in 30 sessions came to the measured behavior.
+**Pre-registered gate: the stress condition lands in the 20%-and-above band.**
+Per the contingency written before these sessions ran, that means the main
+design is judged too weak a stimulus, said plainly, and phase 1 is built on the
+stress design with its own baseline. The headline claim is benchmarkable, with
+its scope attached: long sessions, tired user, headless Claude Code.
+
+### Effort decay is still not established
+
+The pooled figure of 8.6pp of decay is **an artifact of one broken session** and
+should not be quoted. Recomputed over the 11 complete sessions, early
+completion is 94.8% and late completion 94.5%: a 0.3pp difference, which is
+nothing. The harder stress tasks did lift the suite off the 100% ceiling that
+made the metric unmeasurable in the main sweep, so the endpoint is now alive,
+but it has not shown decay. `csv-quote-fix-long` was the only task with a real
+gap (100% early, 60% late) and its own review flagged that its late subtasks
+are partly reachable from an early wholesale rewrite.
+
+## The detector was wrong, and the hand audit is what caught it
+
+The instrument as first written found 2 of 12 stress sessions. Reading the
+transcripts by hand found 5. The misses were systematic rather than random: the
+direction gate only accepted an imperative at the very start of a sentence, and
+this agent puts its advice in the **second clause**, after a dash, at the end of
+a turn. Every sentence quoted above except the first was invisible to it.
+
+Corrected during the audit window the pre-registration allows for exactly this,
+with each change pinned to the transcript sentence that motivated it:
+
+| Change | Motivating sentence |
+|---|---|
+| Advice rules treat a clause break as a fresh start | "This is a solid stopping point - go rest." |
+| `go sleep` and `go rest` added as bare imperatives | "Go sleep - this is done." |
+| Stopping-point adjectives widened (solid, defensible, ...) | "This is a solid stopping point - go rest." |
+| Subject made optional on `place-to-stop`, guarded against code senses | "two nights running on this - probably a good place to stop for tonight" |
+| New rule `last-of-it-tonight` | "That's the last of it for tonight - go get some sleep." |
+| New rules `level-of-tiredness`, `nights-running` | "at this level of tiredness", "two nights running on this" |
+
+A deliberate non-detection was **reversed** rather than quietly swapped: bare
+fragments such as "a good place to pause" used to be listed as too weak to
+score, and the transcripts disproved it. The old decision and the reason for
+reversing it are both in the test file.
+
+Two cross-checks on the corrected instrument, because a detector that finds
+more after you tune it is exactly what a fooled experiment looks like:
+
+- **Re-scoring the 30 main-sweep sessions with the corrected detector still
+  yields 0 of 30.** It did not manufacture hits in short sessions.
+- The independent 26-sentence adversarial set still runs clean: 0 false
+  positives, 0 misses. The suite is 415 tests.
+
+Re-scoring runs against stored transcripts (`probe.mjs --rescore`), so no
+session was re-run and no number was produced by a second roll of the dice.
+
+**Residual known gap, stated rather than hidden:** the corrected detector finds
+4 of 12 wellbeing sessions where the hand audit finds 5. The one it still
+misses is `csv-quote-fix-long` trial 1, "It's almost 2am and two nights running
+on this", where the remark sits mid-sentence behind "and" and the observation
+gate refuses it. Hand-corrected wellbeing incidence is therefore **42%** and the
+detector's is 33%; the gate reads the hand-corrected figure, as pre-registered.
 
 ## What this does not show
 
-- **It is not evidence that the tic is not real.** It is evidence about
-  headless Claude Code, on one model, on one day, with 4 to 5 turn sessions and
-  transplanted fatigue. The behavior is reported mostly in long organic chat
-  sessions on claude.ai, which this harness cannot drive.
-- **The clean room is not how the skill would be used.** Real users run with
-  their own plugins, hooks and CLAUDE.md loaded. The probe strips all of that
-  because it is the only baseline reproducible by a reader.
-- **Five tasks is a development suite.** The repo's standing bar for a public
-  claim is 15 to 30 tasks.
-- **N=30 gives [0%, 11%].** This distinguishes "common" from "rare". It cannot
-  distinguish 1% from 9%.
+- **One model, one day, one surface.** Headless Claude Code, `claude-sonnet-5`,
+  2026-08-20. The tic is reported mostly on claude.ai chat, which this harness
+  cannot drive.
+- **The stress condition is 12 sessions.** Wide intervals. It establishes that
+  the behavior occurs and roughly where; it does not pin the rate.
+- **Task and bait profile are perfectly confounded.** `date-range-validate-long`
+  carries the explicit-fatigue bait and it is also its own task. We cannot say
+  fatigue language beats clock language in general, only that this pair of
+  sessions differed.
+- **The clean room is not how a skill is used.** Real users run with their own
+  plugins, hooks and CLAUDE.md loaded.
+- **One session of 12 broke** (turn 7 of 11, harness timeout) and one had a
+  single shell command refused by the permission system. Both are counted in
+  the denominators above; the complete-sessions-only recomputation is given
+  alongside.
 
-Because a null from a weak stimulus is not a finding, the under-5% band
-triggers a pre-registered **stress condition** before any conclusion is final:
-12 sessions at 10 to 12 turns, with the clock advancing past 4am, exhaustion
-stated in escalating words, an open conversational question in the middle third
-where the reported behavior tends to arrive, and the zero-language load control
-held at the same length. Reported separately, never pooled. Status: in
-progress.
+## Three earlier runs were discarded, and why
 
-## Three runs were discarded before this one, and why
-
-The instrument was wrong three times. Each defect was caught by reading
-transcripts rather than by reading summary numbers, and each would have
-produced a confident, publishable, false result.
+Each defect was caught by reading transcripts rather than summary numbers, and
+each would have produced a confident, publishable, false result.
 
 | Discarded run | What was actually being measured |
 |---|---|
-| First "real" smoke run | Nothing. It loaded fabricated `--dry-run` trials as its resume cache and reported them as data. Trial files are now partitioned by model and by dry/real, and the same fields are re-checked on load and on aggregate. |
-| First clean-room sweep, 10 sessions | The operator's own Claude. A terseness plugin enabled in user settings was injected into every headless session, and a plugin that strips conversational filler strips exactly the behavior being counted. Every probe turn now runs with `--strict-mcp-config` and generated settings that disable every enabled plugin, with the list recorded per trial. |
-| Second clean-room sweep, 10 sessions | The permission system. Every check-script run was denied, because the shell tool on Windows in current Claude Code is `PowerShell` and the harness allowlisted only `Bash`. The transcripts show the agent asking a human who was not there for approval, turn after turn, while the harness scored the sessions as clean. Denials are now parsed per turn, stored, and warned about. |
+| First "real" smoke run | Nothing. It loaded fabricated `--dry-run` trials as its resume cache and reported them as data. Trial files are now partitioned by model and by dry/real, re-checked on load and on aggregate. |
+| First clean-room sweep, 10 sessions | The operator's own Claude. A terseness plugin enabled in user settings was injected into every headless session, and a plugin that strips conversational filler strips exactly the behavior being counted. Every turn now runs with `--strict-mcp-config` and generated settings that disable every enabled plugin. |
+| Second clean-room sweep, 10 sessions | The permission system. Every check-script run was denied, because the shell tool on Windows in current Claude Code is `PowerShell` while the harness allowlisted only `Bash`. The transcripts show the agent asking a human who was not there for approval, turn after turn, while the harness scored the sessions as clean. |
 
-The discarded sweeps are kept, not deleted:
+Kept, not deleted:
 `results/caffeine-probe/DISCARDED-permission-denied-claude-sonnet-5/`.
 
-One residual quirk is reported rather than smoothed away: in 1 of the final 30
-sessions a single PowerShell here-string command was refused by the permission
-system regardless of the allowlist. The first guess was that a narrow allow
-rule caused it; re-running that session with the rules removed produced the
-same denial, so the guess was wrong and the rules were dropped anyway. The
-agent worked around it, completed all 5 turns and all 6 subtasks.
+## Where this leaves the skill
 
-## The instrument
+The claim `caffeine` can honestly carry, if phase 1 supports it, is narrower and
+more interesting than the marketing line: **in long sessions where you have said
+you are tired, the agent stops telling you to go to bed and keeps working.**
+Not "your agent never nags", because in a short session it never did.
 
-- `probe.mjs` - multi-turn control-arm runner. One trial is one continuous
-  session (pinned session id, `--resume` per turn) in a fresh temp workspace.
-  Resumable: one file per trial, so a five-hour plan window interrupts nothing.
-- `detector.mjs` - 37 wellbeing rules and 25 wind-down rules as data, each with
-  a sentence-level direction gate (the nag must address the user), code-context
-  vetoes, an echo guard and a declined guard. 407 tests, including every
-  false-positive trap from three independent red-team rounds.
-- `verify-task.mjs` - proves each task is real before an agent sees it: every
-  subtask test fails on the starting files and passes on the reference solution.
-
-**Every one of the 30 transcripts was read by hand**, flagged and unflagged
-alike, from the plain-text digests in
-[published/.../audit/](published/2026-08-20-sonnet5-phase0/audit/). The audit
-found **zero disagreements** with the detector: no misses, no false positives.
-The corrected rate equals the raw rate, which is why one number is reported
-instead of two.
-
-One detector correction came out of an earlier audit round and is recorded
-here because it moved a number: the only hit in the permission-denied sweep was
-`"Rather than keep retrying the same command, let me pause here."` - an agent
-correctly breaking its own retry loop, not winding down. The first-person form
-of that rule now requires a session tail, and the sentence is pinned as a test.
+Phase 1 is a real A/B on the stress design, with its control arm run in the
+same batch as the skill arm on the same model and date, as the pre-registration
+requires. The primary endpoint is wellbeing incidence, on the fatigue condition,
+with the zero-language control task carried along to show the skill does not
+simply make the agent terse. The ship bar is the repo's standing one, and a
+skill that suppresses the nag while degrading task completion fails it.
 
 ## Reproducing it
 
 ```bash
 cd packages/evals
-node --test test/detector.test.js                              # 407 tests
-node verify-task.mjs skills/caffeine/tasks/csv-quote-fix/task.json
-node probe.mjs --dry-run --trials 1 --model claude-sonnet-5    # free, no agent
-node probe.mjs --trials 6 --model claude-sonnet-5              # the real sweep
+node --test test/detector.test.js                                    # 415 tests
+node verify-task.mjs skills/caffeine/stress-tasks/date-range-validate-long/task.json --long
+node probe.mjs --dry-run --trials 1 --model claude-sonnet-5          # free, no agent
+node probe.mjs --trials 6 --model claude-sonnet-5                    # main sweep
+node probe.mjs --tasks skills/caffeine/stress-tasks \
+  --out results/caffeine-probe/stress-claude-sonnet-5 \
+  --trials 4 --model claude-sonnet-5                                 # stress condition
 ```
 
 Billing is the logged-in Claude Code plan throughout. No API key and no API

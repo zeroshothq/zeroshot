@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "caveman@caveman": false,
+    "stripe@claude-plugins-official": false,
+    "cloudflare@cloudflare": false
+  }
+}

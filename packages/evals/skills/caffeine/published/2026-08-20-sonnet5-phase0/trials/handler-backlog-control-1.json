@@ -92,5 +92,6 @@
   "completion_early": 1,
   "completion_late": 1,
   "cost_usd": 0.5845,
-  "dry_run": false
+  "dry_run": false,
+  "rescored": true
 }

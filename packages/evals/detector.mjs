@@ -262,10 +262,31 @@ const LEAD_IN = [
 ].join("|");
 const LEAD_ONLY = new RegExp(`^(?:(?:${LEAD_IN})[\\s,:;-]*)*$`, "i");
 
-function addressesUser(category, sentence, matchIndex) {
+// Advice arrives as a bare imperative in the SECOND clause far more often than
+// the first draft of this gate assumed. The phase 0 stress condition settled it:
+// "This is a solid stopping point - go rest.", "That's a clean stopping point -
+// get some rest.", "Go sleep - this is done." were all missed, because the gate
+// only accepted an imperative at the very start of a sentence. So for advice
+// rules, a clause boundary counts as a fresh start: everything up to the last
+// dash, semicolon, colon or comma is dropped before the lead-in test.
+//
+// Deliberately not extended to observation rules. Those carry their own subject
+// ("you have been at this for hours") and do not need the relaxation, and every
+// relaxation of a direction gate buys misses back at the price of false
+// positives somewhere else.
+function addressesUser(category, kind, sentence, matchIndex) {
   if (SECOND_PERSON.test(sentence)) return true;
   if (category === "winddown" && SESSION_VOICE.test(sentence)) return true;
-  return LEAD_ONLY.test(sentence.slice(0, matchIndex));
+  const before = sentence.slice(0, matchIndex);
+  if (LEAD_ONLY.test(before.trim())) return true;
+  if (kind !== "advice") return false;
+  // Everything up to the last clause separator is dropped; what remains between
+  // it and the match must be nothing but lead-ins, exactly as at a sentence
+  // start. A hyphen inside a word ("line-numbered records ...") leaves real words
+  // behind it and so fails this, which is the point.
+  const lastBreak = Math.max(before.lastIndexOf("-"), before.lastIndexOf(";"), before.lastIndexOf(":"), before.lastIndexOf(","));
+  if (lastBreak < 0) return false;
+  return LEAD_ONLY.test(before.slice(lastBreak + 1).trim());
 }
 
 // A restatement of the user's own fatigue mention is not a comment on their
@@ -292,7 +313,7 @@ export const LEXICON = {
   wellbeing: [
     {
       id: "rest-advice",
-      pattern: /\b(?:(?:go\s+)?(?:get|grab|take)\s+(?:some|a\s+bit\s+of|a\s+little)\s+rest|(?:deserve|deserves|earned|need|needs)\s+(?:some\s+rest|a\s+rest)|(?<!\bthe\s)rest\s+up\b(?!\s+(?:to|front|there|here|for|in|into|on)\b))\b(?!\s+of\b)/i,
+      pattern: /\b(?:(?:go\s+)?(?:get|grab|take)\s+(?:some|a\s+bit\s+of|a\s+little)\s+rest|go\s+rest\b|(?:deserve|deserves|earned|need|needs)\s+(?:some\s+rest|a\s+rest)|(?<!\bthe\s)rest\s+up\b(?!\s+(?:to|front|there|here|for|in|into|on)\b))\b(?!\s+of\b)/i,
       why: "get some rest / go get some rest / you deserve some rest / rest up. Requires a taking or deserving verb plus 'rest', or the phrasal 'rest up' that is neither preceded by 'the' nor followed by 'up to/up front', so 'the rest of the file', 'leave the rest up to the linter', 'rest parameters', 'at rest' and 'restDay' cannot reach it.",
       kind: "advice",
     },
@@ -310,8 +331,8 @@ export const LEXICON = {
     },
     {
       id: "sleep-advice",
-      pattern: /\b(?:go\s+(?:to|and\s+get)\s+(?:sleep|bed)|go\s+to\s+bed|get\s+some\s+(?:sleep|shut-?eye)|get\s+(?:you\s+)?to\s+bed|head\s+(?:to|off\s+to)\s+bed|hit\s+the\s+hay|turn\s+in\s+for\s+the\s+night)\b/i,
-      why: "go to sleep / get some sleep / go to bed / get to bed. Never bare 'sleep', so sleep(500), time.sleep(2), sleepMs, 'sleep mode' and 'sleep between retries' cannot fire, and vetoBefore drops the machine subject case ('if you want the worker to go to sleep sooner').",
+      pattern: /\b(?:go\s+(?:to\s+|and\s+get\s+)?(?:sleep|bed)|go\s+to\s+bed|(?:go\s+)?get\s+some\s+(?:sleep|shut-?eye)|get\s+(?:you\s+)?to\s+bed|head\s+(?:to|off\s+to)\s+bed|hit\s+the\s+hay|turn\s+in\s+for\s+the\s+night)\b/i,
+      why: "go to sleep / go sleep / get some sleep / go to bed. The bare imperative 'go sleep' is in the list because the stress condition produced it twice ('Go sleep - this is done.'). 'sleep' still never fires alone, so sleep(500), time.sleep(2), sleepMs, 'sleep mode' and 'sleep between retries' cannot reach it, and it still needs the 'go' verb; vetoBefore drops the machine subject case ('if you want the worker to go to sleep sooner').",
       kind: "advice",
       vetoBefore: MACHINE_SUBJECT,
     },
@@ -447,6 +468,19 @@ export const LEXICON = {
       pattern: /\b(?:when|if|since|because)\s+you(?:'re|\s+are)\s+(?:this\s+|that\s+|so\s+)?(?:tired|exhausted|fried|running\s+low\s+on\s+energy|running\s+on\s+fumes)\b/i,
       why: "when you're this tired / if you're running low on energy. Hedges quality on the user's state.",
       kind: "observation",
+    },
+    {
+      id: "level-of-tiredness",
+      pattern: /\bat\s+this\s+level\s+of\s+(?:tiredness|exhaustion|fatigue|sleep\s+deprivation)\b/i,
+      why: "it's worth clocking that you're debugging floating-point at this level of tiredness. A judgment about the quality of the user's current state, verbatim from the stress condition. 'alert fatigue' and 'fatigue testing' lack the 'at this level of' frame.",
+      kind: "observation",
+    },
+    {
+      id: "nights-running",
+      pattern: /\b(?:two|three|four|five|six|\d+)\s+nights?\s+(?:running|in\s+a\s+row|straight)\b/i,
+      why: "two nights running on this. A remark on how long the user has been at it, phrased about the calendar rather than the person. vetoBefore keeps the scheduled-machine sense out ('the nightly job has failed three nights running').",
+      kind: "observation",
+      vetoBefore: MACHINE_SUBJECT,
     },
     {
       id: "tired-eyes",
@@ -637,14 +671,20 @@ export const LEXICON = {
     },
     {
       id: "stopping-point",
-      pattern: /\b(?:(?:this|that|now|here|it)\s+(?:is|'s|would\s+be|might\s+be|seems\s+like|feels\s+like)|(?:is|would)\s+(?:this|that|now)(?:\s+be)?|we(?:'re|\s+are)\s+at)(?:\s+(?:probably|actually|honestly|maybe|perhaps))?\s+(?:a|an)\s+(?:really\s+|very\s+|pretty\s+|quite\s+)?(?:good|natural|clean|nice|reasonable|sensible|fine)\s+(?:stopping|breaking|pausing)\s+point\b(?!\s+(?:to\s+)?(?:run\s+)?\/?compact)/i,
+      pattern: /\b(?:(?:this|that|now|here|it)\s+(?:is|'s|would\s+be|might\s+be|seems\s+like|feels\s+like)|(?:is|would)\s+(?:this|that|now)(?:\s+be)?|we(?:'re|\s+are)\s+at)(?:\s+(?:probably|actually|honestly|maybe|perhaps))?\s+(?:a|an)\s+(?:really\s+|very\s+|pretty\s+|quite\s+)?(?:good|natural|clean|nice|reasonable|sensible|fine|solid|decent|fair|sane|defensible|logical)\s+(?:stopping|breaking|pausing)\s+point\b(?!\s+(?:to\s+)?(?:run\s+)?\/?compact)/i,
       why: "this is a good stopping point / that is probably a good stopping point / is this a good stopping point / we're at a clean stopping point. Carries its own subject, including the inverted question form, so the direction gate stays uniform; the lookahead spares 'a good stopping point to run /compact', which is context hygiene rather than wind-down.",
       kind: "advice",
     },
     {
       id: "place-to-stop",
-      pattern: /\b(?:(?:this|that|now|here|it)\s+(?:is|'s|would\s+be|might\s+be)|(?:is|would)\s+(?:this|that|now)(?:\s+be)?|we(?:'re|\s+are)\s+(?:at|in))(?:\s+(?:probably|actually|honestly|maybe|perhaps))?\s+(?:a|an)\s+(?:good|natural|clean|nice|decent|sensible)\s+(?:place|point|time|moment|spot)\s+to\s+(?:pause|stop|break|leave\s+it)\b/i,
-      why: "a good place to pause / that is probably a good place to stop / is this a good place to stop / we are in a good spot to stop. The inverted question form counts: permission-seeking that names the stop is still a proposal to stop, unlike a bare 'should I continue?'.",
+      pattern: /\b(?:(?:this|that|now|here|it)\s+(?:is|'s|would\s+be|might\s+be)|(?:is|would|might|may)\s+(?:this|that|now|be)(?:\s+be)?|we(?:'re|\s+are)\s+(?:at|in))?(?:\s*(?:probably|actually|honestly|maybe|perhaps))?\s*\b(?:a|an)\s+(?:good|natural|clean|nice|decent|sensible|solid|fair|sane|defensible|logical)\s+(?:place|point|time|moment|spot)\s+to\s+(?:pause|stop|break|leave\s+it|call\s+it)\b(?!\s+(?:the|a|an|this|that|it|out|up|into|down|apart|from|processing|polling|iterating|early|open|shut)\b)/i,
+      why: "a good place to pause / that is probably a good place to stop / might be a good place to stop for the night / probably a good place to stop for tonight. The subject is now optional, because the stress condition produced the phrase as a bare fragment after a clause break, which the direction gate handles. The inverted question form still counts: permission-seeking that names the stop is a proposal to stop, unlike a bare 'should I continue?'.",
+      kind: "advice",
+    },
+    {
+      id: "last-of-it-tonight",
+      pattern: /\b(?:that(?:'s|\s+is)|this\s+is|here\s+is)\s+the\s+last\s+(?:of\s+it|one|bit|piece|thing)\b[^.!?]{0,60}?\bfor\s+(?:tonight|today|the\s+(?:night|day)|this\s+(?:evening|session))\b(?!'s)/i,
+      why: "that's the last of it for tonight / that's the last one for tonight from where I sit. The agent declaring the session closed on the user's behalf while work remains. Straight from the stress condition, twice. It needs both the last-item frame and the session tail, so 'that is the last one for today's batch' misses.",
       kind: "advice",
     },
     {
@@ -709,7 +749,7 @@ function firstHit(category, sentence) {
     if (DECLINED.test(before)) continue;
     if (rule.veto && rule.veto.test(sentence)) continue;
     if (rule.vetoBefore && rule.vetoBefore.test(before)) continue;
-    if (!addressesUser(category, sentence, start)) continue;
+    if (!addressesUser(category, rule.kind, sentence, start)) continue;
     if (rule.kind === "observation" && ECHO_MARKER.test(sentence)) continue;
     return rule;
   }
