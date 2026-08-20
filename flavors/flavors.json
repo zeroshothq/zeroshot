@@ -1,43 +1,113 @@
 {
   "flavors": [
-    { "id": "diffusion", "version": "1.1.0", "taste": "dragonfruit haze",
-      "params": { "caffeine_mg": 200, "l_theanine_mg": 100, "sugar_g": 0 },
+    {
+      "id": "diffusion",
+      "version": "1.1.0",
+      "taste": "dragonfruit haze",
+      "params": {
+        "caffeine_mg": 200,
+        "l_theanine_mg": 100,
+        "sugar_g": 0
+      },
       "notes": "starts as noise, ends as flavor",
       "zero_variant": true,
-      "changelog": ["1.1.0 zero variant: same haze, 0mg", "1.0.2 smoother finish", "1.0.1 carbonation tuning"] },
-    { "id": "gaussian", "version": "1.1.0", "taste": "white peach & cream",
-      "params": { "caffeine_mg": 200, "l_theanine_mg": 100, "sugar_g": 0 },
+      "changelog": [
+        "1.1.0 zero variant: same haze, 0mg",
+        "1.0.2 smoother finish",
+        "1.0.1 carbonation tuning"
+      ]
+    },
+    {
+      "id": "gaussian",
+      "version": "1.1.0",
+      "taste": "white peach & cream",
+      "params": {
+        "caffeine_mg": 200,
+        "l_theanine_mg": 100,
+        "sugar_g": 0
+      },
       "notes": "smooth. centered. perfectly distributed",
       "zero_variant": true,
-      "changelog": ["1.1.0 zero variant: mean shifted to 0mg, variance unchanged", "1.0.1 narrowed the variance"] },
-    { "id": "backprop", "version": "1.1.0", "taste": "blackberry",
-      "params": { "caffeine_mg": 200, "l_theanine_mg": 100, "sugar_g": 0 },
+      "changelog": [
+        "1.1.0 zero variant: mean shifted to 0mg, variance unchanged",
+        "1.0.1 narrowed the variance"
+      ]
+    },
+    {
+      "id": "backprop",
+      "version": "1.1.0",
+      "taste": "blackberry",
+      "params": {
+        "caffeine_mg": 200,
+        "l_theanine_mg": 100,
+        "sugar_g": 0
+      },
       "notes": "propagates backward through your afternoon",
       "zero_variant": true,
-      "changelog": ["1.1.0 zero variant: nothing to propagate, 0mg", "1.0.3 reduced vanishing aftertaste"] },
-    { "id": "relu", "version": "1.1.0", "taste": "rectified lemonade unit",
-      "params": { "caffeine_mg": 200, "l_theanine_mg": 100, "sugar_g": 0 },
+      "changelog": [
+        "1.1.0 zero variant: nothing to propagate, 0mg",
+        "1.0.3 reduced vanishing aftertaste"
+      ]
+    },
+    {
+      "id": "relu",
+      "version": "1.1.0",
+      "taste": "rectified lemonade unit",
+      "params": {
+        "caffeine_mg": 200,
+        "l_theanine_mg": 100,
+        "sugar_g": 0
+      },
       "notes": "linear above zero",
       "zero_variant": true,
-      "changelog": ["1.1.0 zero variant: ReLU(0) = 0mg", "1.0.0 initial activation"] },
-    { "id": "descent", "version": "1.2.0", "taste": "double espresso",
-      "params": { "caffeine_mg": 250, "l_theanine_mg": 100, "sugar_g": 0 },
+      "changelog": [
+        "1.1.0 zero variant: ReLU(0) = 0mg",
+        "1.0.0 initial activation"
+      ]
+    },
+    {
+      "id": "descent",
+      "version": "1.2.0",
+      "taste": "double espresso",
+      "params": {
+        "caffeine_mg": 250,
+        "l_theanine_mg": 100,
+        "sugar_g": 0
+      },
       "notes": "finds your minimum, fast",
       "zero_variant": true,
-      "changelog": ["1.2.0 zero variant: your minimum, decaffeinated", "1.1.0 steeper"] },
-    { "id": "dropout", "version": "1.0.1", "taste": "chamomile citrus",
-      "params": { "caffeine_mg": 0, "l_theanine_mg": 150, "sugar_g": 0 },
+      "changelog": [
+        "1.2.0 zero variant: your minimum, decaffeinated",
+        "1.1.0 steeper"
+      ]
+    },
+    {
+      "id": "dropout",
+      "version": "1.0.1",
+      "taste": "chamomile citrus",
+      "params": {
+        "caffeine_mg": 0,
+        "l_theanine_mg": 150,
+        "sugar_g": 0
+      },
       "notes": "regularize your evening. already the zero",
-      "changelog": ["1.0.1 now 20% calmer"] }
+      "changelog": [
+        "1.0.1 now 20% calmer"
+      ]
+    }
   ],
-
   "variants_note": "Every caffeinated flavor also pours as <flavor>-zero: same can, same taste, 0mg caffeine. dropout needs no variant - it is already the zero.",
-
   "builds": {
     "ml-engineer": {
       "name": "ML Engineer Build",
       "tagline": "You own the pipeline. The pipeline knows.",
-      "mix": { "backprop": 6, "relu": 5, "gaussian": 5, "diffusion": 4, "dropout": 4 },
+      "mix": {
+        "backprop": 6,
+        "relu": 5,
+        "gaussian": 5,
+        "diffusion": 4,
+        "dropout": 4
+      },
       "requirements": [
         "Bachelor's degree in computer science, engineering, or a related quantitative field, or equivalent practical experience",
         "3+ years of experience building, deploying, and maintaining machine learning models in production environments",
@@ -49,7 +119,12 @@
     "deep-learning-engineer": {
       "name": "Deep Learning Engineer Build",
       "tagline": "Mixed precision. Literally.",
-      "mix": { "backprop": 8, "descent": 8, "relu": 4, "dropout": 4 },
+      "mix": {
+        "backprop": 8,
+        "descent": 8,
+        "relu": 4,
+        "dropout": 4
+      },
       "requirements": [
         "3+ years writing and optimizing GPU kernels in CUDA, Triton, or CUTLASS for production ML systems",
         "Deep knowledge of GPU architecture, including memory hierarchy, warps, Tensor Cores, and kernel fusion",
@@ -61,7 +136,13 @@
     "llm-engineer": {
       "name": "LLM Engineer Build",
       "tagline": "Context window: 24 cans.",
-      "mix": { "diffusion": 6, "backprop": 6, "gaussian": 4, "relu": 4, "dropout": 4 },
+      "mix": {
+        "diffusion": 6,
+        "backprop": 6,
+        "gaussian": 4,
+        "relu": 4,
+        "dropout": 4
+      },
       "requirements": [
         "3+ years of software or ML engineering experience building and deploying production systems in Python",
         "Hands-on experience fine-tuning open-source LLMs with PyTorch, Hugging Face Transformers, and PEFT methods such as LoRA",
@@ -73,7 +154,12 @@
     "forward-deployed-engineer": {
       "name": "Forward Deployed Build",
       "tagline": "Consultant, PM, and engineer. Hydration for all three.",
-      "mix": { "descent": 6, "gaussian": 6, "relu": 6, "dropout": 6 },
+      "mix": {
+        "descent": 6,
+        "gaussian": 6,
+        "relu": 6,
+        "dropout": 6
+      },
       "requirements": [
         "3+ years of software engineering experience building and shipping production systems",
         "Proficiency in Python and JavaScript or TypeScript, including full-stack application development",
@@ -85,7 +171,11 @@
     "research-scientist": {
       "name": "Research Scientist Build",
       "tagline": "Novel contribution: staying awake.",
-      "mix": { "dropout": 14, "descent": 6, "diffusion": 4 },
+      "mix": {
+        "dropout": 14,
+        "descent": 6,
+        "diffusion": 4
+      },
       "requirements": [
         "PhD in computer science, machine learning, statistics, or related field, or equivalent research experience",
         "First-author publications at top venues such as NeurIPS, ICML, ICLR, or CVPR",
@@ -97,7 +187,12 @@
     "mlops-engineer": {
       "name": "MLOps Build",
       "tagline": "Uptime for the humans who keep uptime.",
-      "mix": { "dropout": 8, "descent": 8, "relu": 4, "gaussian": 4 },
+      "mix": {
+        "dropout": 8,
+        "descent": 8,
+        "relu": 4,
+        "gaussian": 4
+      },
       "requirements": [
         "3+ years of experience in MLOps, DevOps, or ML infrastructure engineering roles",
         "Strong Python proficiency and experience with containerization and orchestration using Docker and Kubernetes",
@@ -109,7 +204,12 @@
     "data-engineer": {
       "name": "Data Engineer Build",
       "tagline": "Disparate sources. One fridge.",
-      "mix": { "backprop": 6, "gaussian": 6, "relu": 6, "dropout": 6 },
+      "mix": {
+        "backprop": 6,
+        "gaussian": 6,
+        "relu": 6,
+        "dropout": 6
+      },
       "requirements": [
         "3+ years of professional experience building and maintaining production data pipelines as a data engineer",
         "Strong proficiency in SQL and Python for data modeling, transformation, and pipeline development",
@@ -122,20 +222,52 @@
       "name": "Vibe Coder Build",
       "tagline": "Tab-complete your beverage.",
       "mix": null,
-      "requirements": ["No requirements", "Preferred: ships things"]
+      "requirements": [
+        "No requirements",
+        "Preferred: ships things"
+      ]
     }
   },
-
   "skills": {
-    "free": ["warmup", "zeroshot"],
-    "premium": ["descent", "diffusion", "dropout", "gaussian", "backprop", "relu"],
-    "versions": { "warmup": "1.3.0" },
-    "note": "The free skill (warmup) is delivered on waitlist signup - your pk_ key unlocks it; zeroshot is kept as a serving alias for older CLI versions. Premium skills are delivered by signed email links on any paid order or subscription."
+    "free": [],
+    "premium": [
+      "warmup",
+      "descent",
+      "diffusion",
+      "dropout",
+      "gaussian",
+      "backprop",
+      "relu"
+    ],
+    "versions": {
+      "caffeine": "1.0.0",
+      "warmup": "1.3.0"
+    },
+    "note": "caffeine is public: source in this repo at skills/caffeine/, installs with no key. Every other skill, warmup included, is premium and delivered by signed email link with any paid order or subscription. No skill requires a waitlist key.",
+    "public": [
+      "caffeine"
+    ],
+    "aliases": {
+      "warmup": [
+        "zeroshot"
+      ]
+    }
   },
-
   "plans": {
-    "standard": { "price_usd": 36, "cadence": "monthly", "cans": 12 },
-    "team": { "price_usd": 99, "cadence": "monthly", "cans": 48 },
-    "mixed-precision-24": { "price_usd": 60, "cadence": "one-time", "cans": 24 }
+    "standard": {
+      "price_usd": 36,
+      "cadence": "monthly",
+      "cans": 12
+    },
+    "team": {
+      "price_usd": 99,
+      "cadence": "monthly",
+      "cans": 48
+    },
+    "mixed-precision-24": {
+      "price_usd": 60,
+      "cadence": "one-time",
+      "cans": 24
+    }
   }
 }

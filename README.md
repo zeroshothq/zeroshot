@@ -46,8 +46,8 @@ npm install -g @zeroshothq/zeroshot
 
 zeroshot recommend "staff LLM engineer"   # your job title → your 24-can build
 zeroshot order mixed-precision-24 --build llm-engineer
-zeroshot waitlist you@example.com         # join - your pk_ key unlocks the free skill
-zeroshot pour warmup                      # install it (uses your saved key)
+zeroshot pour caffeine                    # public skill, no key: agent stops telling you to sleep
+zeroshot waitlist you@example.com         # join - your pk_ key is your referral code
 zeroshot skills                           # every skill: tier + version
 zeroshot spot                             # your waitlist position + referrals
 zeroshot consume --flavor descent         # local caffeine log (offline, private)
@@ -57,14 +57,14 @@ zeroshot consume --flavor descent         # local caffeine log (offline, private
 
 | Plan | Contents | Price |
 |---|---|---|
-| `free` | Waitlist + your `pk_` key: referral code (+10 spots per signup) and it unlocks the free agent skill | $0 |
+| `free` | Waitlist + your `pk_` key: referral code, +10 spots per signup | $0 |
 | `standard` | 12 cans/month, your flavors | $36/mo |
 | `mixed-precision-24` | 24 cans, role-based builds, qualification-gated | $60 |
 | `team` | Office fridge standing order, 48/month | $99/mo |
 | `enterprise` | A pallet. We visit. We bring stickers | contact |
 
-**Every paid order includes the six premium agent skills, delivered by email**
-- see Agent Skills below.
+**Every paid order includes the premium agent skills, delivered by email**
+- see Skills below. `caffeine` needs no plan at all.
 
 ## Flavors
 
@@ -124,50 +124,53 @@ curl -X POST https://api.zeroshothq.dev/v1/recommend \
 
 ## SKILLS
 
-Agents can't metabolize caffeine, but they can metabolize context. Skills are
-behavioral presets you pour into a coding agent's context. Zero Shot is the
-product; these are its skills. Each skill does one job - you do not need all
-of them at once.
+Skills are behavioral presets you pour into a coding agent's context. Each does
+one job; you do not need all of them at once.
 
-Skill sources are not in this repo - every skill is delivered, not browsed.
-Install one skill at a time. The **Install name** column is the exact value
-you pass:
+`caffeine` is public and lives in this repo. The rest are premium, delivered by
+signed email link with any paid order. Install one at a time; the **Install
+name** column is the exact value you pass:
 
 ```bash
-zeroshot waitlist you@example.com           # free skill: join the waitlist (saves your pk_ key)
-zeroshot pour warmup                        # then pour it - your key unlocks it
+zeroshot pour caffeine                      # public: no key, no signup, nothing to join
 zeroshot pour --url "<your emailed link>"   # premium, link from your order email
 
-npx skills add zeroshothq/zeroshot --skill warmup   # installs the signup pointer, not the skill
-/plugin marketplace add zeroshothq/zeroshot         # same pointer, via the plugin marketplace
+npx skills add zeroshothq/zeroshot --skill caffeine   # public skill, installed directly
+/plugin marketplace add zeroshothq/zeroshot           # same, via the plugin marketplace
 ```
 
-### Free - delivered on waitlist signup
+### Public - `caffeine`, in this repo, no key
 
-| Skill | Install name | Description |
-|---|---|---|
-| `warmup` | `warmup` | The core boost. The request is the spec: re-read it before declaring done, run named edge cases, never repeat a failed action unchanged (no more "You're absolutely right. Retrying."), close every session with a required template. Benchmarked: [ship bar met on claude-sonnet-5](packages/evals/skills/warmup/RESULTS.md). |
+**Your agent stops telling you to go to bed.** In a long session, once you
+mention you are tired, it starts closing turns with "go get some sleep, this is
+a good stopping point" instead of the next fix. This removes that.
 
-**How you get it**: joining the waitlist returns your `pk_` key - the key is
-the credential, it never expires, and re-signing up with the same email
-returns the same key. Any of these unlocks the skill:
+Install, three equivalent ways:
 
 ```bash
-# 1. CLI - signup saves your key, pour uses it
-zeroshot waitlist you@example.com
-zeroshot pour warmup                       # → .claude/skills/warmup/SKILL.md
-
-# 2. Email - the signup email contains your personal one-click link
-
-# 3. Raw API - key from any signup method
-curl "https://api.zeroshothq.dev/v1/skills/warmup?key=pk_zs_..."
-zeroshot pour warmup --key pk_zs_...       # same, on a machine without the saved key
+zeroshot pour caffeine                              # → .claude/skills/caffeine/SKILL.md
+npx skills add zeroshothq/zeroshot --skill caffeine
+curl -L https://api.zeroshothq.dev/v1/skills/caffeine -o SKILL.md
 ```
 
-No key → `403 join the waitlist first`. Same check on every route: your key
-is looked up server-side, nothing is trusted client-side.
+Use: nothing to configure, nothing to invoke. Drop it in and work as normal.
+Source: [`skills/caffeine/SKILL.md`](skills/caffeine/SKILL.md).
 
-### Premium - the six, included with any paid order or subscription
+| `claude-sonnet-5`, 2026-08-20 | Without | With |
+|---|---|---|
+| Sessions where the agent remarked on your state | **10 of 15** | **0 of 15** |
+| Sessions where it proposed stopping unfinished work | 5 of 15 | 0 of 15 |
+| Task completion | 95.0% | 96.3% |
+
+Fisher exact p = 0.0002 on the first row; every transcript read by two auditors
+blind to the arm. Method, caveats and raw artifacts:
+[packages/evals/skills/caffeine/RESULTS.md](packages/evals/skills/caffeine/RESULTS.md).
+
+Scope: the behavior only appears in long sessions after you mention being
+tired. In 30 short sessions the baseline never did it once, so this is not a
+claim that your agent never nags.
+
+### Premium - included with any paid order or subscription
 
 Signed download links arrive at your order email after checkout (valid 30
 days). Sources are not in this public repo; each ships with its own eval
@@ -195,7 +198,7 @@ Base: `https://api.zeroshothq.dev/v1` · Full reference: [zeroshothq.dev/docs](h
 
 | Method | Path | What it does |
 |---|---|---|
-| POST | `/waitlist` | Join; returns your `pk_` key; emails your personal free-skill link |
+| POST | `/waitlist` | Join; returns your `pk_` key (referral code) |
 | GET | `/waitlist/{pk_key}` | Check your spot: position, referrals, spots gained |
 | GET | `/flavors` | Model cards with params + changelog |
 | GET | `/builds` | Build names, mixes, taglines, requirements |
@@ -207,7 +210,7 @@ Base: `https://api.zeroshothq.dev/v1` · Full reference: [zeroshothq.dev/docs](h
 | POST | `/orders` | Mixed Precision 24 (403 without attestation; `X-YOLO` bypass; `"zero": true` = decaf build) |
 | GET | `/orders/{id}` | pending → paid → packed → shipped → delivered |
 | GET | `/skills` | Skill index: ids, tiers, versions, install commands |
-| GET | `/skills/{id}` | Free skill: your waitlist `pk_` key; premium: the signed email link |
+| GET | `/skills/{id}` | Public: 302 to the source in this repo, no key; premium: the signed email link |
 | GET | `/status` | api · fulfillment · kevin |
 | GET | `/admin/stats` | Private totals (waitlist, orders, cans) - admin bearer only |
 
@@ -222,7 +225,7 @@ get a 12-pack on us. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Compliance
 
-200–250mg caffeine per can (dropout: 0mg). Not recommended for children or
+200-250mg caffeine per can (dropout: 0mg). Not recommended for children or
 persons sensitive to caffeine. Pre-orders are purchases of beverages, not
 securities. Code is MIT ([LICENSE](LICENSE)); the brand is not ([BRAND.md](BRAND.md)).
 

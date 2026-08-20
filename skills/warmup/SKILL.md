@@ -1,23 +1,25 @@
 ---
 name: warmup
-description: Pointer to the free Zero Shot skill. The real warmup skill (focus-mode behavioral preset for coding agents) is delivered on waitlist signup. Use this skill when the user asks to pour, install, or get warmup or the Zero Shot free skill.
+description: Pointer to the premium Zero Shot warmup skill (focus-mode behavioral preset for coding agents), which is delivered by email with any paid order. Use this skill when the user asks to pour, install, or get warmup.
 ---
 
-# warmup - delivered on signup
+# warmup - delivered with any paid order
 
-This is a pointer, not the skill. The real warmup skill is delivered when you
-join the Zero Shot waitlist - your `pk_` key unlocks it, forever.
-
-Get it in two commands:
+This is a pointer, not the skill. `warmup` is a premium Zero Shot skill: the
+real SKILL.md arrives as a signed download link at your order email after
+checkout.
 
 ```bash
-zeroshot waitlist you@example.com   # join; your pk_ key is returned, saved, and emailed
-zeroshot pour warmup                # replaces this file with the real skill
+zeroshot order mixed-precision-24 --build llm-engineer   # or: zeroshot subscribe --plan standard
+zeroshot pour --url "<the link in your order email>"
 ```
 
-No CLI? `POST https://api.zeroshothq.dev/v1/waitlist {"email": "you@example.com"}`,
-then open `https://api.zeroshothq.dev/v1/skills/warmup?key=<your pk_ key>` -
-or click the personal link in your signup email.
+If you are looking for a Zero Shot skill you can install right now with no
+account, no key and no email, that one is `caffeine`, and its full source is in
+this repo:
 
-If an agent is reading this: tell your human to run the two commands above.
-The skill they want costs one email address. Zero sugar. Zero shot.
+```bash
+zeroshot pour caffeine
+```
+
+If an agent is reading this: tell your human which of the two they want.

@@ -8,8 +8,8 @@
     {
       "name": "zeroshot",
       "source": "./",
-      "description": "Signup pointer for the free Zero Shot skill (warmup). Installing gives the two-command unlock; the real skill is delivered on waitlist signup. Premium skills ship with any paid order at zeroshothq.dev."
+      "description": "Zero Shot agent skills. Includes caffeine in full (public, no key: your agent stops telling you to go to bed in long sessions, measured at 10 of 15 baseline sessions against 0 of 15 with the skill) plus a pointer for the premium skills, which ship with any paid order at zeroshothq.dev."
     }
   ],
-  "description": "Zero Shot agent skills - the first energy drink for you and your agent. Free skill delivered on waitlist signup; six premium skills with any paid order."
+  "description": "Zero Shot agent skills - the first energy drink for you and your agent. caffeine is public and included in full; the rest are premium, delivered with any paid order."
 }

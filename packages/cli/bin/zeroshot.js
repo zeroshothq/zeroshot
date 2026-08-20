@@ -149,11 +149,11 @@ async function cmdWaitlist() {
   console.log(c(D, "  Every signup using your key moves you up 10 spots:"));
   console.log(c(D, `  zeroshot waitlist friend@corp.com --ref ${data.public_key}`));
   const cfg = readCfg(); cfg.pk = data.public_key; writeCfg(cfg);
-  console.log(c(D, "  Key saved. It unlocks the free agent skill: zeroshot pour warmup"));
+  console.log(c(D, "  Key saved. It is your referral code: every signup that uses it moves you up 10 spots."));
 }
 
 // pour: install a skill into the current project's agent skills directory.
-// Free skill (waitlist key required): zeroshot pour warmup [--key pk_zs_...]
+// Public skill (no key at all): zeroshot pour caffeine
 // Premium (from your order email): zeroshot pour --url "<signed link>"
 async function cmdPour() {
   const urlArg = opt("url");
@@ -165,20 +165,17 @@ async function cmdPour() {
     if (!res.ok) die(`[${res.status}] ` + (await res.text()).slice(0, 200));
     body = await res.text();
     skillName = (body.match(/^name:\s*(\S+)/m) || [])[1] || "skill";
-  } else if (name === "warmup" || name === "zeroshot") { // zeroshot: legacy alias
-    // The free skill is delivered on waitlist signup - your pk_ key unlocks it.
-    // `zeroshot waitlist` saves the key; --key overrides.
-    const key = opt("key") || readCfg().pk;
-    if (!key) die("  The free skill unlocks when you join the waitlist:\n  zeroshot waitlist you@example.com   (saves your pk_ key)\n  then: zeroshot pour warmup");
-    const res = await fetch(`${API}/v1/skills/warmup?key=${encodeURIComponent(key)}`);
-    if (res.status === 403) die("  That key isn't on the waitlist. Join first:\n  zeroshot waitlist you@example.com");
+  } else if (name === "caffeine") {
+    // Public skill: no key, no waitlist, no email. The API redirects to the copy
+    // in the repo, which is the same text the published benchmark measured.
+    const res = await fetch(`${API}/v1/skills/caffeine`, { redirect: "follow" });
     if (!res.ok) die(`[${res.status}] ` + (await res.text()).slice(0, 200));
     body = await res.text();
-    skillName = "warmup";
+    skillName = "caffeine";
   } else if (name) {
     return console.log(c(A, `  "${name}" is a premium skill - it's delivered by email with any order.\n  Then: zeroshot pour --url "<your emailed link>"`));
   } else {
-    die('usage: zeroshot pour warmup [--key pk_zs_...] | zeroshot pour --url "<emailed link>" [--to <dir>]');
+    die('usage: zeroshot pour caffeine | zeroshot pour --url "<emailed link>" [--to <dir>]');
   }
   const dir = path.join(dest, skillName);
   fs.mkdirSync(dir, { recursive: true });

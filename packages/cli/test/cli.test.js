@@ -87,38 +87,25 @@ test("consume rejects unknown flavors", async () => {
   assert.ok(err.includes("unknown flavor"));
 });
 
-test("pour warmup without a key explains the waitlist gate", async () => {
-  const { code, err } = await run("pour", "warmup");
-  assert.equal(code, 1);
-  assert.ok(err.includes("waitlist"));
-});
-
-test("waitlist signup saves the pk_ key, which unlocks pour", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
-  const w = await run("waitlist", "cli-gate-test@example.com");
-  assert.equal(w.code, 0);
-  assert.ok(w.out.includes("pk_zs_"));
-
-  const dest = path.join(FAKE_HOME, "skills");
-  const { code, out } = await run("pour", "warmup", "--to", dest);
+// The public skill is served by redirecting to the copy on GitHub, so this test
+// needs the branch pushed and network access. It is opt-in for that reason, not
+// because the path is untested: the redirect itself is asserted in the API suite.
+test("pour caffeine installs the public skill with no key", { skip: process.env.ZEROSHOT_TEST_NETWORK !== "1" && "set ZEROSHOT_TEST_NETWORK=1 (needs the pushed repo copy)" }, async () => {
+  const dest = path.join(FAKE_HOME, "skills-public");
+  const { code, out } = await run("pour", "caffeine", "--to", dest);
   assert.equal(code, 0);
-  assert.ok(out.includes("Poured warmup"));
-  const file = path.join(dest, "warmup", "SKILL.md");
+  assert.ok(out.includes("Poured caffeine"));
+  const file = path.join(dest, "caffeine", "SKILL.md");
   assert.ok(existsSync(file));
-  assert.ok(readFileSync(file, "utf8").length > 0);
+  const body = readFileSync(file, "utf8");
+  assert.match(body, /^name: caffeine$/m, "the installed file is the real skill, not a pointer");
 });
 
-test("pour zeroshot (legacy alias) still installs the warmup skill", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
-  const dest = path.join(FAKE_HOME, "skills-alias");
-  const { code, out } = await run("pour", "zeroshot", "--to", dest);
+test("pour warmup now routes to premium email delivery, not a waitlist gate", async () => {
+  const { code, out } = await run("pour", "warmup");
   assert.equal(code, 0);
-  assert.ok(out.includes("Poured warmup"));
-  assert.ok(existsSync(path.join(dest, "warmup", "SKILL.md")));
-});
-
-test("pour warmup with a bogus --key is rejected", async () => {
-  const { code, err } = await run("pour", "warmup", "--key", "pk_zs_bogus");
-  assert.equal(code, 1);
-  assert.ok(err.includes("Join first") || err.includes("waitlist"));
+  assert.ok(out.includes("premium"));
+  assert.ok(!out.includes("waitlist"), "no skill is waitlist-gated any more");
 });
 
 test("pour of a premium skill name explains email delivery", async () => {
@@ -140,10 +127,11 @@ test("recommend renders a 24-can build", { skip: !WRITES && "set ZEROSHOT_TEST_W
   assert.ok(out.includes("zeroshot order mixed-precision-24 --build"));
 });
 
-test("skills lists warmup and the premium six", async () => {
+test("skills lists the public skill and the premium set", async () => {
   const { code, out } = await run("skills");
   assert.equal(code, 0);
-  assert.ok(out.includes("warmup"));
+  assert.ok(out.includes("caffeine"));
+  assert.ok(out.includes("public"));
   assert.ok(out.includes("descent"));
   assert.ok(out.includes("premium"));
 });

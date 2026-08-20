@@ -10,6 +10,13 @@ const JSON_HEADERS = { "content-type": "application/json; charset=utf-8" };
 const FLAVOR_IDS = FLAVORS_DATA.flavors.map((f) => f.id);
 const BUILD_IDS = Object.keys(FLAVORS_DATA.builds);
 const PREMIUM = FLAVORS_DATA.skills.premium;
+const PUBLIC_SKILLS = FLAVORS_DATA.skills.public || [];
+// alias -> canonical id, so `zeroshot` keeps resolving to `warmup` for older CLIs
+const SKILL_ALIASES = Object.fromEntries(
+  Object.entries(FLAVORS_DATA.skills.aliases || {}).flatMap(([id, list]) => list.map((a) => [a, id])));
+// Public skills are served straight from the repo, so there is exactly one copy
+// of the text and it can never drift from what the benchmark measured.
+const GITHUB_RAW = "https://raw.githubusercontent.com/zeroshothq/zeroshot/main";
 
 // ---------------------------------------------------------------- utils
 const json = (obj, status = 200, extra = {}) =>
@@ -256,15 +263,18 @@ export default {
       // ---- GET /v1/skills  (skill index - single source of truth for site, docs, CLI)
       if (path === "/v1/skills" && request.method === "GET") {
         const S = FLAVORS_DATA.skills;
-        const freeId = S.free[0];
         const v = S.versions || {};
         const skills = [
-          { id: freeId, tier: "free", version: v[freeId] || null, aliases: S.free.slice(1),
-            install: `zeroshot pour ${freeId} --key pk_zs_...`,
-            url: `${apiBase}/v1/skills/${freeId}?key=pk_zs_...`,
-            requires: "waitlist key - join via POST /v1/waitlist" },
+          // Public skills carry no gate at all: the source is in the repo, so the
+          // API points at it rather than serving a second copy that could drift.
+          ...(S.public || []).map((id) => ({ id, tier: "public", version: v[id] || null,
+            install: `zeroshot pour ${id}`,
+            url: `${GITHUB_RAW}/skills/${id}/SKILL.md`,
+            requires: "nothing - public source, no key" })),
           ...S.premium.map((id) => ({ id, tier: "premium", version: v[id] || null,
-            install: "delivered by email with any paid order" })),
+            aliases: (S.aliases || {})[id] || [],
+            install: "delivered by email with any paid order",
+            requires: "signed link from your order email" })),
         ];
         return json({ skills, note: S.note }, 200, cors);
       }
@@ -309,7 +319,7 @@ export default {
         await env.DB.prepare("INSERT INTO waitlist (email, pk_key, referred_by, position) VALUES (?,?,?,?)")
           .bind(email, pk, ref || null, position).run();
         await sendEmail(env, email, "Zero Shot - you're on the list",
-          `<div style="font-family:monospace"><p>You're #${position}.</p><p>Your key: <b>${pk}</b> - it doubles as a referral code. Every signup that uses it moves you up 10 spots.</p><p>Your key also unlocks the free agent skill: <a href="${apiBase}/v1/skills/warmup?key=${pk}">warmup</a> - or run <code>zeroshot pour warmup --key ${pk}</code>.</p></div>`);
+          `<div style="font-family:monospace"><p>You're #${position}.</p><p>Your key: <b>${pk}</b> - it doubles as a referral code. Every signup that uses it moves you up 10 spots.</p><p>While you wait, the <b>caffeine</b> agent skill is public and needs no key at all: <code>zeroshot pour caffeine</code>. It stops your coding agent telling you to go to bed. <a href="https://github.com/zeroshothq/zeroshot/blob/main/skills/caffeine/SKILL.md">Read the source</a>.</p></div>`);
         return json({ public_key: pk, position,
           note: "Your key is your referral code. +10 spots per signup." }, 201, cors);
       }
@@ -453,31 +463,24 @@ export default {
         return row ? json(row, 200, cors) : err(404, "order not found", cors);
       }
 
-      // ---- GET /v1/skills/:id  (free skill requires a waitlist key; premium a signed link)
+      // ---- GET /v1/skills/:id  (public: redirect to the repo; premium: signed link)
       if (path.startsWith("/v1/skills/") && request.method === "GET") {
         const id = path.split("/").pop();
-        if (FLAVORS_DATA.skills.free.includes(id)) {
-          // The free skill is delivered on waitlist signup: the pk_ key is the
-          // credential. Same server-side check as everything else - membership
-          // is a D1 row, the source lives only in KV, never in the public repo.
-          const key = url.searchParams.get("key") || "";
-          const member = key.startsWith("pk_zs_") &&
-            await env.DB.prepare("SELECT 1 AS ok FROM waitlist WHERE pk_key=?").bind(key).first();
-          if (!member)
-            return err(403, "join the waitlist first: POST /v1/waitlist (your pk_ key unlocks this skill)", cors);
-          const canonical = FLAVORS_DATA.skills.free[0]; // aliases serve the same body
-          const body = await env.PREMIUM_SKILLS.get("free:" + canonical);
-          if (!body) return err(404, "skill not uploaded yet", cors);
-          return new Response(body, { headers: { "content-type": "text/markdown", ...cors } });
-        }
-        if (!PREMIUM.includes(id)) return err(404, "skill not found", cors);
+        // No gate, no second copy: the repo is the source, so a public skill is a
+        // redirect. Anyone can also just read it on GitHub, which is the point.
+        if (PUBLIC_SKILLS.includes(id))
+          return new Response(null, { status: 302, headers: { location: `${GITHUB_RAW}/skills/${id}/SKILL.md`, ...cors } });
+        // Aliases resolve to their canonical premium id, so older CLI versions
+        // asking for `zeroshot` still land on `warmup`.
+        const canonical = SKILL_ALIASES[id] || id;
+        if (!PREMIUM.includes(canonical)) return err(404, "skill not found", cors);
         const email = url.searchParams.get("email") || "";
         const exp = url.searchParams.get("exp") || "0";
         const sig = url.searchParams.get("sig") || "";
         if (Number(exp) < Date.now() / 1000) return err(403, "link expired - contact support@zeroshothq.dev", cors);
-        const expected = await hmacHex(env.SKILL_SIGNING_SECRET, `${email}|${id}|${exp}`);
+        const expected = await hmacHex(env.SKILL_SIGNING_SECRET, `${email}|${canonical}|${exp}`);
         if (sig !== expected) return err(403, "invalid signature", cors);
-        const body = await env.PREMIUM_SKILLS.get(id);
+        const body = await env.PREMIUM_SKILLS.get(canonical);
         if (!body) return err(404, "skill not uploaded yet", cors);
         return new Response(body, {
           headers: { "content-type": "text/markdown",

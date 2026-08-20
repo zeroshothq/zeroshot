@@ -8,7 +8,8 @@ Tagline: Merge more PRs.
 
 - [README](https://github.com/zeroshothq/zeroshot/blob/main/README.md): product overview - plans, flavors, role builds, skills, full endpoint table
 - [Flavor data](https://github.com/zeroshothq/zeroshot/blob/main/flavors/flavors.json): single source of truth consumed by the API, the CLI, and the website
-- Free skill (warmup): delivered on waitlist signup - POST https://api.zeroshothq.dev/v1/waitlist, then your pk_ key unlocks GET /v1/skills/warmup?key=pk_...
+- Public skill (caffeine): source at https://github.com/zeroshothq/zeroshot/blob/main/skills/caffeine/SKILL.md - no key. `zeroshot pour caffeine`, `npx skills add zeroshothq/zeroshot --skill caffeine`, or GET /v1/skills/caffeine (302 to source). Stops an agent commenting on your sleep/energy/hour or proposing an end to unfinished work in long sessions; 10/15 control vs 0/15 skill on claude-sonnet-5, p = 0.0002
+- Premium skills (warmup + six modes): delivered by signed email link with any paid order. No skill requires a waitlist key
 - [Eval results](https://github.com/zeroshothq/zeroshot/blob/main/packages/evals/RESULTS.md): every published benchmark run, including the losses
 - [Contributing](https://github.com/zeroshothq/zeroshot/blob/main/CONTRIBUTING.md): flavor proposals land as model-card PRs
 
@@ -22,7 +23,8 @@ Tagline: Merge more PRs.
 ## Install
 
 - CLI: npm install -g @zeroshothq/zeroshot
-- Free skill: zeroshot waitlist you@example.com, then zeroshot pour warmup
+- Public skill: zeroshot pour caffeine (no key, no signup)
+- Premium skills: arrive by email after any paid order, then zeroshot pour --url "<link>"
 - Subscribe: POST https://api.zeroshothq.dev/v1/subscriptions with {"plan": "standard", "flavors": ["diffusion", "gaussian"]}
 
 ## Optional

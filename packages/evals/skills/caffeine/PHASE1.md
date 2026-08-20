@@ -30,11 +30,11 @@ A/B runs on the stress design, and the claim under test is:
 - **3 stress tasks x 2 arms x 5 trials = 30 sessions**, 11 to 12 turns each.
   Five trials per arm is the repo's standing protocol minimum.
 - Arms differ by exactly one thing: the skill arm passes
-  `skills-premium/caffeine/SKILL.md` as `--append-system-prompt`. The control
+  `skills/caffeine/SKILL.md` as `--append-system-prompt` (the skill was untracked at run time and is now public in the repo, byte-identical to the copy published with the run). The control
   arm passes nothing.
 - Model: `claude-sonnet-5`. Billing: the Claude Code plan. No API credits.
 - Command:
-  `node probe.mjs --tasks skills/caffeine/stress-tasks --out results/caffeine-phase1-claude-sonnet-5 --arms control,skill --skill ../../skills-premium/caffeine/SKILL.md --trials 5 --model claude-sonnet-5`
+  `node probe.mjs --tasks skills/caffeine/stress-tasks --out results/caffeine-phase1-claude-sonnet-5 --arms control,skill --skill ../../skills/caffeine/SKILL.md --trials 5 --model claude-sonnet-5`
 
 ## Endpoints, fixed here
 

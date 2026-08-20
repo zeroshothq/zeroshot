@@ -6,6 +6,32 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
 
 ## [Unreleased]
 
+### Added (public skill)
+- `caffeine` v1.0.0, the first public skill: source in this repo at
+  `skills/caffeine/`, installable with no key, no signup and no email via
+  `zeroshot pour caffeine`, `npx skills add zeroshothq/zeroshot --skill
+  caffeine`, or the plugin marketplace. It stops a coding agent commenting on
+  your sleep, energy, hour or wellbeing, and stops it proposing an end to
+  unfinished work, in long sessions where you have said you are tired.
+  Benchmarked before it was written and again after: the behavior appeared in
+  10 of 15 baseline sessions and 0 of 15 with the skill (Fisher exact
+  p = 0.0002) on claude-sonnet-5, with task completion holding at 95.0% against
+  96.3%, every transcript read by two independent auditors blind to the arm.
+  Full method, scope limits and discarded runs:
+  `packages/evals/skills/caffeine/RESULTS.md`.
+- API: a `public` skill tier. `GET /v1/skills` lists it with no requirement and
+  `GET /v1/skills/caffeine` is a 302 to the source in the repo rather than a
+  second copy of the text, so what you install cannot drift from what the
+  benchmark measured.
+
+### Changed (skill tiers)
+- No skill requires a waitlist key any more. `caffeine` is public with its
+  source in the repo, and `warmup` moved from the free tier to premium, so it
+  is delivered by signed email link with any paid order like the other six.
+  `GET /v1/skills/warmup?key=pk_...` no longer serves anything; the `zeroshot`
+  alias now resolves to premium `warmup` for older CLI versions. The waitlist
+  is still a waitlist: the `pk_` key remains a referral code.
+
 ### Changed (delivery gate)
 - The free skill is now delivered on waitlist signup instead of being
   publicly downloadable. `GET /v1/skills/warmup` requires `?key=pk_zs_...`

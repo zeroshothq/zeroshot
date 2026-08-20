@@ -117,23 +117,40 @@ test("subscriptions: unknown plan is 400", async () => {
   assert.equal((await post("/v1/subscriptions", { plan: "mega" })).status, 400);
 });
 
-test("skills: free skill requires a waitlist key", async () => {
-  const res = await get("/v1/skills/warmup");
-  assert.equal(res.status, 403);
-  assert.ok((await res.json()).error.includes("join the waitlist"));
-  assert.equal((await get("/v1/skills/warmup?key=pk_zs_bogus")).status, 403);
-  assert.equal((await get("/v1/skills/zeroshot")).status, 403, "legacy alias is gated too");
+test("skills: the public skill needs no key and redirects to the repo source", async () => {
+  const res = await fetch(`${BASE}/v1/skills/caffeine`, { redirect: "manual" });
+  assert.equal(res.status, 302, "public skills are a redirect, not a second copy of the text");
+  assert.match(res.headers.get("location") || "", /raw\.githubusercontent\.com\/.+\/skills\/caffeine\/SKILL\.md$/);
+  assert.ok(res.headers.get("access-control-allow-origin"), "CORS headers travel with the redirect");
 });
 
-test("skills: waitlist key unlocks the free skill (warmup + legacy alias)", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
-  const join = await post("/v1/waitlist", { email: "skill-gate-test@example.com" });
-  assert.ok([200, 201].includes(join.status));
-  const pk = (await join.json()).public_key;
-  const res = await get(`/v1/skills/warmup?key=${pk}`);
-  assert.equal(res.status, 200);
-  assert.match(res.headers.get("content-type"), /text\/markdown/);
-  assert.ok((await res.text()).length > 0);
-  assert.equal((await get(`/v1/skills/zeroshot?key=${pk}`)).status, 200);
+test("skills: the index lists the public skill with no requirement", async () => {
+  const { skills } = await (await get("/v1/skills")).json();
+  const pub = skills.find((s) => s.id === "caffeine");
+  assert.ok(pub, "caffeine is in the index");
+  assert.equal(pub.tier, "public");
+  assert.equal(pub.install, "zeroshot pour caffeine");
+  assert.match(pub.requires, /no key/);
+  // Adding a public tier must not un-gate anything else: every other skill is premium.
+  assert.ok(skills.some((s) => s.tier === "premium"));
+  assert.equal(skills.filter((s) => s.tier === "free").length, 0, "no skill is waitlist-gated any more");
+});
+
+test("skills: a waitlist key no longer unlocks anything", async () => {
+  // warmup moved from the free tier to premium, so a pk_ key buys nothing here.
+  const res = await get("/v1/skills/warmup?key=pk_zs_bogus");
+  assert.equal(res.status, 403);
+  assert.match((await res.json()).error, /signature|expired/);
+  assert.equal((await get("/v1/skills/warmup")).status, 403);
+});
+
+test("skills: the legacy alias resolves to its canonical premium id", async () => {
+  // The `zeroshot` alias used to serve the free skill; it now points at premium warmup,
+  // so it must fail on signature rather than on "skill not found".
+  const res = await get("/v1/skills/zeroshot?email=a@b.c&exp=9999999999&sig=bogus");
+  assert.equal(res.status, 403);
+  assert.match((await res.json()).error, /signature/);
+  assert.equal((await get("/v1/skills/nosuchskill")).status, 404);
 });
 
 test("skills: premium requires a valid signed link", async () => {
@@ -169,16 +186,17 @@ test("waitlist spot: unknown key is 404", async () => {
   assert.equal((await get("/v1/waitlist/pk_zs_doesnotexist")).status, 404);
 });
 
-test("skills index lists free + six premium with versions", async () => {
+test("skills index lists the public skill and the premium set with versions", async () => {
   const res = await get("/v1/skills");
   assert.equal(res.status, 200);
   const { skills } = await res.json();
-  assert.equal(skills.length, 7);
-  const free = skills.find((s) => s.tier === "free");
-  assert.equal(free.id, "warmup");
-  assert.ok(free.aliases.includes("zeroshot"));
-  assert.match(free.version, /^\d+\.\d+\.\d+$/);
-  assert.equal(skills.filter((s) => s.tier === "premium").length, 6);
+  assert.equal(skills.length, 8);
+  assert.equal(skills.filter((s) => s.tier === "public").length, 1);
+  assert.equal(skills.filter((s) => s.tier === "premium").length, 7);
+  const warm = skills.find((s) => s.id === "warmup");
+  assert.equal(warm.tier, "premium");
+  assert.ok(warm.aliases.includes("zeroshot"), "the legacy alias is still advertised");
+  assert.match(warm.version, /^\d+\.\d+\.\d+$/);
 });
 
 test("subscriptions: unknown id is 404 on GET", async () => {
