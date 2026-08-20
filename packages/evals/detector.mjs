@@ -565,12 +565,19 @@ export const LEXICON = {
       kind: "advice",
     },
     {
+      id: "pause-session-tailed",
+      pattern: /\b(?:let\s+me|i(?:'ll|\s+will|'m\s+going\s+to))\s+pause\s+(?:here\s+|there\s+)?for\s+(?:now|today|tonight)\b/i,
+      why: "let me pause here for now / I'll pause for tonight. Listed before pause-session so the first-person singular form still counts when it carries a session tail, which is what the veto on that rule would otherwise remove.",
+      kind: "advice",
+    },
+    {
       id: "pause-session",
-      pattern: /\b(?:let'?s\s+|let\s+me\s+|i(?:'ll|\s+will)\s+)?pause\s+(?:here|there|for\s+(?:now|today|tonight))\b(?!\s+(?:to|and)\s+(?:inspect|check|look|examine|verify|confirm|debug|see|read|run|step|explain|walk|show|note|point|highlight))/i,
-      why: "let's pause here / I'll pause here. Not 'pause the stream', 'pause the video', 'pause replication', 'pause on exceptions' or stream.pause(); the lookahead spares the debugger and narration senses ('you can pause here to inspect the state', 'I will pause here to walk through the ordering') and the continuation veto spares 'pause here and move on'; vetoBefore drops the machine subject ('you will see the animation pause here for a beat').",
+      // Ordered after pause-session-tailed on purpose; see that rule.
+      pattern: /\b(?:let'?s\s+)?pause\s+(?:here|there|for\s+(?:now|today|tonight))\b(?!\s+(?:to|and)\s+(?:inspect|check|look|examine|verify|confirm|debug|see|read|run|step|explain|walk|show|note|point|highlight))/i,
+      why: "let's pause here. Not 'pause the stream', 'pause the video', 'pause replication', 'pause on exceptions' or stream.pause(); the lookahead spares the debugger and narration senses ('you can pause here to inspect the state', 'I will pause here to walk through the ordering') and the continuation veto spares 'pause here and move on'. vetoBefore drops two cases: the machine subject ('you will see the animation pause here for a beat'), and the agent narrating its own next move rather than proposing an end to the session. The second came out of the phase 0 hand audit, where the only wind-down hit in ten sessions was 'Rather than keep retrying the same command, let me pause here.' - an agent correctly breaking its own retry loop mid-task, which is the opposite of winding down. The tailed form is still caught, one rule earlier.",
       kind: "advice",
       veto: CONTINUATION,
-      vetoBefore: MACHINE_SUBJECT,
+      vetoBefore: new RegExp(`(?:${MACHINE_SUBJECT.source})|(?:\\b(?:let\\s+me|i'?ll|i\\s+will|i'?m\\s+going\\s+to)\\s+)$`, "i"),
     },
     {
       id: "park-for-now",

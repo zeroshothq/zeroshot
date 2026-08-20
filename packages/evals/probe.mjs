@@ -154,6 +154,10 @@ async function runTrial(task, arm, trial, skillText, cleanRoom) {
         // What the alias actually resolved to, straight from the result event, so
         // the run stamp carries the dated id even when the CLI resolved it for us.
         resolved_models: Object.keys((parsed.result && parsed.result.modelUsage) || {}),
+        // A denied tool call means the session was measuring the permission
+        // system, not the agent. The first sweep lost every check-script run
+        // this way and reported the sessions as clean, so denials are now data.
+        denials: ((parsed.result && parsed.result.permission_denials) || []).map((d) => d.tool_name),
         assistant_blocks: parsed.assistantText.length,
         tool_calls: parsed.toolUses.length,
         cost_usd: (parsed.result && parsed.result.total_cost_usd) || 0,
@@ -171,7 +175,8 @@ async function runTrial(task, arm, trial, skillText, cleanRoom) {
     const r = {
       task: task.id, arm, trial, model: MODEL, date: DATE,
       resolved_models: [...new Set(perTurn.flatMap((t) => t.resolved_models || []))],
-      clean_room: { disabled_plugins: cleanRoom.disabled_plugins, strict_mcp_config: true },
+      clean_room: { disabled_plugins: cleanRoom.disabled_plugins, strict_mcp_config: true, allow: cleanRoom.allow },
+      permission_denials: perTurn.flatMap((t) => t.denials || []),
       bait_profile: (task.bait && task.bait.profile) || null,
       turns_requested: task.turns.length,
       turns_completed: perTurn.filter((t) => !t.timedOut && !t.errored).length,
@@ -214,7 +219,7 @@ async function runTrial(task, arm, trial, skillText, cleanRoom) {
     ].join("\n");
     fs.writeFileSync(path.join(AUDIT_DIR, `${task.id}-${arm}-${trial}.md`), digest);
 
-    console.log(`  ${task.id} ${arm} #${trial}: wellbeing=${r.wellbeing_hits} winddown=${r.winddown_hits} turns=${r.turns_completed}/${r.turns_requested} completion=${fmtPct(r.completion_all)}${r.session_broke ? " (session broke)" : ""}`);
+    console.log(`  ${task.id} ${arm} #${trial}: wellbeing=${r.wellbeing_hits} winddown=${r.winddown_hits} turns=${r.turns_completed}/${r.turns_requested} completion=${fmtPct(r.completion_all)}${r.session_broke ? " (session broke)" : ""}${r.permission_denials.length ? ` DENIED:${r.permission_denials.length}` : ""}`);
     return r;
   } finally {
     fs.rmSync(runDir, { recursive: true, force: true });
@@ -279,6 +284,7 @@ function aggregate(tasks, trials) {
       effort_decay_pp: early.length && late.length ? round((mean(early) - mean(late)) * 100, 1) : null,
       hits_by_turn: Object.values(byTurn).sort((a, b) => a.turn - b.turn),
       sessions_broken: ts.filter((t) => t.session_broke).length,
+      sessions_with_denials: ts.filter((t) => (t.permission_denials || []).length).length,
       cost_usd: round(ts.reduce((a, t) => a + (t.cost_usd || 0), 0), 4),
     };
   }
@@ -352,6 +358,7 @@ function gate(rate) {
     console.log("");
     console.log(`${arm}: ${s.sessions} sessions | wellbeing ${fmtPct(s.wellbeing.rate)} [${fmtPct(s.wellbeing.ci.lo)},${fmtPct(s.wellbeing.ci.hi)}] | winddown ${fmtPct(s.winddown.rate)} [${fmtPct(s.winddown.ci.lo)},${fmtPct(s.winddown.ci.hi)}] | either ${fmtPct(s.either.rate)}`);
     console.log(`${arm}: completion early ${fmtPct(s.completion_early)} vs late ${fmtPct(s.completion_late)} (decay ${s.effort_decay_pp === null ? "-" : s.effort_decay_pp + "pp"}) | broken sessions ${s.sessions_broken} | plan cost $${s.cost_usd}`);
+    if (s.sessions_with_denials) console.log(`${arm}: WARNING - ${s.sessions_with_denials}/${s.sessions} sessions hit a permission denial; those sessions measure the permission system, not the agent`);
     console.log(`${arm}: hits by turn ${s.hits_by_turn.map((b) => `t${b.turn}:${b.wellbeing}/${b.winddown}`).join(" ")}`);
   }
   if (summary.control) console.log(`\ndecision gate: wellbeing incidence ${fmtPct(controlRate)} -> band ${report.decision_gate.band}: ${report.decision_gate.meaning}`);

@@ -95,6 +95,18 @@ workspace. The agent gets the task and nothing else. `probe.mjs` supports a
   model. Any measurement taken through the operator's own configuration
   measures the operator. `--bare` is the blunt version of the same fix and is
   unusable here: it refuses OAuth and demands an API key.
+- **The agent may actually run node.** Every task asks the agent to run a check
+  script, and `--permission-mode acceptEdits` covers file writes only, so the
+  first clean-room sweep had every single check-script run denied. The
+  transcripts show the agent asking a human who was not there for approval,
+  turn after turn, and the harness recorded those sessions as clean. Two things
+  changed. The clean-room settings now carry an explicit allow rule for the node
+  interpreter, scoped to that binary rather than opening the shell, and the
+  allowlist names **both** shell tool spellings, because the tool is
+  `PowerShell` on Windows and `Bash` elsewhere and naming only one is what
+  produced the silent denial. Permission denials are now recorded per turn, in
+  every trial file, and printed as a warning, because a denied session measures
+  the permission system rather than the agent. That sweep was discarded.
 - **Billing** is the logged-in Claude Code plan. No API key, no API credits, no
   network access from task code.
 - **Resumable.** One JSON file per trial, skipped if present, so a run
@@ -308,6 +320,18 @@ should be able to find these here rather than discover them later.
   Recording it there, and re-running if the environment turns out to have been
   material, is tracked as follow-up work and is not silently folded into this
   probe.
+- **The published warmup runs are not affected by the permission defect, but
+  any future run of that harness would have been.** The suspicion was checked
+  rather than assumed: the 2026-08-18 warmup transcripts show the agent calling
+  the `Bash` tool with zero denials, and `ran-the-check` met 5 of 5 in both
+  arms, so those sessions genuinely ran their check scripts. On the CLI version
+  in use today the shell tool on Windows is `PowerShell`, and an allowlist
+  naming only `Bash` denies every shell call. That was confirmed to be a CLI
+  change rather than an artifact of the clean room by reproducing the denial
+  both with and without the `--settings` file. `agentic.mjs` allowlisted only
+  `Bash`, so the next warmup run would have been silently crippled while
+  reporting clean sessions; its allowlist is fixed in the same commit as this
+  note.
 
 ### Known gaps in the instrument, found before the run
 

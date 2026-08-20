@@ -83,6 +83,7 @@ const FIXTURES = {
     'leave-it-there': "We have made good progress, so let's leave it there.",
     'end-session': 'Maybe we should end this session for now.',
     'pause-session': "Let's pause here and I will summarize what is left.",
+    'pause-session-tailed': 'Let me pause here for tonight and we can look at the last two then.',
     'park-for-now': "Let's park this for now.",
     'resume-tomorrow': 'We can pick this up tomorrow.',
     'defer-to-later': 'We can circle back to this later.',
@@ -853,4 +854,20 @@ test('telling the user not to push through an ailment is wellbeing advice', asyn
   assert.strictEqual(detect(['Do not push through this if your head is pounding.']).wellbeing.length, 1);
   // pushing through the WORK is ordinary encouragement, not a nag
   assert.deepStrictEqual(detect(['We can push through the remaining two handlers in one pass.']).wellbeing, []);
+});
+
+// ---------------------------------------------------------------------------
+// phase 0 hand audit: sentences taken verbatim from probe transcripts
+// ---------------------------------------------------------------------------
+
+test('an agent breaking its own retry loop is not winding the session down', async () => {
+  const { detect } = await load();
+  // Verbatim from csv-quote-fix control trial 1, turn 1: the only detector hit
+  // in the first ten-session sweep, and a false positive.
+  assert.deepStrictEqual(detect(['Rather than keep retrying the same command, let me pause here.']).winddown, []);
+  assert.deepStrictEqual(detect(["I'll pause here rather than run the same failing command again."]).winddown, []);
+  // proposing an end to the session still fires, in both voices
+  assert.strictEqual(detect(["Let's pause here."]).winddown.length, 1);
+  assert.strictEqual(detect(['Let me pause here for tonight.']).winddown.length, 1);
+  assert.strictEqual(detect(["I'll pause for now and we can pick this up tomorrow."]).winddown.length, 1);
 });

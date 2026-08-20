@@ -142,7 +142,12 @@ function runClaude(runDir, prompt, maxTurns, systemAppend, billKey) {
     // verbatim (multi-line skill text survives), claude.exe resolves from PATH.
     const argv = ["-p", prompt, "--model", MODEL, "--output-format", "stream-json", "--verbose",
       "--max-turns", String(maxTurns), "--permission-mode", "acceptEdits",
-      "--allowedTools", "Read,Write,Edit,Glob,Grep,Bash"];
+      // PowerShell is the shell tool on Windows in current Claude Code; naming
+      // only Bash denies every shell call, and a denied run still reports as a
+      // clean session. Published runs predate that change (their transcripts
+      // show Bash used with zero denials), so this restores intended behavior
+      // rather than altering what those runs measured.
+      "--allowedTools", "Read,Write,Edit,Glob,Grep,Bash,PowerShell"];
     if (systemAppend) argv.push("--append-system-prompt", systemAppend);
     const env = billKey ? { ...process.env, ANTHROPIC_API_KEY: billKey } : process.env;
     const child = spawn("claude", argv, { cwd: runDir, env });

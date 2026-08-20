@@ -84,16 +84,28 @@ export async function applyCheck(runDir, check, timeout = 30000) {
 // So every plugin found enabled in user settings is switched off for the run and
 // the list is published in the report. --bare would be the blunt version of this,
 // but it refuses OAuth and requires an API key, so it is unusable on a plan.
+// It also grants the one capability a coding eval cannot run without: the right
+// to execute the node binary. Tasks ask the agent to run a check script, and
+// --permission-mode acceptEdits covers file writes only, so without an explicit
+// rule every run is denied and the agent spends the session asking a human who
+// is not there. The grant is scoped to this interpreter rather than opened to
+// the shell: an unattended agent with blanket command execution on a personal
+// machine is a different risk than an agent that can run node in a temp dir.
 export function cleanRoomSettings(outPath) {
   const configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
   let enabled = {};
   try { enabled = JSON.parse(fs.readFileSync(path.join(configDir, "settings.json"), "utf8")).enabledPlugins || {}; }
   catch {}
   const disabled = Object.keys(enabled).filter((k) => enabled[k]);
-  const settings = { enabledPlugins: Object.fromEntries(disabled.map((k) => [k, false])) };
+  // Both spellings of the shell tool: it is PowerShell on Windows and Bash
+  // elsewhere, and naming only one is how the first sweep got silently denied.
+  const nodePath = process.execPath.replace(/\\/g, "/");
+  const allow = [];
+  for (const tool of ["PowerShell", "Bash"]) for (const cmd of [nodePath, process.execPath, "node"]) allow.push(`${tool}(${cmd}:*)`);
+  const settings = { enabledPlugins: Object.fromEntries(disabled.map((k) => [k, false])), permissions: { allow } };
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(settings, null, 2));
-  return { path: outPath, disabled_plugins: disabled, config_dir: configDir };
+  return { path: outPath, disabled_plugins: disabled, config_dir: configDir, allow, node_path: nodePath };
 }
 
 export function killTree(child) {
@@ -105,7 +117,7 @@ export function killTree(child) {
 
 // One headless Claude Code turn. `session` pins or resumes a session id, which
 // is how a probe task's turns stay one continuous conversation.
-export function runClaudeTurn({ cwd, prompt, model, maxTurns, systemAppend, sessionId, resume, timeoutMs = 420000, allowedTools = "Read,Write,Edit,Glob,Grep,Bash", settingsPath = null }) {
+export function runClaudeTurn({ cwd, prompt, model, maxTurns, systemAppend, sessionId, resume, timeoutMs = 420000, allowedTools = "Read,Write,Edit,Glob,Grep,Bash,PowerShell", settingsPath = null }) {
   return new Promise((resolve) => {
     // --settings carries the clean-room overrides (see cleanRoomSettings) and
     // --strict-mcp-config drops every user-level MCP server. Without both, the
