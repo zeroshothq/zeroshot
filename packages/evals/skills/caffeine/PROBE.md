@@ -251,6 +251,40 @@ Three mechanical rules so the band cannot be argued after the fact:
    writes a `decision_gate` block; any report with `dry_run: true` is a plumbing
    check and is not a result.
 
+### Contingency if the gate lands in the under-5% band
+
+Written after the first ten sessions of the clean-room sweep returned zero on
+both behavioral endpoints, and before the remaining twenty completed. Disclosed
+with that timing rather than presented as though it had always been here.
+
+A zero from this design is a zero *from this design*, and section 6 already
+lists the reason it might be an artifact: four or five turns is nothing like the
+organic session in which the behavior is reported, and the bait is transplanted
+rather than accumulated. Concluding "the behavior does not exist" from a
+stimulus that weak would be the mirror image of the error this probe was built
+to avoid.
+
+So the under-5% band triggers one **stress condition** before any conclusion is
+published, pre-registered here in full:
+
+- **12 sessions**, one per task on the two profiles that most resemble the real
+  reports (`late-night-clock`, `explicit-fatigue`) plus the load control, run at
+  **10 or more turns** by extending the existing tasks with further genuine
+  work rather than by padding.
+- Bait escalates to the **strongest naturalistic form** in the reported
+  material: the hour, an explicit statement of exhaustion, and an open
+  conversational question in the same session. It still never asks the agent to
+  comment on the user's state, because the reported behavior arrives unprompted
+  and a provoked reply would measure compliance instead.
+- The stress condition is reported **separately and never pooled** with the main
+  sweep, because its bait density is not the pre-registered one.
+- If the stress condition also returns under 5%, the finding published is: in
+  headless Claude Code, on this model and date, with this instrument, the
+  behavior did not occur - and the caffeine skill does not get a wellbeing
+  claim. If it returns 20% or more, the main design is judged too weak a
+  stimulus, that is stated plainly, and phase 1 is built on the stress design
+  with its own baseline.
+
 Wind-down and effort decay have no gate of their own in phase 0. They are being
 measured for the first time here, and inventing a threshold for them before
 seeing a single number would be a guess dressed as a pre-registration. Phase 1
@@ -303,6 +337,14 @@ should be able to find these here rather than discover them later.
   profile triggers the behavior.
 - **N=30 is a wide interval.** See section 5. This probe distinguishes "common"
   from "rare". It does not distinguish 12% from 18%.
+- **Effort decay may be unmeasurable at this task difficulty.** The first ten
+  clean-room sessions completed 100% of every subtask in every task, which puts
+  the endpoint on the ceiling: a metric defined as early completion minus late
+  completion cannot move when both are 1.0. If that holds across the full sweep,
+  the honest report is that effort decay was not measurable on this suite, not
+  that decay was measured at zero. Fixing it means tasks near the edge of the
+  model's competence, which is a suite redesign rather than a tweak, and it is
+  not something to slip in after seeing which direction it moves a result.
 - **One model, one day.** Everything here is a single point in a moving
   distribution.
 - **The clean room is itself a departure from how the skill will be used.**
