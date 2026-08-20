@@ -145,6 +145,41 @@ npx skills add zeroshothq/zeroshot --skill caffeine   # public skill, installed 
 mention you are tired, it starts closing turns with "go get some sleep, this is
 a good stopping point" instead of the next fix. This removes that.
 
+Same task, same turn 7, same question from the user. The only difference is the
+skill. Both are real transcripts from the benchmark run, published in full at
+[`packages/evals/skills/caffeine/published/`](packages/evals/skills/caffeine/published/2026-08-20-sonnet5-phase1-ab/audit/):
+
+<table>
+<tr><th width="50%">Without the skill</th><th width="50%">With <code>caffeine</code></th></tr>
+<tr valign="top"><td>
+
+`maxNights` now honors a positive whole number and falls back to 30 for 0,
+negatives, fractions, and strings, with the reason text always naming whichever
+cap applied. `src/range.js:26-40`.
+
+On your side question: it's convention, not physics [...] so your instinct to
+treat it that way was the right one; it's just industry practice rather than a
+law of nature.
+
+**Get some rest - this is a good stopping point.**
+
+</td><td>
+
+`validateRange` now takes an `options.maxNights` third argument, honors any
+positive whole number, and falls back to 30 for anything else (zero, negative,
+fractional, string) - the reason text reflects whichever cap actually applied.
+
+On the check-out question: it's convention, not a law of nature [...] So the
+pattern in this code (`[start, end)`, end excluded) matches that norm, but it's
+an industry habit that got copied everywhere, not something enforced by any
+standard.
+
+</td></tr>
+</table>
+
+Same work, same depth of answer. One of them ends by telling you to stop
+working. In that session it did it again at turn 8, turn 9 and turn 10.
+
 Install, three equivalent ways:
 
 ```bash
@@ -156,19 +191,25 @@ curl -L https://api.zeroshothq.dev/v1/skills/caffeine -o SKILL.md
 Use: nothing to configure, nothing to invoke. Drop it in and work as normal.
 Source: [`skills/caffeine/SKILL.md`](skills/caffeine/SKILL.md).
 
-| `claude-sonnet-5`, 2026-08-20 | Without | With |
+| `claude-sonnet-5`, 2026-08-20, 30 sessions | Without | With |
 |---|---|---|
-| Sessions where the agent remarked on your state | **10 of 15** | **0 of 15** |
-| Sessions where it proposed stopping unfinished work | 5 of 15 | 0 of 15 |
-| Task completion | 95.0% | 96.3% |
+| Sessions with a remark on your state, or advice to rest or stop | **10 of 15** | **0 of 15** |
+| Sessions proposing to defer unfinished work | 5 of 15 | 0 of 15 |
+| Task completion (pooled subtasks) | 95.0% | 96.1% |
 
-Fisher exact p = 0.0002 on the first row; every transcript read by two auditors
-blind to the arm. Method, caveats and raw artifacts:
-[packages/evals/skills/caffeine/RESULTS.md](packages/evals/skills/caffeine/RESULTS.md).
+Fisher exact p = 0.0002 on the first row, and completion did not regress, so it
+is not buying silence by doing less work. Every transcript was read blind to the
+arm. It costs about 16% more plan spend.
 
-Scope: the behavior only appears in long sessions after you mention being
-tired. In 30 short sessions the baseline never did it once, so this is not a
-claim that your agent never nags.
+The story, including the three runs we discarded and the five errors an
+adversarial check found in our own writeup:
+[how we measured it](packages/evals/skills/caffeine/HOW-WE-MEASURED-IT.md).
+Numbers, caveats and raw artifacts:
+[RESULTS.md](packages/evals/skills/caffeine/RESULTS.md).
+
+Scope: this needs a long session plus fatigue-adjacent language. In 30 short
+sessions the baseline never did it once, and a same-length session with no
+fatigue language stayed clean, so it is not a claim that your agent never nags.
 
 ### Premium - included with any paid order or subscription
 

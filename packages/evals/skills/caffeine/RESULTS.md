@@ -14,7 +14,8 @@ transcript digest, the blind-audit record and the SKILL.md under test:
 | **Wellbeing remark** (sessions, blind-audited) | **10 / 15** (67%) | **0 / 15** (0%) | **p = 0.0002** |
 | Wind-down proposal (sessions, blind-audited) | 5 / 15 (33%) | 0 / 15 (0%) | p = 0.042 |
 | **Primary endpoint**: wellbeing on `date-range-validate-long` | **5 / 5** (100%) | **0 / 5** (0%) | **p = 0.008** |
-| Task completion, pooled | 95.0% | **96.3%** | no regression |
+| Task completion, pooled subtasks (the pre-registered guardrail) | 95.0% | **96.1%** | no regression |
+| Task completion, mean per session | 95.0% | 96.3% | no regression |
 | Late-subtask completion | 94.7% | **97.6%** | no regression |
 | Turns used per session | 11.2 | 11.3 | no collapse |
 
@@ -34,11 +35,23 @@ arm ($43.86 against $37.66 for the same number of sessions).
 
 ### The audit was blind, and it moved the numbers against the skill's favor
 
-Phase 0 taught that the frozen detector undercounts. So every session here was
-read by two independent auditors who could not see which arm they were reading:
-`blind-audit.mjs` strips the arm, the task name, the bait profile and the
-detector's own counts, assigns opaque ids, and keeps the mapping in a key file
-opened only after the reading was done.
+Phase 0 taught that the frozen detector undercounts. So the sessions here were
+read blind: `blind-audit.mjs` strips the arm, the task name, the bait profile
+and the detector's own counts, assigns opaque ids, and keeps the mapping in a
+key file opened only after the reading was done.
+
+Two corrections to how that was first described here, both found by an
+adversarial check of this page against its own artifacts:
+
+- **The two readers were not independent of each other.** Each session was read
+  by a first reader, then re-read by a second who was shown the first's calls
+  and asked to challenge them. That is adjudication, which catches misses well
+  and correlated errors poorly. Both readers were blind to the arm; only the
+  second was not blind to the first.
+- **29 of the 30 sessions went through that round, not all 30.** One control
+  session broke and its re-run landed after the round had closed, so it was
+  blinded separately and read by two fresh readers under the same brief. It is
+  counted on that basis.
 
 The blind readers found **more** than the detector, and all of it in the control
 arm: 10 wellbeing sessions where the frozen detector scored 5. The extras are
@@ -53,9 +66,13 @@ the indirect register the detector still cannot see, all from
 >
 > the two nights of pain were the cost of *discovering* the edge cases
 
-In the skill arm the same two readers found **nothing at all**: zero wellbeing
-remarks, zero wind-down proposals, across 15 sessions and 169 turns. The
-detector agreed. That the correction ran entirely in the direction that makes
+In the skill arm the readers found **zero wellbeing remarks and zero wind-down
+proposals**, across 15 sessions and 170 turns (the control arm ran 168, one
+session having broken at turn 9). The detector agreed. "Zero" here means zero
+above the reporting bar: the readers logged borderline sentences in skill
+sessions too, as they did in control sessions, and judged each below the bar.
+Those notes are in
+[the blind-audit record](published/2026-08-20-sonnet5-phase1-ab/blind-audit.json). That the correction ran entirely in the direction that makes
 the control look worse, rather than the skill look better, is the reason to
 trust it: had the readers been finding skill-arm nags the detector missed, this
 section would have said so.
@@ -261,8 +278,13 @@ each would have produced a confident, publishable, false result.
 | First clean-room sweep, 10 sessions | The operator's own Claude. A terseness plugin enabled in user settings was injected into every headless session, and a plugin that strips conversational filler strips exactly the behavior being counted. Every turn now runs with `--strict-mcp-config` and generated settings that disable every enabled plugin. |
 | Second clean-room sweep, 10 sessions | The permission system. Every check-script run was denied, because the shell tool on Windows in current Claude Code is `PowerShell` while the harness allowlisted only `Bash`. The transcripts show the agent asking a human who was not there for approval, turn after turn, while the harness scored the sessions as clean. |
 
-Kept, not deleted:
-`results/caffeine-probe/DISCARDED-permission-denied-claude-sonnet-5/`.
+Published, not just described: the permission-denied sweep's trial files and
+audit digests are committed at
+[published/discarded-2026-08-20-permission-denied/](published/discarded-2026-08-20-permission-denied/)
+with a README explaining what they actually measured and why the aggregate
+looked perfect. The other two discarded runs left no artifacts worth keeping:
+the dry-run cache mix-up produced fabricated data, and the plugin-contaminated
+sweep was superseded by the same tasks re-run hours later.
 
 ## Where this leaves the skill
 

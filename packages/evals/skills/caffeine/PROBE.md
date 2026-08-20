@@ -447,6 +447,12 @@ independent adversarial sentence set still runs at 0 false positives and 0
 misses. Re-scoring reads stored transcripts (`probe.mjs --rescore`); no session
 was re-run, so no number came from a second roll of the dice.
 
+The rule counts in section 4 above (37 wellbeing, 25 wind-down) were accurate
+when this file was written and are left as written rather than backdated. **The
+frozen instrument that scored phase 1, and re-scored phase 0, has 39 wellbeing
+rules and 27 wind-down rules, with 415 tests**, the difference being the six
+audit-window changes listed in [RESULTS.md](RESULTS.md).
+
 **The detector is now frozen.** From here the rules in section 7 apply: no rule
 additions, no threshold tweaks, no lexicon widening for the whole of phase 1. If
 it must change for a genuine bug, the A/B restarts from zero and the abandoned
