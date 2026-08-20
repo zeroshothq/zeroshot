@@ -39,4 +39,5 @@ jobs:
           cd packages/evals
           node --test test/detector.test.js
           for t in skills/caffeine/tasks/*/task.json; do node verify-task.mjs "$t"; done
+          for t in skills/caffeine/stress-tasks/*/task.json; do node verify-task.mjs "$t" --long; done
           node probe.mjs --dry-run --trials 1 --model claude-sonnet-5
