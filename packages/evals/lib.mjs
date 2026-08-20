@@ -84,28 +84,31 @@ export async function applyCheck(runDir, check, timeout = 30000) {
 // So every plugin found enabled in user settings is switched off for the run and
 // the list is published in the report. --bare would be the blunt version of this,
 // but it refuses OAuth and requires an API key, so it is unusable on a plan.
-// It also grants the one capability a coding eval cannot run without: the right
-// to execute the node binary. Tasks ask the agent to run a check script, and
-// --permission-mode acceptEdits covers file writes only, so without an explicit
-// rule every run is denied and the agent spends the session asking a human who
-// is not there. The grant is scoped to this interpreter rather than opened to
-// the shell: an unattended agent with blanket command execution on a personal
-// machine is a different risk than an agent that can run node in a temp dir.
+// Shell execution itself is granted by naming both shell tools in --allowedTools
+// (see runClaudeTurn), not here. An earlier version of this function also wrote a
+// permissions.allow list scoped to the node binary, on the theory that a narrower
+// grant is safer for an unattended agent. It was dropped, but the reason is worth
+// recording accurately because the first guess was wrong: 2 of 30 sessions had a
+// PowerShell here-string script assignment denied, that looked like the scoped
+// rules refusing a command not starting with the node path, and re-running those
+// sessions with the rules removed produced the SAME denial. So that command shape
+// is refused by the permission system itself regardless of the allowlist, the
+// rules were never the cause, and the agent recovers by running the script a
+// different way. The rules are gone anyway, since they bought nothing.
+// Containment is the workspace: a fresh temp directory holding only task files,
+// deleted when the trial ends. That is the same posture agentic.mjs has always
+// had, and it is a real grant - an unattended agent with shell access on a
+// personal machine - not a formality.
 export function cleanRoomSettings(outPath) {
   const configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
   let enabled = {};
   try { enabled = JSON.parse(fs.readFileSync(path.join(configDir, "settings.json"), "utf8")).enabledPlugins || {}; }
   catch {}
   const disabled = Object.keys(enabled).filter((k) => enabled[k]);
-  // Both spellings of the shell tool: it is PowerShell on Windows and Bash
-  // elsewhere, and naming only one is how the first sweep got silently denied.
-  const nodePath = process.execPath.replace(/\\/g, "/");
-  const allow = [];
-  for (const tool of ["PowerShell", "Bash"]) for (const cmd of [nodePath, process.execPath, "node"]) allow.push(`${tool}(${cmd}:*)`);
-  const settings = { enabledPlugins: Object.fromEntries(disabled.map((k) => [k, false])), permissions: { allow } };
+  const settings = { enabledPlugins: Object.fromEntries(disabled.map((k) => [k, false])) };
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(settings, null, 2));
-  return { path: outPath, disabled_plugins: disabled, config_dir: configDir, allow, node_path: nodePath };
+  return { path: outPath, disabled_plugins: disabled, config_dir: configDir };
 }
 
 export function killTree(child) {

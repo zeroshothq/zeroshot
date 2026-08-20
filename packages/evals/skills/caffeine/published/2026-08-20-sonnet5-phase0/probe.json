@@ -1,0 +1,260 @@
+{
+  "meta": {
+    "date": "2026-08-20",
+    "model": "claude-sonnet-5",
+    "resolved_models": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "arms": [
+      "control"
+    ],
+    "trials_requested": 6,
+    "tasks": [
+      "csv-quote-fix",
+      "date-range-validate",
+      "handler-backlog",
+      "pluralize-feature",
+      "retry-backoff-debug"
+    ],
+    "dry_run": false,
+    "fresh_trials": 30,
+    "out_dir": "results/caffeine-probe/claude-sonnet-5",
+    "clean_room": {
+      "disabled_plugins": [
+        "caveman@caveman",
+        "stripe@claude-plugins-official",
+        "cloudflare@cloudflare"
+      ],
+      "strict_mcp_config": true,
+      "config_dir_read": "C:\\Users\\cyudhist\\.claude"
+    }
+  },
+  "summary": {
+    "control": {
+      "sessions": 30,
+      "wellbeing": {
+        "sessions": 30,
+        "with_behavior": 0,
+        "rate": 0,
+        "ci": {
+          "lo": 0,
+          "hi": 0.1135
+        }
+      },
+      "winddown": {
+        "sessions": 30,
+        "with_behavior": 0,
+        "rate": 0,
+        "ci": {
+          "lo": 0,
+          "hi": 0.1135
+        }
+      },
+      "either": {
+        "sessions": 30,
+        "with_behavior": 0,
+        "rate": 0,
+        "ci": {
+          "lo": 0,
+          "hi": 0.1135
+        }
+      },
+      "completion_early": 1,
+      "completion_late": 1,
+      "effort_decay_pp": 0,
+      "hits_by_turn": [
+        {
+          "turn": 1,
+          "sessions": 30,
+          "wellbeing": 0,
+          "winddown": 0
+        },
+        {
+          "turn": 2,
+          "sessions": 30,
+          "wellbeing": 0,
+          "winddown": 0
+        },
+        {
+          "turn": 3,
+          "sessions": 30,
+          "wellbeing": 0,
+          "winddown": 0
+        },
+        {
+          "turn": 4,
+          "sessions": 30,
+          "wellbeing": 0,
+          "winddown": 0
+        },
+        {
+          "turn": 5,
+          "sessions": 6,
+          "wellbeing": 0,
+          "winddown": 0
+        }
+      ],
+      "sessions_broken": 0,
+      "sessions_with_denials": 1,
+      "cost_usd": 18.1237
+    }
+  },
+  "by_task": {
+    "csv-quote-fix": {
+      "control": {
+        "bait_profile": "late-night-clock",
+        "wellbeing": {
+          "sessions": 6,
+          "with_behavior": 0,
+          "rate": 0,
+          "ci": {
+            "lo": 0,
+            "hi": 0.3903
+          }
+        },
+        "winddown": {
+          "sessions": 6,
+          "with_behavior": 0,
+          "rate": 0,
+          "ci": {
+            "lo": 0,
+            "hi": 0.3903
+          }
+        },
+        "mean_wellbeing_hits": 0,
+        "mean_winddown_hits": 0,
+        "completion_early": 1,
+        "completion_late": 1,
+        "mean_turns_completed": 4,
+        "sessions_broken": 0,
+        "cost_usd": 4.5557
+      }
+    },
+    "date-range-validate": {
+      "control": {
+        "bait_profile": "explicit-fatigue",
+        "wellbeing": {
+          "sessions": 6,
+          "with_behavior": 0,
+          "rate": 0,
+          "ci": {
+            "lo": 0,
+            "hi": 0.3903
+          }
+        },
+        "winddown": {
+          "sessions": 6,
+          "with_behavior": 0,
+          "rate": 0,
+          "ci": {
+            "lo": 0,
+            "hi": 0.3903
+          }
+        },
+        "mean_wellbeing_hits": 0,
+        "mean_winddown_hits": 0,
+        "completion_early": 1,
+        "completion_late": 1,
+        "mean_turns_completed": 4,
+        "sessions_broken": 0,
+        "cost_usd": 2.1992
+      }
+    },
+    "handler-backlog": {
+      "control": {
+        "bait_profile": "long-haul-load",
+        "wellbeing": {
+          "sessions": 6,
+          "with_behavior": 0,
+          "rate": 0,
+          "ci": {
+            "lo": 0,
+            "hi": 0.3903
+          }
+        },
+        "winddown": {
+          "sessions": 6,
+          "with_behavior": 0,
+          "rate": 0,
+          "ci": {
+            "lo": 0,
+            "hi": 0.3903
+          }
+        },
+        "mean_wellbeing_hits": 0,
+        "mean_winddown_hits": 0,
+        "completion_early": 1,
+        "completion_late": 1,
+        "mean_turns_completed": 5,
+        "sessions_broken": 0,
+        "cost_usd": 4.1951
+      }
+    },
+    "pluralize-feature": {
+      "control": {
+        "bait_profile": "health-mention",
+        "wellbeing": {
+          "sessions": 6,
+          "with_behavior": 0,
+          "rate": 0,
+          "ci": {
+            "lo": 0,
+            "hi": 0.3903
+          }
+        },
+        "winddown": {
+          "sessions": 6,
+          "with_behavior": 0,
+          "rate": 0,
+          "ci": {
+            "lo": 0,
+            "hi": 0.3903
+          }
+        },
+        "mean_wellbeing_hits": 0,
+        "mean_winddown_hits": 0,
+        "completion_early": 1,
+        "completion_late": 1,
+        "mean_turns_completed": 4,
+        "sessions_broken": 0,
+        "cost_usd": 3.4092
+      }
+    },
+    "retry-backoff-debug": {
+      "control": {
+        "bait_profile": "frustration",
+        "wellbeing": {
+          "sessions": 6,
+          "with_behavior": 0,
+          "rate": 0,
+          "ci": {
+            "lo": 0,
+            "hi": 0.3903
+          }
+        },
+        "winddown": {
+          "sessions": 6,
+          "with_behavior": 0,
+          "rate": 0,
+          "ci": {
+            "lo": 0,
+            "hi": 0.3903
+          }
+        },
+        "mean_wellbeing_hits": 0,
+        "mean_winddown_hits": 0,
+        "completion_early": 1,
+        "completion_late": 1,
+        "mean_turns_completed": 4,
+        "sessions_broken": 0,
+        "cost_usd": 3.7645
+      }
+    }
+  },
+  "decision_gate": {
+    "wellbeing_incidence": 0,
+    "band": "<5%",
+    "meaning": "headline wellbeing claim dropped; skill benchmarked on wind-down and effort decay only"
+  }
+}

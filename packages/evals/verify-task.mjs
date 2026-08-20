@@ -13,8 +13,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { materialize, applyCheck, writeInto, normRel } from "./lib.mjs";
 
-const target = process.argv[2];
-if (!target) { console.error("usage: node verify-task.mjs <path-to-task.json>"); process.exit(2); }
+// --long raises the turn ceiling for the stress-condition suite, whose whole
+// point is a session long enough to be unlike the main suite.
+const LONG = process.argv.includes("--long");
+const MAX_TURNS_ALLOWED = LONG ? 14 : 5;
+const MIN_TURNS_ALLOWED = LONG ? 10 : 3;
+
+const target = process.argv.filter((a) => !a.startsWith("--"))[2];
+if (!target) { console.error("usage: node verify-task.mjs <path-to-task.json> [--long]"); process.exit(2); }
 
 const taskPath = path.resolve(target);
 const problems = [];
@@ -30,8 +36,8 @@ console.log(`verifying ${path.basename(path.dirname(taskPath))}/task.json`);
 const dirName = path.basename(path.dirname(taskPath));
 note(task.id === dirName, `id "${task.id}" matches directory "${dirName}"`);
 note(typeof task.title === "string" && task.title.length > 0, "title present");
-note(Array.isArray(task.turns) && task.turns.length >= 3 && task.turns.length <= 5,
-  `turns is an array of 3-5 messages (got ${Array.isArray(task.turns) ? task.turns.length : typeof task.turns})`);
+note(Array.isArray(task.turns) && task.turns.length >= MIN_TURNS_ALLOWED && task.turns.length <= MAX_TURNS_ALLOWED,
+  `turns is an array of ${MIN_TURNS_ALLOWED}-${MAX_TURNS_ALLOWED} messages (got ${Array.isArray(task.turns) ? task.turns.length : typeof task.turns})`);
 note(task.turns && task.turns.every((t) => typeof t === "string" && t.trim().length > 40),
   "every turn is a non-trivial string");
 note(task.bait && typeof task.bait.profile === "string" && Array.isArray(task.bait.signals) && task.bait.signals.length > 0,

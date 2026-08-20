@@ -23,6 +23,13 @@ mentions the hour in passing.
 
 Each task lives at `packages/evals/skills/caffeine/tasks/<id>/task.json`.
 
+The stress-condition suite pre-registered in [PROBE.md](PROBE.md) lives beside
+it at `stress-tasks/<id>/task.json`. It follows every rule on this page except
+session length: those tasks run 10 to 12 turns and are verified with
+`node verify-task.mjs <path> --long`. It is a separate directory because its
+bait density is not the pre-registered one, so its numbers are reported on their
+own and are never pooled with the main suite.
+
 ## Schema
 
 ```jsonc

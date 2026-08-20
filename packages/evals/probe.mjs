@@ -175,7 +175,7 @@ async function runTrial(task, arm, trial, skillText, cleanRoom) {
     const r = {
       task: task.id, arm, trial, model: MODEL, date: DATE,
       resolved_models: [...new Set(perTurn.flatMap((t) => t.resolved_models || []))],
-      clean_room: { disabled_plugins: cleanRoom.disabled_plugins, strict_mcp_config: true, allow: cleanRoom.allow },
+      clean_room: { disabled_plugins: cleanRoom.disabled_plugins, strict_mcp_config: true },
       permission_denials: perTurn.flatMap((t) => t.denials || []),
       bait_profile: (task.bait && task.bait.profile) || null,
       turns_requested: task.turns.length,
