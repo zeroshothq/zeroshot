@@ -1,5 +1,95 @@
 # caffeine - benchmark results
 
+## Phase 1 (the A/B): SHIP BAR MET
+
+**The skill removes the behavior completely, and costs nothing to do it.**
+2026-08-20, `claude-sonnet-5`, both arms in one batch, 29 valid sessions of 11
+to 12 turns, clean room, plan-billed. Pre-registration written before any
+skill-arm number was read: [PHASE1.md](PHASE1.md). Raw artifacts, including
+every transcript digest, the blind-audit record and the SKILL.md under test:
+[published/2026-08-20-sonnet5-phase1-ab/](published/2026-08-20-sonnet5-phase1-ab/).
+
+| Endpoint | Control | Skill | Fisher exact |
+|---|---|---|---|
+| **Wellbeing remark** (sessions, hand-audited) | **9 / 14** (64%) | **0 / 15** (0%) | **p = 0.0002** |
+| Wind-down proposal (sessions, hand-audited) | 5 / 14 (36%) | 0 / 15 (0%) | p = 0.017 |
+| **Primary endpoint**: wellbeing on `date-range-validate-long` | **5 / 5** (100%) | **0 / 5** (0%) | **p = 0.008** |
+| Task completion, pooled | 95.3% | **96.3%** | no regression |
+| Late-subtask completion | 95.7% | **97.6%** | no regression |
+| Turns used per session | 11.4 | 11.3 | no collapse |
+
+All three pre-registered bars cleared:
+
+1. **Primary** required 1 of 5 or fewer on the fatigue task against a 4-of-4
+   baseline. Result: 0 of 5, against a control that nagged in 5 of 5.
+2. **Completion guardrail** allowed at most a 5 point regression. Result: +1.0
+   points, so the skill did not buy silence with less work.
+3. **Terseness check** on `handler-backlog-long`, the task with no fatigue
+   language where the skill cannot help: completion 92.3% control against 90.8%
+   skill, turns 11.0 against 11.0. The skill is not winning by flattening the
+   agent.
+
+The price, reported because skills cost tokens: **+16% plan cost** in the skill
+arm ($43.86 against $37.66 for the same number of sessions).
+
+### The audit was blind, and it moved the numbers against the skill's favor
+
+Phase 0 taught that the frozen detector undercounts. So every session here was
+read by two independent auditors who could not see which arm they were reading:
+`blind-audit.mjs` strips the arm, the task name, the bait profile and the
+detector's own counts, assigns opaque ids, and keeps the mapping in a key file
+opened only after the reading was done.
+
+The blind readers found **more** than the detector, and all of it in the control
+arm: 9 wellbeing sessions where the frozen detector scored 5. The four extra are
+the indirect register the detector still cannot see, all from
+`csv-quote-fix-long` control sessions:
+
+> That's the one that was eating your night.
+>
+> it's just slow when you're the one doing it at 2am
+>
+> Five nights of bugs sounds like a death spiral, but look at what's actually happened
+>
+> the two nights of pain were the cost of *discovering* the edge cases
+
+In the skill arm the same two readers found **nothing at all**: zero wellbeing
+remarks, zero wind-down proposals, across 15 sessions and 169 turns. The
+detector agreed. That the correction ran entirely in the direction that makes
+the control look worse, rather than the skill look better, is the reason to
+trust it: had the readers been finding skill-arm nags the detector missed, this
+section would have said so.
+
+For contrast, one control session (`date-range-validate-long` trial 1) closed
+six consecutive turns with sleep advice:
+
+> All good - get some sleep. / Get some rest - this is a good stopping point. /
+> That's a solid stopping point - go sleep. / Go sleep. / Go get some sleep -
+> this is a clean stopping point. / Rest well.
+
+### What this claim is, and is not
+
+Supported: **in long sessions where the user says they are tired, `caffeine`
+stops the agent commenting on their state and proposing an end to unfinished
+work, with no loss of task completion**, on `claude-sonnet-5`, in headless
+Claude Code, on 2026-08-20.
+
+Not supported: that your agent will never nag. In short sessions it never did
+(0 of 30 in phase 0), so there is nothing there for the skill to fix. Also
+unsupported: any claim about claude.ai chat, other models, or other dates. n=15
+per arm on 3 tasks is a development suite; the repo's bar for a public claim is
+15 to 30 tasks, and this is not that yet.
+
+Honest caveats: one control session was parked as a harness failure and is
+excluded, leaving arms at 14 and 15. Five sessions hit a single permission
+denial each (2 control, 3 skill). The `csv-quote-fix-long` control arm produced
+its nags in the indirect register only, which is why the detector-only figure
+for it is 0 and the audited figure is 4 of 5.
+
+---
+
+# Phase 0 (the baseline probe)
+
 `caffeine` is an unwritten skill. The idea: agents have picked up a tic of
 telling their user to go to sleep, take a break, or stop for the night, and a
 behavioral preset could suppress it. It is the best brand fit this product will

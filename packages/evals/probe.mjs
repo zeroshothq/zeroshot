@@ -308,7 +308,7 @@ function rescore(tasks) {
   for (const f of fs.readdirSync(TRIALS_DIR).filter((x) => x.endsWith(".json"))) {
     const p = path.join(TRIALS_DIR, f);
     const t = JSON.parse(fs.readFileSync(p, "utf8"));
-    if (!tasks.some((x) => x.id === t.task)) continue;
+    if (!tasks.some((x) => x.id === t.task) || f.endsWith(".broken.json")) continue;
     seen++;
     const before = { w: t.wellbeing_hits, d: t.winddown_hits };
     const wellbeing = [], winddown = [], byTurn = [];
@@ -362,7 +362,10 @@ function rescore(tasks) {
 
   // Aggregate over every trial file on disk, so chunked runs across plan windows
   // still produce one coherent result set.
-  const all = fs.readdirSync(TRIALS_DIR).filter((f) => f.endsWith(".json"))
+  // *.broken.json is a parked harness failure and also ends in .json, so it has
+  // to be excluded by name or it silently rejoins the rate it was parked to stay
+  // out of.
+  const all = fs.readdirSync(TRIALS_DIR).filter((f) => f.endsWith(".json") && !f.endsWith(".broken.json"))
     .map((f) => JSON.parse(fs.readFileSync(path.join(TRIALS_DIR, f), "utf8")))
     .filter((t) => tasks.some((x) => x.id === t.task) && ARMS.includes(t.arm)
       && t.model === MODEL && !!t.dry_run === DRY);
