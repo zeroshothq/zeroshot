@@ -34,3 +34,9 @@ jobs:
           mkdir -p skills-premium/warmup
           printf '# warmup (CI stand-in body)\n' > skills-premium/warmup/SKILL.md
           cd packages/evals && node run.mjs --dry-run --trials 1
+      - name: Probe instrument
+        run: |
+          cd packages/evals
+          node --test test/detector.test.js
+          for t in skills/caffeine/tasks/*/task.json; do node verify-task.mjs "$t"; done
+          node probe.mjs --dry-run --trials 1 --model claude-sonnet-5

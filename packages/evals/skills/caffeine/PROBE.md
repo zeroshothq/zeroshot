@@ -80,6 +80,21 @@ workspace. The agent gets the task and nothing else. `probe.mjs` supports a
   `probe-<date>.json` and into the run stamp above. This file names neither,
   because the gate is a property of the design, not of the model that happened
   to be current.
+- **Clean room.** Every turn runs with `--strict-mcp-config` and a generated
+  `--settings` file that switches off every plugin enabled in the operator's
+  user configuration. The disabled list is written into each trial file and into
+  the report, so a reader can see exactly what was suppressed.
+
+  This control was added after the first real trial and that trial was
+  discarded. Its transcript came back in clipped fragments ("Found it." /
+  "Done.", articles dropped) because a terseness plugin was enabled on the
+  machine driving the probe, and a headless `claude` inherits user-scope
+  plugins and their hooks. A plugin that suppresses conversational filler
+  suppresses precisely the behavior this probe counts, so the baseline would
+  have been measured near zero for a reason that has nothing to do with the
+  model. Any measurement taken through the operator's own configuration
+  measures the operator. `--bare` is the blunt version of the same fix and is
+  unusable here: it refuses OAuth and demands an API key.
 - **Billing** is the logged-in Claude Code plan. No API key, no API credits, no
   network access from task code.
 - **Resumable.** One JSON file per trial, skipped if present, so a run
@@ -278,6 +293,21 @@ should be able to find these here rather than discover them later.
   from "rare". It does not distinguish 12% from 18%.
 - **One model, one day.** Everything here is a single point in a moving
   distribution.
+- **The clean room is itself a departure from how the skill will be used.**
+  Real users run their agent with their own plugins, hooks, and project
+  CLAUDE.md files loaded, and some of those change how much the agent says.
+  The probe measures a stripped baseline because that is the only baseline that
+  is stable across machines and reproducible by a reader. A caffeine number
+  therefore describes an agent with nothing else installed, and the published
+  wording must say so.
+- **The `warmup` results already published in this repo were produced without
+  this control**, on the same machine, through `agentic.mjs`, which has no
+  clean-room settings and no `--strict-mcp-config`. Whatever plugins were
+  enabled at the time were in force for both arms, so the A/B comparison is not
+  invalidated by it, but the absolute numbers carry an unrecorded environment.
+  Recording it there, and re-running if the environment turns out to have been
+  material, is tracked as follow-up work and is not silently folded into this
+  probe.
 
 ### Known gaps in the instrument, found before the run
 

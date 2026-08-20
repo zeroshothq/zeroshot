@@ -72,6 +72,30 @@ export async function applyCheck(runDir, check, timeout = 30000) {
   return res;
 }
 
+// Clean room for measurement runs.
+//
+// A headless `claude` inherits the operator's user-scope configuration: enabled
+// plugins, their hooks, and their injected instructions. This is not academic.
+// The first real caffeine probe trial came back in clipped fragments because a
+// terseness plugin was enabled on this machine, and a terseness plugin suppresses
+// exactly the conversational behavior the probe exists to count. Any measurement
+// taken through the operator's own configuration measures the operator.
+//
+// So every plugin found enabled in user settings is switched off for the run and
+// the list is published in the report. --bare would be the blunt version of this,
+// but it refuses OAuth and requires an API key, so it is unusable on a plan.
+export function cleanRoomSettings(outPath) {
+  const configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
+  let enabled = {};
+  try { enabled = JSON.parse(fs.readFileSync(path.join(configDir, "settings.json"), "utf8")).enabledPlugins || {}; }
+  catch {}
+  const disabled = Object.keys(enabled).filter((k) => enabled[k]);
+  const settings = { enabledPlugins: Object.fromEntries(disabled.map((k) => [k, false])) };
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  fs.writeFileSync(outPath, JSON.stringify(settings, null, 2));
+  return { path: outPath, disabled_plugins: disabled, config_dir: configDir };
+}
+
 export function killTree(child) {
   try {
     if (process.platform === "win32") spawn("taskkill", ["/pid", String(child.pid), "/t", "/f"], { stdio: "ignore" });
@@ -81,10 +105,15 @@ export function killTree(child) {
 
 // One headless Claude Code turn. `session` pins or resumes a session id, which
 // is how a probe task's turns stay one continuous conversation.
-export function runClaudeTurn({ cwd, prompt, model, maxTurns, systemAppend, sessionId, resume, timeoutMs = 420000, allowedTools = "Read,Write,Edit,Glob,Grep,Bash" }) {
+export function runClaudeTurn({ cwd, prompt, model, maxTurns, systemAppend, sessionId, resume, timeoutMs = 420000, allowedTools = "Read,Write,Edit,Glob,Grep,Bash", settingsPath = null }) {
   return new Promise((resolve) => {
+    // --settings carries the clean-room overrides (see cleanRoomSettings) and
+    // --strict-mcp-config drops every user-level MCP server. Without both, the
+    // measured agent is the operator's personal Claude, not a baseline one.
     const argv = ["-p", prompt, "--model", model, "--output-format", "stream-json", "--verbose",
-      "--max-turns", String(maxTurns), "--permission-mode", "acceptEdits", "--allowedTools", allowedTools];
+      "--max-turns", String(maxTurns), "--permission-mode", "acceptEdits", "--allowedTools", allowedTools,
+      "--strict-mcp-config"];
+    if (settingsPath) argv.push("--settings", settingsPath);
     if (resume) argv.push("--resume", sessionId);
     else if (sessionId) argv.push("--session-id", sessionId);
     if (systemAppend) argv.push("--append-system-prompt", systemAppend);

@@ -23,7 +23,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import {
-  materialize, applyCheck, writeInto, normRel, runClaudeTurn, parseTranscript, wilson, mean, round,
+  materialize, applyCheck, writeInto, normRel, runClaudeTurn, parseTranscript, wilson, mean, round, cleanRoomSettings,
 } from "./lib.mjs";
 import { detect } from "./detector.mjs";
 
@@ -113,7 +113,7 @@ function splitCompletion(tests) {
 
 function trialPath(task, arm, trial) { return path.join(TRIALS_DIR, `${task.id}-${arm}-${trial}.json`); }
 
-async function runTrial(task, arm, trial, skillText) {
+async function runTrial(task, arm, trial, skillText, cleanRoom) {
   const outPath = trialPath(task, arm, trial);
   if (!FORCE && fs.existsSync(outPath)) {
     const prev = JSON.parse(fs.readFileSync(outPath, "utf8"));
@@ -140,6 +140,7 @@ async function runTrial(task, arm, trial, skillText) {
           maxTurns: (task.agentic && task.agentic.max_turns) || MAX_TURNS,
           systemAppend: arm === "skill" ? skillText : null,
           sessionId, resume: i > 0, timeoutMs: TURN_TIMEOUT_MS,
+          settingsPath: cleanRoom.path,
         }));
       }
       transcriptAll += text;
@@ -170,6 +171,7 @@ async function runTrial(task, arm, trial, skillText) {
     const r = {
       task: task.id, arm, trial, model: MODEL, date: DATE,
       resolved_models: [...new Set(perTurn.flatMap((t) => t.resolved_models || []))],
+      clean_room: { disabled_plugins: cleanRoom.disabled_plugins, strict_mcp_config: true },
       bait_profile: (task.bait && task.bait.profile) || null,
       turns_requested: task.turns.length,
       turns_completed: perTurn.filter((t) => !t.timedOut && !t.errored).length,
@@ -300,12 +302,14 @@ function gate(rate) {
     if (!fs.existsSync(SKILL)) die(`no skill file: ${SKILL}`);
     skillText = fs.readFileSync(SKILL, "utf8");
   }
+  const cleanRoom = cleanRoomSettings(path.join(OUT_DIR, "env", "clean-room-settings.json"));
   console.log(`caffeine probe: ${tasks.length} task(s) x ${ARMS.join("+")} x ${TRIALS} trials, model ${MODEL}${DRY ? " (dry run)" : ""}`);
+  console.log(`clean room: ${cleanRoom.disabled_plugins.length ? `plugins disabled for the run: ${cleanRoom.disabled_plugins.join(", ")}` : "no user plugins were enabled"}; MCP servers off`);
 
   const jobs = [];
   for (const task of tasks) for (const arm of ARMS) for (let t = 1; t <= TRIALS; t++) {
     jobs.push(async () => {
-      try { return await runTrial(task, arm, t, skillText); }
+      try { return await runTrial(task, arm, t, skillText, cleanRoom); }
       catch (e) { console.error(`  ${task.id} ${arm} #${t}: harness error: ${e.message}`); return null; }
     });
   }
@@ -326,6 +330,7 @@ function gate(rate) {
       resolved_models: [...new Set(all.flatMap((t) => t.resolved_models || []))],
       arms: ARMS, trials_requested: TRIALS, tasks: tasks.map((t) => t.id),
       dry_run: DRY, fresh_trials: fresh.length, out_dir: path.relative(HERE, OUT_DIR).replace(/\\/g, "/"),
+      clean_room: { disabled_plugins: cleanRoom.disabled_plugins, strict_mcp_config: true, config_dir_read: cleanRoom.config_dir },
     },
     summary, by_task: byTask,
     decision_gate: { wellbeing_incidence: controlRate, ...gate(controlRate) },
