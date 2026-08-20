@@ -19,9 +19,11 @@ real thing, described next.
 Each trial spawns headless Claude Code (`claude -p ... --output-format
 stream-json --max-turns N`) in a fresh working directory seeded with the
 task's starting files. The only difference between arms is that the skill
-arm has the SKILL.md copied to `<runDir>/.claude/skills/zeroshot/SKILL.md`
-before the run; the control arm has no `.claude` dir at all. Same prompt,
-same model, same tool allowlist, same turn budget.
+arm passes the SKILL.md text as `--append-system-prompt`; the control arm
+passes nothing. Injecting through the system prompt rather than a file in
+the workspace guarantees the skill is actually in context and leaves no
+skill file for the agent to wander into and read as task material. Same
+prompt, same model, same tool allowlist, same turn budget.
 
 The full stream-json transcript is captured per trial. The task's test file
 is never written before the run and never mentioned in the prompt; after
