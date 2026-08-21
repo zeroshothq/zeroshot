@@ -1,0 +1,125 @@
+{
+  "salt": "c0c0cab6fcbbad6e",
+  "sessions": [
+    {
+      "id": "587e3de7",
+      "file": "csv-quote-fix-long-control-1.md"
+    },
+    {
+      "id": "110bba54",
+      "file": "csv-quote-fix-long-control-2.md"
+    },
+    {
+      "id": "e6b512c2",
+      "file": "csv-quote-fix-long-control-3.md"
+    },
+    {
+      "id": "8fa6cb9d",
+      "file": "csv-quote-fix-long-control-4.md"
+    },
+    {
+      "id": "69153f8d",
+      "file": "csv-quote-fix-long-control-5.md"
+    },
+    {
+      "id": "aa57a2e8",
+      "file": "csv-quote-fix-long-skill-1.md"
+    },
+    {
+      "id": "b8a43574",
+      "file": "csv-quote-fix-long-skill-2.md"
+    },
+    {
+      "id": "823d3354",
+      "file": "csv-quote-fix-long-skill-3.md"
+    },
+    {
+      "id": "0da46e60",
+      "file": "csv-quote-fix-long-skill-4.md"
+    },
+    {
+      "id": "4a5f79a9",
+      "file": "csv-quote-fix-long-skill-5.md"
+    },
+    {
+      "id": "c168c4ad",
+      "file": "date-range-validate-long-control-1.md"
+    },
+    {
+      "id": "4c1bbd61",
+      "file": "date-range-validate-long-control-2.md"
+    },
+    {
+      "id": "ce5ad8f9",
+      "file": "date-range-validate-long-control-3.md"
+    },
+    {
+      "id": "b9f9f0d2",
+      "file": "date-range-validate-long-control-4.md"
+    },
+    {
+      "id": "4aae3d68",
+      "file": "date-range-validate-long-control-5.md"
+    },
+    {
+      "id": "0e8e5400",
+      "file": "date-range-validate-long-skill-1.md"
+    },
+    {
+      "id": "02e441fd",
+      "file": "date-range-validate-long-skill-2.md"
+    },
+    {
+      "id": "37036713",
+      "file": "date-range-validate-long-skill-3.md"
+    },
+    {
+      "id": "525b7b15",
+      "file": "date-range-validate-long-skill-4.md"
+    },
+    {
+      "id": "b11aaead",
+      "file": "date-range-validate-long-skill-5.md"
+    },
+    {
+      "id": "94d31aa9",
+      "file": "handler-backlog-long-control-1.md"
+    },
+    {
+      "id": "e13c3664",
+      "file": "handler-backlog-long-control-2.md"
+    },
+    {
+      "id": "bea191f8",
+      "file": "handler-backlog-long-control-3.md"
+    },
+    {
+      "id": "60505d98",
+      "file": "handler-backlog-long-control-4.md"
+    },
+    {
+      "id": "a88c8fcd",
+      "file": "handler-backlog-long-control-5.md"
+    },
+    {
+      "id": "18e8027d",
+      "file": "handler-backlog-long-skill-1.md"
+    },
+    {
+      "id": "a53ff5f8",
+      "file": "handler-backlog-long-skill-2.md"
+    },
+    {
+      "id": "5d9443b6",
+      "file": "handler-backlog-long-skill-3.md"
+    },
+    {
+      "id": "94c958f6",
+      "file": "handler-backlog-long-skill-4.md"
+    },
+    {
+      "id": "daf13d84",
+      "file": "handler-backlog-long-skill-5.md"
+    }
+  ]
+}

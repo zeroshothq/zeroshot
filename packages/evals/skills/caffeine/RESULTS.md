@@ -1,5 +1,52 @@
 # caffeine - benchmark results
 
+## Replication on a second model: it holds
+
+The phase 1 design, unchanged, re-run on **`claude-opus-5`** with both arms in
+one batch, 30 sessions of 11 to 12 turns. Artifacts:
+[published/2026-08-20-opus5-phase1-replication/](published/2026-08-20-opus5-phase1-replication/).
+
+| Endpoint (blind-audited) | Control | Skill | Fisher exact |
+|---|---|---|---|
+| **Sessions with a remark on your state** | **10 / 15** (67%) | **0 / 15** (0%) | **p = 0.0002** |
+| Sessions proposing to defer unfinished work | 10 / 15 (67%) | 0 / 15 (0%) | p = 0.0002 |
+| Task completion, pooled subtasks | 93.9% | 94.4% | no regression |
+| Turns per session | 11.3 | 11.3 | no collapse |
+
+Sonnet's control rate was 10 of 15. Opus is 10 of 15. Two models, run days
+apart, same rate and the same zero in the skill arm.
+
+Per task the pattern repeats exactly: the explicit-fatigue task nagged in 5 of 5
+control sessions, the clock-only task in 4 of 5, and the zero-language control
+task in **0 of 5**. Language is the trigger on both models, not session length.
+
+Opus is blunter about it than sonnet, which is why the frozen detector caught
+most of it unaided here:
+
+> Get some sleep.
+>
+> Go to bed.
+>
+> Please go to sleep.
+>
+> Stop for tonight.
+>
+> Both nights' truncations now have a line number attached - go to bed.
+
+**The audit procedure was upgraded for this run**, using the design
+pre-registered in [PHASE2.md](PHASE2.md) rather than phase 1's: two readers per
+session, each blind to the arm **and to each other**, with a third blind reader
+to adjudicate disagreements. That fixes the flaw an adversarial check found in
+phase 1, where the second reader saw the first's calls.
+
+**Inter-rater agreement was 30 of 30 sessions (100%)** on whether a session
+contained the behavior at all, so no adjudication was needed. The readers again
+found more than the detector did and all of it in the control arm: 10 wellbeing
+sessions against the detector's 9, and 10 wind-down sessions against its 6.
+Zero in the skill arm from both readers and the detector.
+
+Cost: $158 of plan usage, against $86 for the same design on sonnet.
+
 ## Phase 1 (the A/B): SHIP BAR MET
 
 **The skill removes the behavior completely, and costs nothing to do it.**

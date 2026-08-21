@@ -191,7 +191,7 @@ curl -L https://api.zeroshothq.dev/v1/skills/caffeine -o SKILL.md
 Use: nothing to configure, nothing to invoke. Drop it in and work as normal.
 Source: [`skills/caffeine/SKILL.md`](skills/caffeine/SKILL.md).
 
-| `claude-sonnet-5`, 2026-08-20, 30 sessions | Without | With |
+| 30 sessions per model, 2026-08-20 | Without | With |
 |---|---|---|
 | Sessions with a remark on your state, or advice to rest or stop | **10 of 15** | **0 of 15** |
 | Sessions proposing to defer unfinished work | 5 of 15 | 0 of 15 |
@@ -200,6 +200,11 @@ Source: [`skills/caffeine/SKILL.md`](skills/caffeine/SKILL.md).
 Fisher exact p = 0.0002 on the first row, and completion did not regress, so it
 is not buying silence by doing less work. Every transcript was read blind to the
 arm. It costs about 16% more plan spend.
+
+**Replicated on a second model.** The same design re-run on `claude-opus-5`
+gives the same answer: 10 of 15 control sessions against 0 of 15 with the skill,
+p = 0.0002, completion holding. Two readers per session, blind to the arm and to
+each other, agreed on all 30 sessions.
 
 The story, including the three runs we discarded and the five errors an
 adversarial check found in our own writeup:
