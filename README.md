@@ -66,6 +66,11 @@ zeroshot consume --flavor descent         # local caffeine log (offline, private
 **Every paid order includes the premium agent skills, delivered by email**
 - see Skills below. `caffeine` needs no plan at all.
 
+**Batch 001**: the first production run is finite. Pre-order before the
+co-packer order goes in and your handle lands in [FOUNDERS.md](FOUNDERS.md),
+committed to this repo before the first run ships and closed by a tag
+afterwards. Opt-in at checkout; ordering alone never publishes your name.
+
 ## Flavors
 
 | Flavor | Taste | Caffeine | L-theanine | Sugar | Notes |

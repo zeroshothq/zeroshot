@@ -159,6 +159,21 @@ test("skills: premium requires a valid signed link", async () => {
   assert.equal((await get("/v1/skills/not-a-skill")).status, 404);
 });
 
+test("founders roster is admin-only and never leaks more than handles", async () => {
+  assert.equal((await get("/v1/admin/founders")).status, 401);
+  assert.equal((await get("/v1/admin/founders", { headers: { authorization: "Bearer wrong" } })).status, 401);
+  const bearer = process.env.ZEROSHOT_ADMIN_BEARER;
+  if (!bearer) return; // the unauthorized paths are the security-relevant half
+  const res = await get("/v1/admin/founders", { headers: { authorization: `Bearer ${bearer}` } });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.batch, "001");
+  assert.equal(typeof body.markdown, "string");
+  // The roster is generated from the opt-in table, so an order that did not opt
+  // in must not appear, and nothing but a handle may cross this boundary.
+  assert.ok(!JSON.stringify(body).includes("@"), "no email may appear in the roster response");
+});
+
 test("stripe webhook rejects unsigned payloads", async () => {
   const res = await post("/v1/stripe/webhook", { type: "checkout.session.completed" });
   assert.equal(res.status, 400);

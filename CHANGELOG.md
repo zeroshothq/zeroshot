@@ -6,6 +6,17 @@ versions track releases cut from this repo (`cli-v*` tags publish the CLI).
 
 ## [Unreleased]
 
+### Added (Batch 001)
+- `FOUNDERS.md`: the Batch 001 roster, committed to the public repo before the
+  first production run ships and closed with a `batch-001` tag afterwards. A
+  name appears only on explicit opt-in at checkout with a handle the buyer
+  chose; ordering alone never publishes anyone. Backed by a separate `founders`
+  table rather than a column on `orders`, so the public list is structurally
+  incapable of being generated from purchase records, plus
+  `GET /v1/admin/founders` (admin bearer) which returns handles and nothing
+  else. Handles are bounded and stripped of control and markdown-active
+  characters at write time, not at render time.
+
 ### Added (public skill)
 - `caffeine` v1.0.0, the first public skill: source in this repo at
   `skills/caffeine/`, installable with no key, no signup and no email via
