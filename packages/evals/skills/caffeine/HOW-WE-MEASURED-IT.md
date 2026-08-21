@@ -162,8 +162,12 @@ own background calls, which is why two model ids appear in every trial file.)
 
 Three tasks and fifteen sessions per arm is a development suite, not the fifteen
 to thirty tasks our own rule requires before a benchmark is quoted publicly.
-Nothing here speaks to claude.ai chat, where the tic is most reported and which
-this harness cannot drive. The sessions run in a clean room with every plugin
+The behavior is reported across the API, Claude Code and claude.ai alike, and
+the reports that started this are specifically about it interrupting coding
+sessions, so the surface we measured is a real one rather than a proxy. What we
+measured is **headless** Claude Code (`claude -p`, non-interactive, scripted
+turns). Nothing here speaks to claude.ai chat, or to an interactive Claude Code
+session with a human typing, and those may differ in either direction. The sessions run in a clean room with every plugin
 and MCP server disabled, which is not how anyone actually runs an agent, so
 these are stripped-baseline numbers. One control session broke twice at turn 9
 and was re-run; five sessions hit a single permission denial each. And Anthropic

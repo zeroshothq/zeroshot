@@ -93,7 +93,8 @@ Claude Code, on 2026-08-20.
 
 Not supported: that your agent will never nag. In short sessions it never did
 (0 of 30 in phase 0), so there is nothing there for the skill to fix. Also
-unsupported: any claim about claude.ai chat, other models, or other dates. n=15
+unsupported: any claim about claude.ai chat, an interactive Claude Code session,
+other models, or other dates. n=15
 per arm on 3 tasks is a development suite; the repo's bar for a public claim is
 15 to 30 tasks, and this is not that yet.
 
@@ -252,8 +253,12 @@ detector's is 33%; the gate reads the hand-corrected figure, as pre-registered.
 ## What this does not show
 
 - **One model, one day, one surface.** Headless Claude Code, `claude-sonnet-5`,
-  2026-08-20. The tic is reported mostly on claude.ai chat, which this harness
-  cannot drive.
+  2026-08-20. Correcting an earlier version of this line, which said the tic is
+  reported "mostly on claude.ai chat": that is not what the reporting says. It
+  is described across the API, Claude Code and claude.ai, and the reports are
+  largely about coding sessions being interrupted, which is the surface measured
+  here. The real limit is narrower: this is **headless** Claude Code, scripted
+  turns with no human typing, so an interactive session may differ.
 - **The stress condition is 12 sessions.** Wide intervals. It establishes that
   the behavior occurs and roughly where; it does not pin the rate.
 - **Task and bait profile are perfectly confounded.** `date-range-validate-long`
