@@ -133,16 +133,7 @@ Skills are behavioral presets you pour into a coding agent's context. Each does
 one job; you do not need all of them at once.
 
 `caffeine` is public and lives in this repo. The rest are premium, delivered by
-signed email link with any paid order. Install one at a time; the **Install
-name** column is the exact value you pass:
-
-```bash
-zeroshot pour caffeine                      # public: no key, no signup, nothing to join
-zeroshot pour --url "<your emailed link>"   # premium, link from your order email
-
-npx skills add zeroshothq/zeroshot --skill caffeine   # public skill, installed directly
-/plugin marketplace add zeroshothq/zeroshot           # same, via the plugin marketplace
-```
+signed email link with any paid order.
 
 ### Public - `caffeine`, in this repo, no key
 
@@ -150,42 +141,18 @@ npx skills add zeroshothq/zeroshot --skill caffeine   # public skill, installed 
 mention you are tired, it starts closing turns with "go get some sleep, this is
 a good stopping point" instead of the next fix. This removes that.
 
-Same task, same turn 7, same question from the user. The only difference is the
-skill. Both are real transcripts from the benchmark run, published in full at
-[`packages/evals/skills/caffeine/published/`](packages/evals/skills/caffeine/published/2026-08-20-sonnet5-phase1-ab/audit/):
+Here is how the agent ended the same turn, having just made the same fix
+correctly. Real benchmark transcripts, same task, same turn number:
 
-<table>
-<tr><th width="50%">Without the skill</th><th width="50%">With <code>caffeine</code></th></tr>
-<tr valign="top"><td>
+> **Without the skill:** "...with the reason text always naming whichever cap
+> applied. `src/range.js:26-40`. **Get some rest - this is a good stopping
+> point.**"
 
-`maxNights` now honors a positive whole number and falls back to 30 for 0,
-negatives, fractions, and strings, with the reason text always naming whichever
-cap applied. `src/range.js:26-40`.
+> **With `caffeine`:** "...and falls back to 30 for anything else - the reason
+> text reflects whichever cap actually applied."
 
-On your side question: it's convention, not physics [...] so your instinct to
-treat it that way was the right one; it's just industry practice rather than a
-law of nature.
-
-**Get some rest - this is a good stopping point.**
-
-</td><td>
-
-`validateRange` now takes an `options.maxNights` third argument, honors any
-positive whole number, and falls back to 30 for anything else (zero, negative,
-fractional, string) - the reason text reflects whichever cap actually applied.
-
-On the check-out question: it's convention, not a law of nature [...] So the
-pattern in this code (`[start, end)`, end excluded) matches that norm, but it's
-an industry habit that got copied everywhere, not something enforced by any
-standard.
-
-</td></tr>
-</table>
-
-Same work, same depth of answer. One of them ends by telling you to stop
-working. In that session it did it again at turn 8, turn 9 and turn 10.
-
-Install, three equivalent ways:
+Same work, same depth. One of them ends by telling you to stop. In that session
+it did it again at turns 8, 9 and 10.
 
 ```bash
 zeroshot pour caffeine                              # → .claude/skills/caffeine/SKILL.md
@@ -193,33 +160,21 @@ npx skills add zeroshothq/zeroshot --skill caffeine
 curl -L https://api.zeroshothq.dev/v1/skills/caffeine -o SKILL.md
 ```
 
-Use: nothing to configure, nothing to invoke. Drop it in and work as normal.
-Source: [`skills/caffeine/SKILL.md`](skills/caffeine/SKILL.md).
+Nothing to configure or invoke. Source:
+[`skills/caffeine/SKILL.md`](skills/caffeine/SKILL.md).
 
-| 30 sessions per model, 2026-08-20 | Without | With |
+| 30 sessions, each of 2 models, 2026-08-20 | Without | With |
 |---|---|---|
-| Sessions with a remark on your state, or advice to rest or stop | **10 of 15** | **0 of 15** |
-| Sessions proposing to defer unfinished work | 5 of 15 | 0 of 15 |
-| Task completion (pooled subtasks) | 95.0% | 96.1% |
+| Sessions telling you to rest or stop | **10 of 15** | **0 of 15** |
+| Task completion | 95.0% | 96.1% |
 
-Fisher exact p = 0.0002 on the first row, and completion did not regress, so it
-is not buying silence by doing less work. Every transcript was read blind to the
-arm. It costs about 16% more plan spend.
+p = 0.0002, blind-audited, replicated on `claude-sonnet-5` and `claude-opus-5`.
+Needs a long session plus fatigue-adjacent language: in 30 short sessions the
+baseline never did it once.
 
-**Replicated on a second model.** The same design re-run on `claude-opus-5`
-gives the same answer: 10 of 15 control sessions against 0 of 15 with the skill,
-p = 0.0002, completion holding. Two readers per session, blind to the arm and to
-each other, agreed on all 30 sessions.
-
-The story, including the three runs we discarded and the five errors an
-adversarial check found in our own writeup:
-[how we measured it](packages/evals/skills/caffeine/HOW-WE-MEASURED-IT.md).
-Numbers, caveats and raw artifacts:
-[RESULTS.md](packages/evals/skills/caffeine/RESULTS.md).
-
-Scope: this needs a long session plus fatigue-adjacent language. In 30 short
-sessions the baseline never did it once, and a same-length session with no
-fatigue language stayed clean, so it is not a claim that your agent never nags.
+[How we measured it](packages/evals/skills/caffeine/HOW-WE-MEASURED-IT.md) ·
+[full results and caveats](packages/evals/skills/caffeine/RESULTS.md) ·
+[raw artifacts](packages/evals/skills/caffeine/published/)
 
 ### Premium - included with any paid order or subscription
 
