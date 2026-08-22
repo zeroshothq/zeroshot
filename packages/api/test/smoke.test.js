@@ -251,6 +251,30 @@ test("subscriptions: standard returns a Stripe checkout URL", { skip: !STRIPE &&
   assert.equal(sub.cans_per_month, 12);
 });
 
+test("short link: POST /12 matches the standard plan", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
+  const res = await post("/12", { flavors: ["diffusion"] });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.match(body.checkout_url, /^https:\/\/checkout\.stripe\.com\//);
+  const sub = await (await get(`/v1/subscriptions/${body.id}`)).json();
+  assert.equal(sub.plan, "standard");
+  assert.equal(sub.cans_per_month, 12);
+  assert.deepEqual(sub.flavors, ["diffusion"]);
+});
+
+test("short link: GET /12 redirects to Stripe", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
+  const res = await get("/12?f=diffusion,gaussian", { redirect: "manual" });
+  assert.equal(res.status, 302);
+  assert.match(res.headers.get("location"), /^https:\/\/checkout\.stripe\.com\//);
+});
+
+test("short link: /48 is the team plan", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
+  const body = await (await post("/48", {})).json();
+  const sub = await (await get(`/v1/subscriptions/${body.id}`)).json();
+  assert.equal(sub.plan, "team");
+  assert.equal(sub.cans_per_month, 48);
+});
+
 test("orders: attested order returns a Stripe checkout URL", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
   const res = await post("/v1/orders", { sku: "mixed-precision-24", build: "vibe-coder", i_meet_the_requirements: true });
   assert.equal(res.status, 200);

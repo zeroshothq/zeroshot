@@ -102,7 +102,8 @@ expectations the site must fulfill:
 Required pages:
 
 - `/thanks?o=<order_id>` - Stripe checkout success redirect
-- `/pricing` - Stripe checkout cancel redirect
+- `/pricing` - Stripe checkout cancel redirect, and where `GET /12` and
+  `GET /48` send anyone who abandons the short-link checkout
 - `/stack/<id>` - shared recommendation pages; render from
   `GET /v1/stacks/<id>`
 - `/docs` - linked from the API root, 404s, and the README
