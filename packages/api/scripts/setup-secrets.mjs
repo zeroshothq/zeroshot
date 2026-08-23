@@ -6,7 +6,12 @@
 // never values. With --webhook it also creates the Stripe webhook endpoint
 // and stores its signing secret.
 //
-// Usage (from packages/api):  node scripts/setup-secrets.mjs [--webhook]
+// Usage (from packages/api):  node scripts/setup-secrets.mjs [--webhook] [--live|--test]
+//
+// Keeping both a test and a live Stripe key in .env is normal - you need the
+// test one to keep testing after you go live. Pass --live or --test to say
+// which one this run should use. With neither, exactly one Stripe key must be
+// present, which is the old single-key behaviour.
 
 import { readFileSync, writeFileSync, appendFileSync, unlinkSync, existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
@@ -20,6 +25,8 @@ const API_DIR = path.join(ROOT, "packages", "api");
 const ENV_PATH = path.join(ROOT, ".env");
 const WEBHOOK_URL = "https://api.zeroshothq.dev/v1/stripe/webhook";
 const doWebhook = process.argv.includes("--webhook");
+const wantLive = process.argv.includes("--live");
+const wantTest = process.argv.includes("--test");
 
 const fail = (msg) => { console.error("✗ " + msg); process.exit(1); };
 
@@ -41,16 +48,39 @@ const pick = (label, re) => {
   return hits[0][1];
 };
 
+// The Stripe key is picked separately from the rest because it is the one
+// credential where .env legitimately holds two of them at once.
+const pickStripe = () => {
+  if (wantLive && wantTest) fail("pass --live or --test, not both");
+  const all = byPrefix(/^(sk|rk)_(test|live)_/);
+  if (all.length === 0) fail("no Stripe secret key (sk_test_/sk_live_) found in .env");
+  const wanted = wantLive ? "live" : wantTest ? "test" : null;
+  const hits = wanted ? all.filter(([, v]) => v.includes(`_${wanted}_`)) : all;
+  if (hits.length === 0)
+    fail(`--${wanted} was passed but no ${wanted} Stripe key is in .env`);
+  if (hits.length > 1)
+    fail(`multiple .env values look like a ${wanted || "stripe"} key (${hits.map(([k]) => k).join(", ")}) - remove the extras, or pass --live / --test to choose`);
+  console.log(`  found stripe    → .env var ${hits[0][0]}`);
+  return hits[0][1];
+};
+
 console.log("Detecting keys in .env (values are never printed):");
-const STRIPE_KEY = pick("stripe", /^(sk|rk)_(test|live)_/);
+const STRIPE_KEY = pickStripe();
 const RESEND_KEY = pick("resend", /^re_/);
 const ANTHROPIC_KEY = pick("anthropic", /^sk-ant-/);
-const WEBHOOK_SECRET_EXISTING = pick("webhook", /^whsec_/);
-if (!STRIPE_KEY) fail("no Stripe secret key (sk_test_/sk_live_) found in .env");
 if (!RESEND_KEY) console.log("  (no Resend key found - emails will silently no-op)");
 if (!ANTHROPIC_KEY) console.log("  (no Anthropic key found - /recommend uses keyword fallback)");
 const stripeMode = STRIPE_KEY.includes("_test_") ? "TEST" : "LIVE";
 console.log(`Stripe mode: ${stripeMode}`);
+
+// Webhook signing secrets are per-mode: a test whsec_ cannot verify a live
+// event. So the secret is looked up by an explicit, mode-specific variable
+// name rather than by sniffing .env for anything shaped like a whsec_.
+const WEBHOOK_VAR = stripeMode === "LIVE" ? "STRIPE_LIVE_WEBHOOK_SECRET" : "STRIPE_WEBHOOK_SECRET";
+const WEBHOOK_SECRET_EXISTING = env[WEBHOOK_VAR] || null;
+if (WEBHOOK_SECRET_EXISTING && !/^whsec_/.test(WEBHOOK_SECRET_EXISTING))
+  fail(`${WEBHOOK_VAR} does not look like a webhook secret (expected whsec_...)`);
+console.log(`  webhook secret  → .env var ${WEBHOOK_VAR}${WEBHOOK_SECRET_EXISTING ? "" : " (not set yet)"}`);
 
 // ---- stripe helpers --------------------------------------------------------
 async function stripe(method, p, params) {
@@ -104,15 +134,15 @@ for (const name of ["SKILL_SIGNING_SECRET", "ADMIN_BEARER"]) {
 }
 
 // ---- optional: create the Stripe webhook endpoint --------------------------
-let webhookSecret = WEBHOOK_SECRET_EXISTING || env.STRIPE_WEBHOOK_SECRET || null;
+let webhookSecret = WEBHOOK_SECRET_EXISTING;
 if (doWebhook && !webhookSecret) {
   const existing = await stripe("GET", "webhook_endpoints?limit=100");
   const dup = (existing.data || []).find((w) => w.url === WEBHOOK_URL);
-  if (dup) fail(`webhook for ${WEBHOOK_URL} already exists (${dup.id}) but its secret is not in .env - delete it in the Stripe dashboard and re-run, or add its whsec_ to .env`);
+  if (dup) fail(`webhook for ${WEBHOOK_URL} already exists in ${stripeMode} mode (${dup.id}) but its secret is not in .env as ${WEBHOOK_VAR} - delete it in the Stripe dashboard and re-run, or add its whsec_ to .env as ${WEBHOOK_VAR}`);
   const wh = await stripe("POST", "webhook_endpoints", { url: WEBHOOK_URL, "enabled_events[]": "checkout.session.completed" });
   webhookSecret = wh.secret;
-  appendFileSync(ENV_PATH, `\nSTRIPE_WEBHOOK_SECRET=${webhookSecret}`);
-  console.log(`  created webhook ${wh.id} → ${WEBHOOK_URL} (secret appended to .env)`);
+  appendFileSync(ENV_PATH, `\n${WEBHOOK_VAR}=${webhookSecret}`);
+  console.log(`  created webhook ${wh.id} → ${WEBHOOK_URL} (secret appended to .env as ${WEBHOOK_VAR})`);
 }
 
 // ---- push everything to the Worker via `wrangler secret bulk` --------------
