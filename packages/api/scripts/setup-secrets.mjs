@@ -111,8 +111,6 @@ const found = await stripe("GET", "prices?" + WANT.map((w) => `lookup_keys[]=${w
 const byLookup = Object.fromEntries((found.data || []).map((p) => [p.lookup_key, p]));
 let productId = Object.values(byLookup)[0]?.product;
 const prices = {};
-// Prices this run replaces. Archived only after the new ids reach the Worker.
-const superseded = [];
 for (const w of WANT) {
   const existing = byLookup[w.lookup];
   // Match on the amount as well as the lookup key. Matching on the key alone
@@ -137,12 +135,8 @@ for (const w of WANT) {
   const price = await stripe("POST", "prices", params);
   prices[w.secret] = price.id;
   if (existing) {
-    // Deliberately not archived yet. The Worker still holds the old price id
-    // until the secret push at the end of this script succeeds, and an archived
-    // price cannot be used in a new Checkout Session - archiving here would take
-    // checkout down for the window in between, and leave it down permanently if
-    // the push failed. Superseded prices are archived after the push instead.
-    superseded.push({ secret: w.secret, id: existing.id, was: existing.unit_amount });
+    // The old price is retired at the end of this run, not here. See the
+    // comment on the retire loop for why the order matters.
     console.log(`  repriced ${w.secret}: ${existing.unit_amount} -> ${w.amount} (new ${price.id})`);
   } else {
     console.log(`  created price ${w.secret} = ${price.id}`);
@@ -197,14 +191,20 @@ try {
 } finally {
   unlinkSync(tmp);
 }
-// ---- retire superseded prices ----------------------------------------------
-// Only now that the Worker is serving the new price ids is it safe to archive
-// the old ones. Archiving makes a price unusable for new Checkout Sessions;
-// subscriptions already billing on it are unaffected and keep their amount
-// until they are migrated deliberately.
-for (const s of superseded) {
-  await stripe("POST", `prices/${s.id}`, { active: "false" });
-  console.log(`  archived old ${s.secret} price ${s.id} (was ${s.was})`);
+// ---- retire the prices this run replaced -----------------------------------
+// Stripe has no delete for prices and unit_amount is immutable, so a reprice is
+// always a new price object plus retiring the old one, and active:false is the
+// only way to retire it. Retired here rather than at creation time because the
+// Worker does not hold the new id until the secret push above succeeds: archive
+// any earlier and every checkout in the gap fails, permanently so if the push
+// itself failed. Nothing is kept - the old id is re-read from the lookup we
+// already fetched. Subscriptions already billing on it keep their amount until
+// they are migrated deliberately.
+for (const w of WANT) {
+  const old = byLookup[w.lookup];
+  if (!old || old.id === prices[w.secret]) continue;
+  await stripe("POST", `prices/${old.id}`, { active: "false" });
+  console.log(`  retired old ${w.secret} price ${old.id}`);
 }
 
 console.log("✓ done" + (doWebhook ? "" : " - run again with --webhook once api.zeroshothq.dev is live"));
