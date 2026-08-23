@@ -50,6 +50,18 @@ const json = (obj, status = 200, extra = {}) =>
 
 const err = (status, error, extra = {}) => json({ error }, status, extra);
 
+const text = (body, status = 200, extra = {}) =>
+  new Response(body.endsWith("\n") ? body : body + "\n",
+    { status, headers: { "content-type": "text/plain; charset=utf-8", ...extra } });
+
+// A browser asks for text/html; curl, wget and httpie send */*. Negotiating on
+// Accept rather than sniffing User-Agent is what keeps this from misfiring on
+// someone's script. Used to decide who gets a redirect and who gets readable
+// text: handing a terminal a 302 to Stripe means `curl -L` follows it and
+// prints 38kB of checkout markup, which is not an interface.
+const wantsHtml = (request) =>
+  (request.headers.get("accept") || "").includes("text/html");
+
 const uid = (p = "") => p + crypto.randomUUID().replace(/-/g, "").slice(0, 12);
 
 async function hmacHex(secret, msg) {
@@ -294,6 +306,22 @@ function redactForArchive(event) {
 const planPrice = (env, plan) =>
   ({ standard: env.PRICE_STANDARD_MONTHLY, team: env.PRICE_TEAM_MONTHLY })[plan];
 
+// What a terminal gets instead of a redirect. Prices come from flavors.json so
+// this cannot drift from the site or the roster; the link is our own short one
+// rather than Stripe's ~600 character session URL, which wraps over several
+// lines and is unreadable on a slide.
+function checkoutReceipt(apiBase, planId, orderId) {
+  const p = FLAVORS_DATA.plans[planId] || {};
+  const monthly = p.cadence === "monthly";
+  const head = ["Zero Shot", planId,
+    p.cans ? `${p.cans} cans${monthly ? "/month" : ""}` : "",
+    p.price_usd != null ? `$${p.price_usd}${monthly ? "/mo" : ""}` : ""]
+    .filter(Boolean).join("  ");
+  return [head, "", `  ${apiBase}/o/${orderId}`, "",
+    "Batch 001 pre-order: cans ship when the first production run completes.",
+    "Your premium agent skills are emailed the moment you pay."].join("\n");
+}
+
 async function createSubscription(env, plan, flavors, founderRaw) {
   const price = planPrice(env, plan);
   const orderId = uid("sub_");
@@ -344,8 +372,10 @@ export default {
       if (path === "/v1/agi") return json({ status: "rolling out gradually" }, 404, cors);
 
       // ---- /12 and /48  (short aliases for the monthly plans)
-      // GET redirects straight to Stripe, so `curl -L api.zeroshothq.dev/12` is
-      // the entire purchase. POST returns the same JSON /v1/subscriptions does.
+      // GET from a browser redirects straight to Stripe, so the link works when
+      // pasted anywhere. GET from a terminal gets a short plain-text receipt
+      // instead, because following the redirect there just prints Stripe's
+      // checkout markup. POST returns the same JSON /v1/subscriptions does.
       // Flavors are optional on both: ?f=diffusion,gaussian or a JSON body.
       if (PACK_PLANS[path] && (request.method === "GET" || request.method === "POST")) {
         const plan = PACK_PLANS[path];
@@ -356,10 +386,34 @@ export default {
           (url.searchParams.get("f") || "").split(",").filter(Boolean));
         const founder = body.founder_handle || url.searchParams.get("founder");
         const { orderId, session } = await createSubscription(env, plan, flavors, founder);
-        if (request.method === "GET")
-          return new Response(null, { status: 302,
-            headers: { location: session.url, "cache-control": "no-store", ...cors } });
-        return json({ id: orderId, status: "requires_payment", checkout_url: session.url }, 200, cors);
+        if (request.method === "GET") {
+          if (wantsHtml(request))
+            return new Response(null, { status: 302,
+              headers: { location: session.url, "cache-control": "no-store", ...cors } });
+          return text(checkoutReceipt(apiBase, plan, orderId), 200,
+            { "cache-control": "no-store", ...cors });
+        }
+        return json({ id: orderId, status: "requires_payment",
+          checkout_url: session.url, short_url: `${apiBase}/o/${orderId}` }, 200, cors);
+      }
+
+      // ---- GET /o/:id  (short link to a checkout we already created)
+      // Stripe's session URL is around 600 characters. This is the same session
+      // behind an id we already store, so anything that has to be read aloud,
+      // typed, or put on a slide stays one short line. Sessions expire and are
+      // consumed on payment, so a dead one says which rather than bouncing the
+      // customer into a Stripe error page.
+      if (path.startsWith("/o/") && request.method === "GET") {
+        const row = await env.DB.prepare("SELECT stripe_session FROM orders WHERE id=?")
+          .bind(path.slice(3)).first();
+        if (!row) return err(404, "order not found", cors);
+        const session = await stripe(env, `checkout/sessions/${row.stripe_session}`, {});
+        if (!session.url)
+          return err(410, session.status === "complete"
+            ? "this checkout is already paid"
+            : "this checkout expired - start a new one at /12 or /48", cors);
+        return new Response(null, { status: 302,
+          headers: { location: session.url, "cache-control": "no-store", ...cors } });
       }
 
       // ---- GET /v1/admin/founders  (the Batch 001 roster, for the FOUNDERS.md commit)
@@ -498,7 +552,8 @@ export default {
           return err(400, "plan must be standard | team | enterprise", cors);
         const { orderId, session } = await createSubscription(
           env, plan, parseFlavors(body.flavors), body.founder_handle);
-        return json({ id: orderId, status: "requires_payment", checkout_url: session.url }, 200, cors);
+        return json({ id: orderId, status: "requires_payment",
+          checkout_url: session.url, short_url: `${apiBase}/o/${orderId}` }, 200, cors);
       }
 
       // ---- GET /v1/subscriptions/:id  (plan, status, renewal date)
@@ -574,7 +629,7 @@ export default {
           .bind(orderId, session.id, "mixed-precision-24", pouredBuild).run();
         await recordFounder(env, orderId, body.founder_handle);
         return json({ id: orderId, status: "requires_payment", checkout_url: session.url,
-          build: pouredBuild }, 200, cors);
+          short_url: `${apiBase}/o/${orderId}`, build: pouredBuild }, 200, cors);
       }
 
       // ---- GET /v1/orders/:id

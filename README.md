@@ -33,11 +33,11 @@ of behavioral presets for their agents. No checkout form. No app. Subscribe
 the way you do everything else:
 
 ```bash
-curl -L https://api.zeroshothq.dev/12
+curl https://api.zeroshothq.dev/12
 ```
 
-→ twelve cans a month. Follows the redirect to Stripe checkout. Cans arrive.
-Yes, it works.
+→ twelve cans a month, and a short link to pay. Open the same URL in a browser
+and it redirects straight to checkout instead. Cans arrive. Yes, it works.
 
 `/48` is the team plan. Pick your flavors with `?f=diffusion,gaussian`, or use
 the long form if you would rather send JSON and get JSON back:

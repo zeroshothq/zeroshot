@@ -262,10 +262,38 @@ test("short link: POST /12 matches the standard plan", { skip: !STRIPE && "set Z
   assert.deepEqual(sub.flavors, ["diffusion"]);
 });
 
-test("short link: GET /12 redirects to Stripe", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const res = await get("/12?f=diffusion,gaussian", { redirect: "manual" });
+// A browser gets the redirect that opens checkout. A terminal must not, because
+// curl -L would follow it and print ~38kB of Stripe's checkout markup.
+test("short link: GET /12 redirects a browser to Stripe", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
+  const res = await get("/12?f=diffusion,gaussian",
+    { redirect: "manual", headers: { accept: "text/html,application/xhtml+xml" } });
   assert.equal(res.status, 302);
   assert.match(res.headers.get("location"), /^https:\/\/checkout\.stripe\.com\//);
+});
+
+test("short link: GET /12 gives a terminal short readable text", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
+  const res = await get("/12", { redirect: "manual", headers: { accept: "*/*" } });
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get("content-type"), /^text\/plain/);
+  const body = await res.text();
+  // The whole point: it fits on a screen and wraps in no terminal.
+  assert.ok(body.length < 400, `receipt was ${body.length} bytes`);
+  for (const line of body.split("\n")) assert.ok(line.length <= 80, `line too wide: ${line.length}`);
+  assert.match(body, /\$42\/mo/);
+  assert.match(body, /\/o\/sub_[a-f0-9]+/);
+});
+
+test("short link: /o/:id resolves back to the Stripe session", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
+  const body = await (await post("/12", {})).json();
+  assert.match(body.short_url, /\/o\/sub_[a-f0-9]+$/);
+  const res = await get(`/o/${body.id}`, { redirect: "manual" });
+  assert.equal(res.status, 302);
+  assert.match(res.headers.get("location"), /^https:\/\/checkout\.stripe\.com\//);
+});
+
+test("short link: /o/:id on an unknown order is a 404", async () => {
+  const res = await get("/o/sub_deadbeefdead", { redirect: "manual" });
+  assert.equal(res.status, 404);
 });
 
 test("short link: /48 is the team plan", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {

@@ -34,7 +34,9 @@ function writeCfg(obj) { fs.mkdirSync(CFG_DIR, { recursive: true }); fs.writeFil
 async function api(method, p, body, headers = {}) {
   const res = await fetch(API + p, {
     method,
-    headers: { "content-type": "application/json", ...headers },
+    // Explicit Accept: the API negotiates on it, and a client that parses JSON
+    // should say so rather than relying on the default for */*.
+    headers: { "content-type": "application/json", accept: "application/json", ...headers },
     body: body ? JSON.stringify(body) : undefined,
   });
   const text = await res.text();
