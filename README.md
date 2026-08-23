@@ -39,12 +39,12 @@ curl https://api.zeroshothq.dev/12
 → twelve cans a month, and a short link to pay. Open the same URL in a browser
 and it redirects straight to checkout instead. Cans arrive. Yes, it works.
 
-`/48` is the team plan. Pick your flavors with `?f=diffusion,gaussian`, or use
+`/48` is the team plan. Pick your flavors with `?f=attention,gaussian`, or use
 the long form if you would rather send JSON and get JSON back:
 
 ```bash
 curl -X POST https://api.zeroshothq.dev/v1/subscriptions \
-  -d '{"plan": "standard", "flavors": ["diffusion", "gaussian"]}'
+  -d '{"plan": "standard", "flavors": ["attention", "gaussian"]}'
 ```
 
 ## Install the CLI
@@ -58,7 +58,7 @@ zeroshot pour caffeine                    # public skill, no key: agent stops te
 zeroshot waitlist you@example.com         # join - your pk_ key is your referral code
 zeroshot skills                           # every skill: tier + version
 zeroshot spot                             # your waitlist position + referrals
-zeroshot consume --flavor descent         # local caffeine log (offline, private)
+zeroshot consume --flavor attention         # local caffeine log (offline, private)
 ```
 
 ## Plans
@@ -83,17 +83,17 @@ afterwards. Opt-in at checkout; ordering alone never publishes your name.
 
 | Flavor | Taste | Caffeine | L-theanine | Sugar | Notes |
 |---|---|---|---|---|---|
-| `diffusion` | dragonfruit haze | 200mg | 100mg | 0g | starts as noise, ends as flavor |
-| `gaussian` | white peach & cream | 200mg | 100mg | 0g | smooth. centered. perfectly distributed |
-| `backprop` | blackberry | 200mg | 100mg | 0g | propagates backward through your afternoon |
-| `relu` | rectified lemonade unit | 200mg | 100mg | 0g | linear above zero |
-| `descent` | double espresso | 250mg | 100mg | 0g | finds your minimum, fast |
-| `dropout` | chamomile citrus | 0mg | 150mg | 0g | regularize your evening |
+| `attention` | sharp ginger | 200mg | 100mg | 0g | every sip weighted against every other |
+| `prompt` | sharp green apple | 200mg | 100mg | 0g | temperature 0.7 - loose enough to surprise, tight enough to ship |
+| `backprop` | blackberry | 200mg | 100mg | 0g | the aftertaste corrects the sip |
+| `softmax` | normalized fruit punch | 200mg | 100mg | 0g | every flavor normalized; the punch sums to 1.0 |
+| `gaussian` | white peach & cream | 200mg | 100mg | 0g | mean flavor, minimal variance |
+| `reinforcement` | sweet reward cherry | 200mg | 100mg | 0g | reward shaped toward cherry, discount held at 0.99 |
 
-**Every flavor pours with caffeine and without.** The caffeinated five also
-come as `<flavor>-zero` - same can, same taste, 0mg. Order them like any
-flavor: `"flavors": ["descent-zero"]`. `dropout` needs no variant; it is
-already the zero.
+**Every flavor pours with caffeine and without.** All six come as
+`<flavor>-zero`. The zero edition is not the caffeinated can with the caffeine
+taken out: it prints 0mg caffeine and 150mg L-theanine against the standard
+100mg. Order one like any flavor: `"flavors": ["attention-zero"]`.
 
 Each flavor is a versioned model card in [`flavors/`](flavors/) with params
 and a changelog. `flavors/flavors.json` is the single source of truth consumed
@@ -126,7 +126,7 @@ with the build's requirements. Retry with `"i_meet_the_requirements": true`
 (self-attestation accepted) - or send header `X-YOLO: true`.
 
 Need it caffeine-free? Add `"zero": true` and the whole build pours as zero
-variants - same mix, same taste, 0mg across all 24 cans.
+variants - same mix, same taste, 0mg caffeine across all 24 cans.
 
 Don't know your build? Ask the Reverse Recruiter:
 
@@ -231,7 +231,7 @@ Base: `https://api.zeroshothq.dev/v1` · Full reference: [zeroshothq.dev/docs](h
 **Short links** live at the root, not under `/v1`, because they exist to fit on
 a sticker: `/12` is the standard plan and `/48` is the team plan. `GET` redirects
 straight to Stripe checkout, `POST` returns the same JSON `/v1/subscriptions`
-returns. Flavors are optional on both - `?f=diffusion,gaussian` or a JSON body.
+returns. Flavors are optional on both - `?f=attention,gaussian` or a JSON body.
 
 Rate limits: 60 req/min (10/min on `/recommend`). Exceeding returns
 `429 - "you've had enough. drink water."`
@@ -244,7 +244,7 @@ get a 12-pack on us. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Compliance
 
-200-250mg caffeine per can (dropout: 0mg). Not recommended for children or
+200mg caffeine per can; the zero edition is 0mg. Not recommended for children or
 persons sensitive to caffeine. Pre-orders are purchases of beverages, not
 securities. Code is MIT ([LICENSE](LICENSE)); the brand is not ([BRAND.md](BRAND.md)).
 

@@ -42,8 +42,8 @@ test("unknown command exits 2 with hint", async () => {
 test("flavors lists all six with caffeine", async () => {
   const { code, out } = await run("flavors");
   assert.equal(code, 0);
-  for (const id of ["diffusion", "gaussian", "backprop", "relu", "descent", "dropout"]) assert.ok(out.includes(id), id);
-  assert.ok(out.includes("250"), "descent's 250mg");
+  for (const id of ["attention", "prompt", "backprop", "softmax", "gaussian", "reinforcement"]) assert.ok(out.includes(id), id);
+  assert.ok(out.includes("200"), "the shelf-wide 200mg dose");
 });
 
 test("flavors --json emits parseable JSON", async () => {
@@ -53,9 +53,9 @@ test("flavors --json emits parseable JSON", async () => {
 });
 
 test("flavors --changelog shows version history", async () => {
-  const { code, out } = await run("flavors", "--changelog", "descent");
+  const { code, out } = await run("flavors", "--changelog", "backprop");
   assert.equal(code, 0);
-  assert.ok(out.includes("1.1.0"));
+  assert.ok(out.includes("1.0.3"));
 });
 
 test("status shows operational services", async () => {
@@ -66,12 +66,12 @@ test("status shows operational services", async () => {
 });
 
 test("consume logs a can and warns near the FDA line", async () => {
-  let r = await run("consume", "--flavor", "descent");
+  let r = await run("consume", "--flavor", "attention");
   assert.equal(r.code, 0);
-  assert.ok(r.out.includes("Logged: descent (250mg)"));
-  assert.ok(r.out.includes("Today: 250mg"));
-  r = await run("consume", "--flavor", "descent");
-  assert.ok(r.out.includes("400mg/day"), "second descent (500mg) should trigger the warning");
+  assert.ok(r.out.includes("Logged: attention (200mg)"));
+  assert.ok(r.out.includes("Today: 200mg"));
+  r = await run("consume", "--flavor", "attention");
+  assert.ok(r.out.includes("400mg/day"), "a second can puts the day at 400mg, on the FDA line");
 });
 
 test("consume --stats renders the 7-day sparkline", async () => {

@@ -39,11 +39,13 @@ test("flavors: six, correct caffeine params", async () => {
   assert.equal(flavors.length, 6);
   const byId = Object.fromEntries(flavors.map((f) => [f.id, f]));
   assert.deepEqual(Object.keys(byId).sort(),
-    ["backprop", "descent", "diffusion", "dropout", "gaussian", "relu"]);
-  assert.equal(byId.descent.params.caffeine_mg, 250);
-  assert.equal(byId.dropout.params.caffeine_mg, 0);
+    ["attention", "backprop", "gaussian", "prompt", "reinforcement", "softmax"]);
+  // One spec across the shelf, read off the printed can.
   for (const f of flavors) {
+    assert.equal(f.params.caffeine_mg, 200, `${f.id} must be 200mg`);
+    assert.equal(f.params.l_theanine_mg, 100, `${f.id} must be 100mg L-theanine`);
     assert.equal(f.params.sugar_g, 0, `${f.id} must be zero sugar`);
+    assert.equal(f.zero_variant, true, `${f.id} must pour as a zero edition`);
     assert.ok(f.version && f.changelog.length > 0, `${f.id} needs version + changelog`);
   }
 });
@@ -238,7 +240,7 @@ test("recommend → stack share roundtrip", { skip: !WRITES && "set ZEROSHOT_TES
 // ---- stripe tests (create real checkout sessions; test-mode key expected) --
 
 test("subscriptions: standard returns a Stripe checkout URL", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const res = await post("/v1/subscriptions", { plan: "standard", flavors: ["diffusion", "gaussian"] });
+  const res = await post("/v1/subscriptions", { plan: "standard", flavors: ["attention", "gaussian"] });
   assert.equal(res.status, 200);
   const body = await res.json();
   assert.equal(body.status, "requires_payment");
@@ -252,20 +254,20 @@ test("subscriptions: standard returns a Stripe checkout URL", { skip: !STRIPE &&
 });
 
 test("short link: POST /12 matches the standard plan", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const res = await post("/12", { flavors: ["diffusion"] });
+  const res = await post("/12", { flavors: ["attention"] });
   assert.equal(res.status, 200);
   const body = await res.json();
   assert.match(body.checkout_url, /^https:\/\/checkout\.stripe\.com\//);
   const sub = await (await get(`/v1/subscriptions/${body.id}`)).json();
   assert.equal(sub.plan, "standard");
   assert.equal(sub.cans_per_month, 12);
-  assert.deepEqual(sub.flavors, ["diffusion"]);
+  assert.deepEqual(sub.flavors, ["attention"]);
 });
 
 // A browser gets the redirect that opens checkout. A terminal must not, because
 // curl -L would follow it and print ~38kB of Stripe's checkout markup.
 test("short link: GET /12 redirects a browser to Stripe", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const res = await get("/12?f=diffusion,gaussian",
+  const res = await get("/12?f=attention,gaussian",
     { redirect: "manual", headers: { accept: "text/html,application/xhtml+xml" } });
   assert.equal(res.status, 302);
   assert.match(res.headers.get("location"), /^https:\/\/checkout\.stripe\.com\//);

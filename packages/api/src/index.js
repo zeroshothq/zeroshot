@@ -163,7 +163,7 @@ async function sendSkillDeliveryEmail(env, apiBase, email, orderId) {
       <p>Install: save each SKILL.md into your agent's skills directory, or run
       <code>zeroshot pour --url "&lt;link&gt;"</code>. Links are valid for 30 days
       and tied to this email address.</p>
-      <p style="color:#888">Caffeine: 200-250mg per physical can (dropout: 0mg).
+      <p style="color:#888">Caffeine: 200mg per physical can; the zero edition is 0mg.
       Not recommended for children or persons sensitive to caffeine.</p>
       <p><i>Merge more PRs.&trade;</i></p>
     </div>`;
@@ -292,8 +292,8 @@ const preorderSubmit = (mode, founder) => [
 const PREORDER_SHIPPING =
   `Batch 001 ships ${SHIP_WINDOW}. This is where your first cans go.`;
 
-// Every caffeinated flavor also pours as "<id>-zero" (same can, 0mg);
-// dropout has no -zero because it already is the zero.
+// Every flavor also pours as "<id>-zero": the same can with no caffeine, and
+// 150mg of L-theanine against the standard 100mg.
 function parseFlavors(raw) {
   return (raw || []).filter((f) =>
     FLAVOR_IDS.includes(f) || (typeof f === "string" && f.endsWith("-zero") &&
@@ -402,7 +402,7 @@ export default {
       // pasted anywhere. GET from a terminal gets a short plain-text receipt
       // instead, because following the redirect there just prints Stripe's
       // checkout markup. POST returns the same JSON /v1/subscriptions does.
-      // Flavors are optional on both: ?f=diffusion,gaussian or a JSON body.
+      // Flavors are optional on both: ?f=attention,gaussian or a JSON body.
       if (PACK_PLANS[path] && (request.method === "GET" || request.method === "POST")) {
         const plan = PACK_PLANS[path];
         if (!planPrice(env, plan)) return err(500, "price not configured", cors);

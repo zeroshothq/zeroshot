@@ -81,7 +81,7 @@ async function cmdFlavors() {
   for (const f of data)
     console.log(`${f.id.padEnd(12)} ${("v" + f.version).padEnd(7)} ${String(f.params.caffeine_mg).padEnd(5)} ${f.taste}`);
   if (data.some((f) => f.zero_variant))
-    console.log(c(D, "  every caffeinated flavor also pours as <id>-zero: same can, 0mg"));
+    console.log(c(D, "  every flavor also pours as <id>-zero: 0mg caffeine, 150mg L-theanine"));
 }
 
 async function cmdRecommend() {
@@ -211,9 +211,13 @@ function cmdConsume() {
       c(D, `   today: ${vals[6]}mg`));
     return;
   }
-  const flavor = opt("flavor") || "diffusion";
-  const MG = { diffusion: 200, gaussian: 200, backprop: 200, relu: 200, descent: 250, dropout: 0 };
-  if (!(flavor in MG)) die("unknown flavor: " + flavor);
+  const flavor = opt("flavor") || "attention";
+  // One dose across the shelf. A -zero pour is the same can with no caffeine,
+  // so it logs nothing rather than being rejected as an unknown flavor.
+  const FLAVORS = ["attention", "prompt", "backprop", "softmax", "gaussian", "reinforcement"];
+  const base = flavor.endsWith("-zero") ? flavor.slice(0, -5) : flavor;
+  if (!FLAVORS.includes(base)) die("unknown flavor: " + flavor);
+  const MG = Object.fromEntries(FLAVORS.flatMap((f) => [[f, 200], [`${f}-zero`, 0]]));
   log.push({ t: new Date().toISOString(), flavor, mg: MG[flavor] });
   fs.writeFileSync(LOG, JSON.stringify(log, null, 2));
   const today = log.filter((e) => e.t.slice(0, 10) === new Date().toISOString().slice(0, 10))
