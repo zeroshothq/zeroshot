@@ -96,6 +96,11 @@ async function stripe(method, p, params) {
 }
 
 // ---- ensure product + prices (idempotent via lookup_keys) ------------------
+// Shown under the product name on the Stripe checkout page, so it is customer
+// facing copy rather than an internal label. Kept here because this script is
+// the only thing that creates the product.
+const PRODUCT_DESCRIPTION = "The first energy drink for you and your AI agent.";
+
 const WANT = [
   { secret: "PRICE_STANDARD_MONTHLY", lookup: "zeroshot_standard_monthly", amount: 3600, recurring: true,  nickname: "standard - 12 cans/month" },
   { secret: "PRICE_TEAM_MONTHLY",     lookup: "zeroshot_team_monthly",     amount: 9900, recurring: true,  nickname: "team - 48 cans/month" },
@@ -113,7 +118,7 @@ for (const w of WANT) {
     continue;
   }
   if (!productId) {
-    const prod = await stripe("POST", "products", { name: "Zero Shot", description: "The first energy drink with an API. Zero sugar. Zero shot." });
+    const prod = await stripe("POST", "products", { name: "Zero Shot", description: PRODUCT_DESCRIPTION });
     productId = prod.id;
     console.log(`  created product ${productId}`);
   }
@@ -122,6 +127,18 @@ for (const w of WANT) {
   const price = await stripe("POST", "prices", params);
   prices[w.secret] = price.id;
   console.log(`  created price ${w.secret} = ${price.id}`);
+}
+
+// ---- keep the product copy in sync ----------------------------------------
+// The product is only created once, so editing PRODUCT_DESCRIPTION above would
+// otherwise never reach an account that already has the product. This is
+// customer-facing copy on the checkout page, so it is worth converging.
+if (productId) {
+  const prod = await stripe("GET", `products/${productId}`);
+  if (prod.description !== PRODUCT_DESCRIPTION) {
+    await stripe("POST", `products/${productId}`, { description: PRODUCT_DESCRIPTION });
+    console.log(`  updated product description on ${productId}`);
+  }
 }
 
 // ---- generated internal secrets (persisted to .env for stable re-runs) -----
