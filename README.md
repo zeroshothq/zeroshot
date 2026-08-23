@@ -228,6 +228,11 @@ Base: `https://api.zeroshothq.dev/v1` · Full reference: [zeroshothq.dev/docs](h
 | GET | `/status` | api · fulfillment · kevin |
 | GET | `/admin/stats` | Private totals (waitlist, orders, cans) - admin bearer only |
 
+**Short links** live at the root, not under `/v1`, because they exist to fit on
+a sticker: `/12` is the standard plan and `/48` is the team plan. `GET` redirects
+straight to Stripe checkout, `POST` returns the same JSON `/v1/subscriptions`
+returns. Flavors are optional on both - `?f=diffusion,gaussian` or a JSON body.
+
 Rate limits: 60 req/min (10/min on `/recommend`). Exceeding returns
 `429 - "you've had enough. drink water."`
 
