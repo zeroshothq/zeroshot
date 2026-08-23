@@ -281,6 +281,20 @@ test("short link: GET /12 gives a terminal short readable text", { skip: !STRIPE
   for (const line of body.split("\n")) assert.ok(line.length <= 80, `line too wide: ${line.length}`);
   assert.match(body, /\$42\/mo/);
   assert.match(body, /\/o\/sub_[a-f0-9]+/);
+  assert.match(body, /The first energy drink for you and your AI agent\./);
+  assert.match(body, /Batch 001 pre-order: cans ship November 2026\./);
+});
+
+// Ordering is not consent to be published, so the receipt must invite a buyer
+// who supplied no handle rather than telling them they are being listed.
+test("short link: receipt only claims a FOUNDERS.md listing when opted in", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
+  const plain = await (await get("/12", { headers: { accept: "*/*" } })).text();
+  assert.match(plain, /Add \?founder=yourhandle to be listed in FOUNDERS\.md\./);
+  assert.doesNotMatch(plain, /goes in FOUNDERS\.md/);
+
+  const opted = await (await get("/12?founder=testhandle", { headers: { accept: "*/*" } })).text();
+  assert.match(opted, /Your handle testhandle goes in FOUNDERS\.md\./);
+  assert.doesNotMatch(opted, /Add \?founder=/);
 });
 
 test("short link: /o/:id resolves back to the Stripe session", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {

@@ -263,19 +263,26 @@ const PACK_PLANS = { "/12": "standard", "/48": "team" };
 // Batch 001 has not been produced yet, so every checkout is a pre-order and the
 // page has to say so before the customer pays rather than after. Stripe caps
 // each of these at 1200 characters. Keep them factual: the skills really do
-// arrive on payment, and we deliberately do not promise a ship date here
-// because we do not have one yet - add it the moment the co-packer confirms.
-const PREORDER_SUBMIT_SUBSCRIPTION =
-  "Batch 001 pre-order. The first production run has not been made yet: your " +
-  "subscription begins today and your first cans ship when that run completes. " +
-  "Your premium agent skills are emailed to you immediately.";
-const PREORDER_SUBMIT_ORDER =
-  "Batch 001 pre-order. The first production run has not been made yet: you are " +
-  "charged today and your cans ship when that run completes. Your premium agent " +
-  "skills are emailed to you immediately.";
+// arrive on payment, and the ship window is a commitment we are making to the
+// customer at the point of sale - change it here and it changes everywhere,
+// including the terminal receipt.
+const TAGLINE = "The first energy drink for you and your AI agent.";
+const SHIP_WINDOW = "November 2026";
+
+// The roster line is only shown to someone who actually opted in. Ordering is
+// not consent to be published, so this must never tell a buyer who supplied no
+// handle that their name is going into a public file.
+const preorderSubmit = (mode, founder) => [
+  TAGLINE,
+  mode === "subscription"
+    ? `Batch 001 pre-order: your subscription begins today and your first cans ship ${SHIP_WINDOW}.`
+    : `Batch 001 pre-order: you are charged today and your cans ship ${SHIP_WINDOW}.`,
+  "Your premium agent skills are emailed to you immediately.",
+  founder ? `Your handle ${founder} will be listed in FOUNDERS.md.` : null,
+].filter(Boolean).join(" ");
+
 const PREORDER_SHIPPING =
-  "Batch 001 has not shipped yet. This is where your first cans go when the " +
-  "first production run completes.";
+  `Batch 001 ships ${SHIP_WINDOW}. This is where your first cans go.`;
 
 // Every caffeinated flavor also pours as "<id>-zero" (same can, 0mg);
 // dropout has no -zero because it already is the zero.
@@ -310,28 +317,38 @@ const planPrice = (env, plan) =>
 // this cannot drift from the site or the roster; the link is our own short one
 // rather than Stripe's ~600 character session URL, which wraps over several
 // lines and is unreadable on a slide.
-function checkoutReceipt(apiBase, planId, orderId) {
+function checkoutReceipt(apiBase, planId, orderId, founder) {
   const p = FLAVORS_DATA.plans[planId] || {};
   const monthly = p.cadence === "monthly";
   const head = ["Zero Shot", planId,
     p.cans ? `${p.cans} cans${monthly ? "/month" : ""}` : "",
     p.price_usd != null ? `$${p.price_usd}${monthly ? "/mo" : ""}` : ""]
     .filter(Boolean).join("  ");
-  return [head, "", `  ${apiBase}/o/${orderId}`, "",
-    "Batch 001 pre-order: cans ship when the first production run completes.",
-    "Your premium agent skills are emailed the moment you pay."].join("\n");
+  return [head, "", TAGLINE, "", `  ${apiBase}/o/${orderId}`, "",
+    `Batch 001 pre-order: cans ship ${SHIP_WINDOW}.`,
+    "Your premium agent skills are emailed the moment you pay.",
+    // Only ever a confirmation for someone who opted in, or an invitation for
+    // someone who did not. Never a claim that we are publishing them anyway.
+    founder
+      ? `Your handle ${founder} goes in FOUNDERS.md.`
+      : "Add ?founder=yourhandle to be listed in FOUNDERS.md.",
+  ].join("\n");
 }
 
 async function createSubscription(env, plan, flavors, founderRaw) {
   const price = planPrice(env, plan);
   const orderId = uid("sub_");
+  // Sanitised up front so the checkout copy can only ever name a handle that
+  // will actually be published. founderHandle is pure, so calling it here and
+  // again inside recordFounder cannot disagree.
+  const founder = founderHandle(founderRaw);
   const session = await stripe(env, "checkout/sessions", {
     mode: "subscription",
     "line_items[0][price]": price, "line_items[0][quantity]": 1,
     success_url: `${env.SITE_URL}/thanks?o=${orderId}`,
     cancel_url: `${env.SITE_URL}/pricing`,
     "shipping_address_collection[allowed_countries][0]": "US",
-    "custom_text[submit][message]": PREORDER_SUBMIT_SUBSCRIPTION,
+    "custom_text[submit][message]": preorderSubmit("subscription", founder),
     "custom_text[shipping_address][message]": PREORDER_SHIPPING,
     // consent_collection[terms_of_service] requires a ToS URL in the
     // Stripe dashboard - re-add once the site has a /terms page.
@@ -341,7 +358,7 @@ async function createSubscription(env, plan, flavors, founderRaw) {
   await env.DB.prepare("INSERT INTO orders (id, stripe_session, plan, flavors_json) VALUES (?,?,?,?)")
     .bind(orderId, session.id, plan, JSON.stringify(flavors)).run();
   await recordFounder(env, orderId, founderRaw);
-  return { orderId, session };
+  return { orderId, session, founder };
 }
 
 // ---------------------------------------------------------------- handlers
@@ -385,12 +402,13 @@ export default {
         const flavors = parseFlavors(body.flavors ||
           (url.searchParams.get("f") || "").split(",").filter(Boolean));
         const founder = body.founder_handle || url.searchParams.get("founder");
-        const { orderId, session } = await createSubscription(env, plan, flavors, founder);
+        const { orderId, session, founder: listed } =
+          await createSubscription(env, plan, flavors, founder);
         if (request.method === "GET") {
           if (wantsHtml(request))
             return new Response(null, { status: 302,
               headers: { location: session.url, "cache-control": "no-store", ...cors } });
-          return text(checkoutReceipt(apiBase, plan, orderId), 200,
+          return text(checkoutReceipt(apiBase, plan, orderId, listed), 200,
             { "cache-control": "no-store", ...cors });
         }
         return json({ id: orderId, status: "requires_payment",
@@ -619,7 +637,7 @@ export default {
           success_url: `${env.SITE_URL}/thanks?o=${orderId}`,
           cancel_url: `${env.SITE_URL}/pricing`,
           "shipping_address_collection[allowed_countries][0]": "US",
-          "custom_text[submit][message]": PREORDER_SUBMIT_ORDER,
+          "custom_text[submit][message]": preorderSubmit("payment", founderHandle(body.founder_handle)),
           "custom_text[shipping_address][message]": PREORDER_SHIPPING,
           // consent_collection: see note in the subscriptions handler.
           "metadata[order_id]": orderId, "metadata[sku]": "mixed-precision-24",
