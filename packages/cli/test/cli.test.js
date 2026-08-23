@@ -78,7 +78,7 @@ test("consume --stats renders the 7-day sparkline", async () => {
   const { code, out } = await run("consume", "--stats");
   assert.equal(code, 0);
   assert.ok(out.includes("7d mg/day"));
-  assert.ok(out.includes("500mg"), "two descents logged above");
+  assert.ok(out.includes("400mg"), "the two cans logged above, at 200mg each");
 });
 
 test("consume rejects unknown flavors", async () => {
