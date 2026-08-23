@@ -129,7 +129,7 @@ async function cmdOrder() {
 }
 
 async function cmdSubscribe() {
-  const plan = opt("plan") || (await ask("  plan (standard $36/mo · team $99/mo): "));
+  const plan = opt("plan") || (await ask("  plan (standard $42/mo · team $169/mo): "));
   const flavors = (opt("flavors") || "").split(",").filter(Boolean);
   const { status, data } = await api("POST", "/v1/subscriptions", { plan, flavors });
   if (status !== 200) die(`[${status}] ` + (data.error || JSON.stringify(data)));

@@ -102,9 +102,9 @@ async function stripe(method, p, params) {
 const PRODUCT_DESCRIPTION = "The first energy drink for you and your AI agent.";
 
 const WANT = [
-  { secret: "PRICE_STANDARD_MONTHLY", lookup: "zeroshot_standard_monthly", amount: 3600, recurring: true,  nickname: "standard - 12 cans/month" },
-  { secret: "PRICE_TEAM_MONTHLY",     lookup: "zeroshot_team_monthly",     amount: 9900, recurring: true,  nickname: "team - 48 cans/month" },
-  { secret: "PRICE_MIXED24",          lookup: "zeroshot_mixed24",          amount: 6000, recurring: false, nickname: "Mixed Precision 24" },
+  { secret: "PRICE_STANDARD_MONTHLY", lookup: "zeroshot_standard_monthly", amount: 4200,  recurring: true,  nickname: "standard - 12 cans/month" },
+  { secret: "PRICE_TEAM_MONTHLY",     lookup: "zeroshot_team_monthly",     amount: 16900, recurring: true,  nickname: "team - 48 cans/month" },
+  { secret: "PRICE_MIXED24",          lookup: "zeroshot_mixed24",          amount: 9500,  recurring: false, nickname: "Mixed Precision 24" },
 ];
 
 const found = await stripe("GET", "prices?" + WANT.map((w) => `lookup_keys[]=${w.lookup}`).join("&") + "&limit=100");
@@ -112,9 +112,13 @@ const byLookup = Object.fromEntries((found.data || []).map((p) => [p.lookup_key,
 let productId = Object.values(byLookup)[0]?.product;
 const prices = {};
 for (const w of WANT) {
-  if (byLookup[w.lookup]) {
-    prices[w.secret] = byLookup[w.lookup].id;
-    console.log(`  price exists  ${w.secret} = ${byLookup[w.lookup].id}`);
+  const existing = byLookup[w.lookup];
+  // Match on the amount as well as the lookup key. Matching on the key alone
+  // would make a reprice a silent no-op: the script would report "price exists"
+  // and leave Stripe charging the old amount forever.
+  if (existing && Number(existing.unit_amount) === w.amount) {
+    prices[w.secret] = existing.id;
+    console.log(`  price exists  ${w.secret} = ${existing.id}`);
     continue;
   }
   if (!productId) {
@@ -124,9 +128,22 @@ for (const w of WANT) {
   }
   const params = { product: productId, currency: "usd", unit_amount: String(w.amount), lookup_key: w.lookup, nickname: w.nickname };
   if (w.recurring) params["recurring[interval]"] = "month";
+  // A price's unit_amount is immutable, so repricing means creating a new price.
+  // transfer_lookup_key atomically moves the lookup key off the old one, which is
+  // what keeps re-running this script idempotent across a reprice.
+  if (existing) params.transfer_lookup_key = "true";
   const price = await stripe("POST", "prices", params);
   prices[w.secret] = price.id;
-  console.log(`  created price ${w.secret} = ${price.id}`);
+  if (existing) {
+    // Archive the superseded price so nothing can attach it to a new checkout.
+    // Subscriptions already billing on it keep their old amount until they are
+    // migrated deliberately: repricing the catalogue never silently reprices a
+    // live customer.
+    await stripe("POST", `prices/${existing.id}`, { active: "false" });
+    console.log(`  repriced ${w.secret}: ${existing.unit_amount} -> ${w.amount} (new ${price.id}, archived ${existing.id})`);
+  } else {
+    console.log(`  created price ${w.secret} = ${price.id}`);
+  }
 }
 
 // ---- keep the product copy in sync ----------------------------------------

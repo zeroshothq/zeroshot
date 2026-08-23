@@ -66,9 +66,9 @@ zeroshot consume --flavor descent         # local caffeine log (offline, private
 | Plan | Contents | Price |
 |---|---|---|
 | `free` | Waitlist + your `pk_` key: referral code, +10 spots per signup | $0 |
-| `standard` | 12 cans/month, your flavors | $36/mo |
-| `mixed-precision-24` | 24 cans, role-based builds, qualification-gated | $60 |
-| `team` | Office fridge standing order, 48/month | $99/mo |
+| `standard` | 12 cans/month, your flavors | $42/mo |
+| `mixed-precision-24` | 24 cans, role-based builds, qualification-gated | $95 |
+| `team` | Office fridge standing order, 48/month | $169/mo |
 | `enterprise` | A pallet. We visit. We bring stickers | contact |
 
 **Every paid order includes the premium agent skills, delivered by email**

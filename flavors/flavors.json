@@ -255,17 +255,17 @@
   },
   "plans": {
     "standard": {
-      "price_usd": 36,
+      "price_usd": 42,
       "cadence": "monthly",
       "cans": 12
     },
     "team": {
-      "price_usd": 99,
+      "price_usd": 169,
       "cadence": "monthly",
       "cans": 48
     },
     "mixed-precision-24": {
-      "price_usd": 60,
+      "price_usd": 95,
       "cadence": "one-time",
       "cans": 24
     }
