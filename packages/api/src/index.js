@@ -62,6 +62,14 @@ const text = (body, status = 200, extra = {}) =>
 const wantsHtml = (request) =>
   (request.headers.get("accept") || "").includes("text/html");
 
+// Asking for the receipt from the long routes has to be explicit. A bare */* on
+// POST stays JSON, because CLI versions already installed parse JSON and do not
+// send an Accept header - switching them to text would break paying customers
+// mid-order. The short links can negotiate on */* because nothing programmatic
+// was ever pointed at them.
+const wantsText = (request) =>
+  (request.headers.get("accept") || "").includes("text/plain");
+
 const uid = (p = "") => p + crypto.randomUUID().replace(/-/g, "").slice(0, 12);
 
 async function hmacHex(secret, msg) {
@@ -324,7 +332,8 @@ function checkoutReceipt(apiBase, planId, orderId, founder) {
     p.cans ? `${p.cans} cans${monthly ? "/month" : ""}` : "",
     p.price_usd != null ? `$${p.price_usd}${monthly ? "/mo" : ""}` : ""]
     .filter(Boolean).join("  ");
-  return [head, "", TAGLINE, "", `  ${apiBase}/o/${orderId}`, "",
+  return [head, "", TAGLINE, "", "Click on the URL below to pay:",
+    `  ${apiBase}/o/${orderId}`, "",
     `Batch 001 pre-order: cans ship ${SHIP_WINDOW}.`,
     "Your premium agent skills are emailed the moment you pay.",
     // Only ever a confirmation for someone who opted in, or an invitation for
@@ -411,6 +420,8 @@ export default {
           return text(checkoutReceipt(apiBase, plan, orderId, listed), 200,
             { "cache-control": "no-store", ...cors });
         }
+        if (wantsText(request))
+          return text(checkoutReceipt(apiBase, plan, orderId, listed), 200, cors);
         return json({ id: orderId, status: "requires_payment",
           checkout_url: session.url, short_url: `${apiBase}/o/${orderId}` }, 200, cors);
       }
@@ -568,8 +579,10 @@ export default {
           return json({ contact: "sales@zeroshothq.dev", note: "we bring stickers" }, 200, cors);
         if (!planPrice(env, plan))
           return err(400, "plan must be standard | team | enterprise", cors);
-        const { orderId, session } = await createSubscription(
+        const { orderId, session, founder: listed } = await createSubscription(
           env, plan, parseFlavors(body.flavors), body.founder_handle);
+        if (wantsText(request))
+          return text(checkoutReceipt(apiBase, plan, orderId, listed), 200, cors);
         return json({ id: orderId, status: "requires_payment",
           checkout_url: session.url, short_url: `${apiBase}/o/${orderId}` }, 200, cors);
       }
@@ -646,6 +659,9 @@ export default {
         await env.DB.prepare("INSERT INTO orders (id, stripe_session, sku, build) VALUES (?,?,?,?)")
           .bind(orderId, session.id, "mixed-precision-24", pouredBuild).run();
         await recordFounder(env, orderId, body.founder_handle);
+        if (wantsText(request))
+          return text(checkoutReceipt(apiBase, "mixed-precision-24", orderId,
+            founderHandle(body.founder_handle)), 200, cors);
         return json({ id: orderId, status: "requires_payment", checkout_url: session.url,
           short_url: `${apiBase}/o/${orderId}`, build: pouredBuild }, 200, cors);
       }

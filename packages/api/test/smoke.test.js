@@ -310,6 +310,37 @@ test("short link: /o/:id on an unknown order is a 404", async () => {
   assert.equal(res.status, 404);
 });
 
+// Every checkout endpoint answers a terminal the same way, so there is one
+// receipt to keep correct rather than four.
+test("checkout: every endpoint renders the same receipt on Accept: text/plain", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
+  const bodies = await Promise.all([
+    get("/12", { headers: { accept: "text/plain" } }).then((r) => r.text()),
+    post("/v1/subscriptions", { plan: "standard" }, { accept: "text/plain" }).then((r) => r.text()),
+    post("/v1/orders", { sku: "mixed-precision-24", build: "llm-engineer" },
+      { accept: "text/plain", "x-yolo": "true" }).then((r) => r.text()),
+  ]);
+  for (const b of bodies) {
+    assert.match(b, /The first energy drink for you and your AI agent\./);
+    assert.match(b, /Click on the URL below to pay:/);
+    assert.match(b, /Batch 001 pre-order: cans ship November 2026\./);
+    assert.match(b, /Your premium agent skills are emailed the moment you pay\./);
+    assert.match(b, /\/o\/(sub|ord)_[a-f0-9]+/);
+    for (const line of b.split("\n")) assert.ok(line.length <= 80, `line too wide: ${line.length}`);
+  }
+});
+
+// Installed CLI versions parse JSON and send no Accept header. If a bare */* on
+// POST ever starts returning text, every one of them breaks mid-order.
+test("checkout: POST without an Accept header still returns JSON", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
+  for (const [p, b] of [["/12", {}], ["/v1/subscriptions", { plan: "standard" }]]) {
+    const res = await post(p, b);
+    assert.match(res.headers.get("content-type"), /^application\/json/, `${p} stopped returning JSON`);
+    const body = await res.json();
+    assert.match(body.checkout_url, /^https:\/\/checkout\.stripe\.com\//);
+    assert.match(body.short_url, /\/o\/sub_[a-f0-9]+$/);
+  }
+});
+
 test("short link: /48 is the team plan", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
   const body = await (await post("/48", {})).json();
   const sub = await (await get(`/v1/subscriptions/${body.id}`)).json();
