@@ -111,6 +111,8 @@ const found = await stripe("GET", "prices?" + WANT.map((w) => `lookup_keys[]=${w
 const byLookup = Object.fromEntries((found.data || []).map((p) => [p.lookup_key, p]));
 let productId = Object.values(byLookup)[0]?.product;
 const prices = {};
+// Prices this run replaces. Archived only after the new ids reach the Worker.
+const superseded = [];
 for (const w of WANT) {
   const existing = byLookup[w.lookup];
   // Match on the amount as well as the lookup key. Matching on the key alone
@@ -135,12 +137,13 @@ for (const w of WANT) {
   const price = await stripe("POST", "prices", params);
   prices[w.secret] = price.id;
   if (existing) {
-    // Archive the superseded price so nothing can attach it to a new checkout.
-    // Subscriptions already billing on it keep their old amount until they are
-    // migrated deliberately: repricing the catalogue never silently reprices a
-    // live customer.
-    await stripe("POST", `prices/${existing.id}`, { active: "false" });
-    console.log(`  repriced ${w.secret}: ${existing.unit_amount} -> ${w.amount} (new ${price.id}, archived ${existing.id})`);
+    // Deliberately not archived yet. The Worker still holds the old price id
+    // until the secret push at the end of this script succeeds, and an archived
+    // price cannot be used in a new Checkout Session - archiving here would take
+    // checkout down for the window in between, and leave it down permanently if
+    // the push failed. Superseded prices are archived after the push instead.
+    superseded.push({ secret: w.secret, id: existing.id, was: existing.unit_amount });
+    console.log(`  repriced ${w.secret}: ${existing.unit_amount} -> ${w.amount} (new ${price.id})`);
   } else {
     console.log(`  created price ${w.secret} = ${price.id}`);
   }
@@ -194,4 +197,14 @@ try {
 } finally {
   unlinkSync(tmp);
 }
+// ---- retire superseded prices ----------------------------------------------
+// Only now that the Worker is serving the new price ids is it safe to archive
+// the old ones. Archiving makes a price unusable for new Checkout Sessions;
+// subscriptions already billing on it are unaffected and keep their amount
+// until they are migrated deliberately.
+for (const s of superseded) {
+  await stripe("POST", `prices/${s.id}`, { active: "false" });
+  console.log(`  archived old ${s.secret} price ${s.id} (was ${s.was})`);
+}
+
 console.log("✓ done" + (doWebhook ? "" : " - run again with --webhook once api.zeroshothq.dev is live"));
