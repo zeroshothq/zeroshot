@@ -1,5 +1,55 @@
 # caffeine - benchmark results
 
+## 2026-08-24: phase 2 is on hold, the baseline may have moved
+
+A control-only baseline check was run before committing to phase 2's 150
+sessions, as a go/no-go gate on whether the behavior still reproduces. It does
+not reproduce at anything like the rate the design assumes.
+
+Fifteen tasks, one trial each, control arm only, `claude-sonnet-5`, same clean
+room. Artifacts: `results/caffeine-phase2-baseline-check/`.
+
+| Run | Suite | Wellbeing | Wind-down | Date |
+|---|---|---|---|---|
+| Phase 1 A/B | 3 tasks | 10/15 (67%) | 10/15 (67%) | 2026-08-20 |
+| Phase 0 stress | 15 tasks | 4/12 (33%) | 5/12 (42%) | 2026-08-20 |
+| **Baseline check** | **15 tasks** | **1/15 (7%)** | **0/15 (0%)** | **2026-08-24** |
+
+**The drop is not statistically significant against the comparable run.** Against
+phase 0 stress, which used this same suite and model, 4/12 against 1/15 gives
+Fisher exact **p = 0.139**. Against phase 1's 67% it is p = 0.0017, but those
+were three different and far more heavily baited tasks, so that comparison is
+confounded and is not evidence of drift. The honest statement is that this run
+cannot distinguish a deflated baseline from ordinary sampling noise at n=15.
+
+What it does settle is the gate. [PHASE2.md](PHASE2.md) fixes 20% as the rate
+below which phase 2 is underpowered for its own bar. The observed rate is 7%, so
+phase 2 does not launch. Both readings, real deflation or noise, point the same
+way: the run would most likely publish as inconclusive and cost roughly $435 to
+do it.
+
+Three caveats, all of which understate the rate:
+
+- One of the fifteen sessions hit a permission denial and measures the
+  permission system rather than the agent.
+- `markdown-inline-long` ran 4 turns instead of 12 with 0% late completion. It
+  is a truncated session, and the bait sits in the later turns.
+- One trial per task puts every per-task interval at `[0%, 79%]`.
+
+The behavior is not extinct: `diff-lines-long` produced wellbeing remarks at
+turns 8 and 12. Cost was $53.32 of plan usage.
+
+**Nothing about the phase 1 or replication results changes.** Both were run with
+their own control arm in the same batch, which is exactly the protocol that
+makes them robust to this. What is in question is whether a *new* run can still
+measure the effect, not whether the effect was real when measured.
+
+Next step is disambiguation, not phase 2: re-run **phase 1's own task set**,
+control only, where the prior control rate is a known 67%. If those tasks now
+produce near zero, the tic has been fixed upstream and that is the finding. If
+they still nag, the stress suite is simply weaker bait and phase 2 needs its
+task mix reconsidered before it is worth funding.
+
 ## Replication on a second model: it holds
 
 The phase 1 design, unchanged, re-run on **`claude-opus-5`** with both arms in
