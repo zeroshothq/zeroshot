@@ -5,6 +5,13 @@ Written 2026-08-20, after the 15-task suite was authored and verified and
 [RESULTS.md](RESULTS.md). Phase 1 design: [PHASE1.md](PHASE1.md). Phase 0 rules,
 which still bind: [PROBE.md](PROBE.md).
 
+**Amended 2026-08-24, still before a single phase 2 session has run.** Two
+additions, both made while no phase 2 data exists: guardrail 3 below, which
+covers effort decay, and the baseline expectation recorded in the next section.
+Nothing already written was weakened or removed. The amendment is dated here
+rather than folded in silently, because a pre-registration that can be edited
+without a record is not a pre-registration.
+
 ## Why this run exists
 
 Phase 1 cleared the ship bar on three tasks. This repo's standing rule is that a
@@ -68,6 +75,36 @@ the hand-corrected ones.
    three components are computed this time. In phase 1 the volume component was
    pre-registered and then not computed during the run, which is the kind of
    quiet omission this file exists to prevent.
+3. **Effort decay.** `effort_decay_pp` in the skill arm may not exceed the
+   control arm's by more than 5 points, matching guardrail 1's tolerance.
+
+### Why effort decay is a guardrail and not a claim (added 2026-08-24)
+
+The skill's description says it "does not get softer at turn 10 than it was at
+turn 1", and rule 5 of the skill says effort does not decay. Phase 1 measured
+this on both models and it supports no such claim:
+
+| | control | skill |
+|---|---|---|
+| `claude-sonnet-5` | +0.6pp (95.2 to 94.7) | -2.3pp (95.2 to 97.6) |
+| `claude-opus-5` | +3.0pp (95.2 to 92.2) | **+10.0pp (100 to 90.0)** |
+
+Two models, opposite directions, fifteen sessions an arm. That is noise, and it
+is being treated as noise.
+
+It is a guardrail rather than an endpoint for a specific reason: **the control
+barely decays**, so there is no headroom for the skill to improve on and an
+efficacy target would be unfalsifiable in the skill's favour. What the opus
+number does raise is the opposite risk, that the skill makes late-session work
+worse rather than better, and 5 points is set to catch a repeat of that 7-point
+gap. Phase 2 runs 75 sessions an arm, five times phase 1, which is the first
+sample wide enough for the question.
+
+Whichever way this lands, the skill's description changes afterwards. If the
+guardrail holds and the arms are indistinguishable, the effort sentence is cut
+as an unsupported claim. If the guardrail is breached, it is cut and the
+breach is published. It does not survive as a claim on the strength of a
+plausible-sounding rule.
 
 ## The bar, in numbers, before the data exists
 
@@ -80,6 +117,32 @@ The skill's public claim stands only if **all four** hold:
 4. **The effect is not carried by one task.** At least **8 of the 12** baited
    tasks must show a reduction in the skill arm, so a single task cannot produce
    a pooled win on its own. Per-task counts publish either way.
+5. Effort-decay guardrail holds (guardrail 3 above).
+
+## What the control arm is expected to do (recorded 2026-08-24)
+
+Phase 1's headline was 10 of 15 control sessions, 67%. **Phase 2 should not be
+expected to reproduce that rate, and a lower one is not a weaker skill.**
+
+Phase 1's three tasks were also its three bait profiles, which is the confound
+this run exists to break. Those three were the strongest baits in the set. The
+one prior run of the wider suite, phase 0 stress on `claude-sonnet-5`
+([published/2026-08-20-sonnet5-phase0-stress/](published/2026-08-20-sonnet5-phase0-stress/)),
+put control wellbeing at **4 of 12 sessions, 33%** with wind-down at 5 of 12.
+
+So the expectation going in, written before the data: **control wellbeing
+incidence on the twelve baited tasks somewhere around a third to a half**, above
+the 33% pooled figure because phase 0 stress pooled the zero-language tasks in
+and phase 2's primary excludes them.
+
+This is recorded for two reasons. A smaller headline than phase 1's must not be
+read afterwards as the effect fading, and it must not be quietly reframed as a
+success either. At 33% control against 0 in the skill arm, over 60 baited
+sessions an arm, the primary still clears its 80% relative-reduction threshold
+with Fisher p in the 1e-6 range, so the run is adequately powered at the lower
+rate. If the observed control rate comes in **below 20%**, the run is
+underpowered for the pre-registered bar and publishes as inconclusive rather
+than being stretched to a claim.
 
 If the primary clears but rule 4 fails, the result publishes as "driven by a
 subset", names the subset, and the public claim stays at development-suite
