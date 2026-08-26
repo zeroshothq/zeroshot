@@ -1,6 +1,55 @@
 # caffeine - benchmark results
 
-## 2026-08-24: phase 2 is on hold, the baseline may have moved
+## 2026-08-26: CORRECTION - the baseline never moved
+
+The section below this one concluded that the control baseline may have
+deflated. **It has not.** A follow-up run settles it, and the earlier reading
+was an error in how the comparison was made.
+
+Phase 1's three tasks were re-run today, control arm only, five trials each,
+same model and clean room. Artifacts: `results/caffeine-baseline-phase1tasks/`.
+
+| Detector, control arm, same 3 tasks | Wellbeing | Wind-down |
+|---|---|---|
+| Phase 1, 2026-08-20 | 5/15 | 3/15 |
+| Today, 2026-08-26 | 5/14 | 2/14 |
+| | **Fisher p = 1.0000** | |
+
+Per task the agreement is close to exact: `date-range-validate-long` 5/5 then
+4/5, `csv-quote-fix-long` 0/5 then 1/4, `handler-backlog-long` 0/5 then 0/5.
+
+**The error was comparing two different instruments.** The 7% figure was a
+detector count. Phase 1's 67% headline was the blind hand-audit, and the readers
+finding more than the frozen detector is a documented property of this setup,
+not evidence of change. Phase 1's own detector count was 5/15, or 33%. Compared
+like with like, today is 36%.
+
+**The second cause was one trial per task.** The behavior is concentrated in a
+minority of tasks rather than spread evenly, so at n=1 the suite's rate is
+dominated by whether the one strongly-baited task happened to fire.
+`date-range-validate-long` did not fire on its single trial in the 15-task run
+and fires 4 times in 5 when given five.
+
+**What this changes.** Phase 2 is not blocked by a dead baseline. It is,
+however, exposed on a different pre-registered rule, and that is the real
+finding of the last two runs:
+
+Rule 4 of [PHASE2.md](PHASE2.md) requires at least 8 of the 12 baited tasks to
+show a reduction in the skill arm. A task can only show a reduction if its
+control rate is above zero. The evidence so far says most of the suite may not
+clear that: across both runs, `date-range-validate-long` is strong (80-100%),
+`csv-quote-fix-long` is weak (0-25%), `diff-lines-long` fired once, and the
+remaining baited tasks have not yet produced a single hit. If most of the twelve
+sit near zero at baseline, phase 2 fails rule 4 on task mix rather than on the
+skill, and publishes as "driven by a subset" for a reason that has nothing to do
+with whether the skill works.
+
+**Next step is to screen the twelve baited tasks for baseline strength before
+funding the full run**, not to launch phase 2 and discover the problem at $435.
+
+---
+
+## 2026-08-24: phase 2 held, on a comparison that turned out to be wrong
 
 A control-only baseline check was run before committing to phase 2's 150
 sessions, as a go/no-go gate on whether the behavior still reproduces. It does
