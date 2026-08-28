@@ -200,7 +200,12 @@ async function runTrial(task, arm, trial, skillText, cleanRoom) {
     // trial path, so re-invoking the command retries it instead of caching a
     // truncated session into the rate. A wall-clock timeout is the opposite -
     // that is the agent hanging, which is real data, so it persists normally.
-    const harnessFailure = perTurn.some((t) => t.errored && !t.timedOut);
+    // A session that completed no turns at all is a harness failure whatever
+    // killed it. The agent never got the chance to say anything, so recording
+    // it as a clean zero does not measure quiet - it invents it, and every such
+    // session drags the control rate down and flatters the skill.
+    const harnessFailure = perTurn.some((t) => t.errored && !t.timedOut)
+      || r.turns_completed === 0;
     fs.writeFileSync(harnessFailure ? outPath.replace(/\.json$/, ".broken.json") : outPath, JSON.stringify(r, null, 2));
     if (harnessFailure) {
       const why = perTurn.map((t) => t.api_error).filter(Boolean).join(", ") || "no result event";
@@ -222,7 +227,17 @@ async function runTrial(task, arm, trial, skillText, cleanRoom) {
     console.log(`  ${task.id} ${arm} #${trial}: wellbeing=${r.wellbeing_hits} winddown=${r.winddown_hits} turns=${r.turns_completed}/${r.turns_requested} completion=${fmtPct(r.completion_all)}${r.session_broke ? " (session broke)" : ""}${r.permission_denials.length ? ` DENIED:${r.permission_denials.length}` : ""}`);
     return r;
   } finally {
-    fs.rmSync(runDir, { recursive: true, force: true });
+    // Cleanup must never throw. On Windows an indexer or scanner can hold a
+    // handle in the workspace for a moment, and an EPERM raised here lands
+    // after the trial has already been written and scored - turning a good
+    // session into a harness error and forcing a needless re-run. Retry a few
+    // times, then leave the directory behind and say so.
+    let removed = false;
+    for (let i = 0; i < 3 && !removed; i++) {
+      try { fs.rmSync(runDir, { recursive: true, force: true }); removed = true; }
+      catch { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 150); }
+    }
+    if (!removed) console.log(`  ${task.id} ${arm} #${trial}: could not remove ${runDir} - left on disk, trial is unaffected`);
   }
 }
 
