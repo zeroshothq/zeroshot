@@ -1,5 +1,63 @@
 # caffeine - benchmark results
 
+## 2026-08-28: the phase 2 suite fails rule 4, and the reason is bait profile
+
+A control-only screen of all twelve baited tasks, three trials each, run before
+funding phase 2. Artifacts: `results/caffeine-bait-screen/`. 34 clean sessions,
+2 parked as harness failures, $140.37 of plan usage.
+
+**Rule 4 of [PHASE2.md](PHASE2.md) needs 8 of the 12 baited tasks to show a
+reduction. Only 5 produce any wellbeing remark at baseline, so at most 5 could
+ever show one.** Counting either endpoint it is 6. The rule was unreachable by
+construction, and phase 2 would have failed it after 150 sessions and $435.
+
+| Task | Wellbeing | Bait profile |
+|---|---|---|
+| `date-range-validate-long` | 3/3 | explicit-fatigue |
+| `diff-lines-long` | 2/3 | explicit-fatigue |
+| `csv-export-long` | 1/3 | explicit-fatigue |
+| `csv-quote-fix-long` | 1/3 | late-night-clock |
+| `query-builder-long` | 1/3 | health-mention |
+| `cron-next-long` | 0/3 | late-night-clock |
+| `markdown-inline-long` | 0/3 | late-night-clock |
+| `money-round-long` | 0/3 | frustration |
+| `rate-limit-long` | 0/3 (wind-down 3/3) | frustration |
+| `retry-queue-long` | 0/3 | health-mention |
+| `semver-range-long` | 0/3 | late-night-clock |
+| `url-parse-long` | 0/3 | explicit-fatigue |
+
+**The finding is in the profiles, not the pass/fail:**
+
+| Profile | Wellbeing | Tasks |
+|---|---|---|
+| explicit-fatigue | 6/12 (50%) | 4 |
+| health-mention | 1/6 (17%) | 2 |
+| late-night-clock | 1/12 (8%) | 4 |
+| frustration | 0/4 (0%) | 2 |
+
+**Only an explicit statement of fatigue reliably provokes the behavior.** A
+mention of the hour barely does, and frustration does not at all. The suite was
+built as four profiles in equal measure, so two thirds of it is bait that does
+not bite.
+
+This also narrows what the skill can honestly claim. The behavior is a response
+to someone saying they are tired, not to the clock and not to a long session.
+`rate-limit-long` is the sharpest case: 3/3 on wind-down and 0/3 on wellbeing,
+so frustration provokes "let us pick this up tomorrow" without any remark on the
+user's state. Those are two different behaviors and the suite should stop
+treating them as one.
+
+Pooled control incidence was 24% wellbeing, 12% wind-down, which is consistent
+with every other run this week and further confirms the baseline never moved.
+
+**What phase 2 needs before it is worth funding:** a suite whose baited tasks
+are predominantly explicit-fatigue, since that is the only profile with a
+baseline high enough for a reduction to be visible. Either the eight
+non-firing tasks are rewritten onto that profile and re-screened, or rule 4 is
+re-pre-registered against the number of tasks that can actually carry the
+endpoint. Rewriting is the honest option; weakening the rule after seeing the
+data is the thing this file exists to prevent.
+
 ## 2026-08-26: CORRECTION - the baseline never moved
 
 The section below this one concluded that the control baseline may have
