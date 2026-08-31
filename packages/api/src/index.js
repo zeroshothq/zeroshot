@@ -1,6 +1,13 @@
 // Zero Shot API - Cloudflare Worker (plain JS module, no framework)
 // Endpoints: waitlist, flavors, builds, recommend, subscriptions, orders,
 // skills (free + signed premium downloads), status, stripe webhook.
+//
+// Batch 001 is a WAITLIST, not a checkout. Every route that used to open a
+// Stripe session - /12, /48, /v1/subscriptions, /v1/orders - now takes an email
+// and puts the sender on the list. Nobody is charged. The Stripe webhook and
+// helper are left in place because they are what a later run needs, and because
+// nothing reaches them while no session is ever created.
+//
 // Premium skill delivery: on checkout.session.completed we email the buyer
 // signed, expiring download links for all six premium SKILL.md files.
 
@@ -57,9 +64,8 @@ const text = (body, status = 200, extra = {}) =>
 
 // A browser asks for text/html; curl, wget and httpie send */*. Negotiating on
 // Accept rather than sniffing User-Agent is what keeps this from misfiring on
-// someone's script. Used to decide who gets a redirect and who gets readable
-// text: handing a terminal a 302 to Stripe means `curl -L` follows it and
-// prints 38kB of checkout markup, which is not an interface.
+// someone's script. Used to decide who gets sent to a page on the site and who
+// gets readable text in the terminal they are standing in.
 const wantsHtml = (request) =>
   (request.headers.get("accept") || "").includes("text/html");
 
@@ -278,21 +284,6 @@ const PACK_PLANS = { "/12": "standard", "/48": "team" };
 const TAGLINE = "The first energy drink for you and your AI agent.";
 const SHIP_WINDOW = "November 2026";
 
-// The roster line is only shown to someone who actually opted in. Ordering is
-// not consent to be published, so this must never tell a buyer who supplied no
-// handle that their name is going into a public file.
-const preorderSubmit = (mode, founder) => [
-  TAGLINE,
-  mode === "subscription"
-    ? `Batch 001 pre-order: your subscription begins today and your first cans ship ${SHIP_WINDOW}.`
-    : `Batch 001 pre-order: you are charged today and your cans ship ${SHIP_WINDOW}.`,
-  "Your premium agent skills are emailed to you immediately.",
-  founder ? `Your handle ${founder} will be listed in FOUNDERS.md.` : null,
-].filter(Boolean).join(" ");
-
-const PREORDER_SHIPPING =
-  `Batch 001 ships ${SHIP_WINDOW}. This is where your first cans go.`;
-
 // Every flavor also pours as "<id>-zero": the same can with no caffeine, and
 // 150mg of L-theanine against the standard 100mg.
 function parseFlavors(raw) {
@@ -319,57 +310,85 @@ function redactForArchive(event) {
   });
 }
 
-const planPrice = (env, plan) =>
-  ({ standard: env.PRICE_STANDARD_MONTHLY, team: env.PRICE_TEAM_MONTHLY })[plan];
+// Plans a signup can name. Was derived from which Stripe price ids were bound;
+// with nothing being charged it is just the recurring plans in flavors.json.
+const PACK_PLAN_IDS = Object.values(PACK_PLANS);
+
+const validEmail = (e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
+
+// Batch 001 is not taking money yet, so everything that used to open a Stripe
+// checkout now takes an email instead. One place does the joining, so the
+// referral arithmetic and the welcome mail cannot drift between the six routes
+// that call it. Returning `existing` lets a caller tell a new signup from a
+// repeat without a second query.
+async function joinWaitlist(env, email, referrerKey) {
+  const existing = await env.DB.prepare("SELECT pk_key, position FROM waitlist WHERE email=?")
+    .bind(email).first();
+  if (existing) return { pk: existing.pk_key, position: existing.position, existing: true };
+
+  const count = (await env.DB.prepare("SELECT COUNT(*) AS c FROM waitlist").first()).c;
+  const pk = "pk_zs_" + uid();
+  const position = count + 1;
+  const ref = String(referrerKey || "");
+  if (ref.startsWith("pk_zs_")) {
+    await env.DB.prepare("UPDATE waitlist SET position = MAX(1, position - 10) WHERE pk_key=?")
+      .bind(ref).run();
+  }
+  await env.DB.prepare("INSERT INTO waitlist (email, pk_key, referred_by, position) VALUES (?,?,?,?)")
+    .bind(email, pk, ref || null, position).run();
+  return { pk, position, existing: false };
+}
+
+const sendWaitlistEmail = (env, email, w) =>
+  sendEmail(env, email, "Zero Shot - you're on the list",
+    `<div style="font-family:monospace"><p>You're #${w.position}.</p><p>Your key: <b>${w.pk}</b> - it doubles as a referral code. Every signup that uses it moves you up 10 spots.</p><p>Batch 001 is not selling yet. Nobody has been charged; we email you when ordering opens.</p><p>While you wait, the <b>caffeine</b> agent skill is public and needs no key at all: <code>zeroshot pour caffeine</code>. It stops your coding agent telling you to go to bed. <a href="https://github.com/zeroshothq/zeroshot/blob/main/skills/caffeine/SKILL.md">Read the source</a>.</p></div>`);
+
+// What someone wanted, recorded against the same orders table a paid order uses.
+// status is 'waitlisted' and stripe_session stays null, so the two are never
+// confused by a query that forgets to filter, and the row is ready to become a
+// real order when Batch 001 opens.
+async function recordInterest(env, { email, plan, sku, build, flavors, founderRaw }) {
+  const id = uid(plan ? "sub_" : "ord_");
+  await env.DB.prepare(
+    "INSERT INTO orders (id, email, plan, sku, build, flavors_json, status) VALUES (?,?,?,?,?,?,'waitlisted')")
+    .bind(id, email, plan || null, sku || null, build || null,
+      flavors ? JSON.stringify(flavors) : null).run();
+  await recordFounder(env, id, founderRaw);
+  return id;
+}
 
 // What a terminal gets instead of a redirect. Prices come from flavors.json so
 // this cannot drift from the site or the roster; the link is our own short one
 // rather than Stripe's ~600 character session URL, which wraps over several
 // lines and is unreadable on a slide.
-function checkoutReceipt(apiBase, planId, orderId, founder) {
+function waitlistReceipt(apiBase, planId, w, founder) {
   const p = FLAVORS_DATA.plans[planId] || {};
   const monthly = p.cadence === "monthly";
   const head = ["Zero Shot", planId,
     p.cans ? `${p.cans} cans${monthly ? "/month" : ""}` : "",
     p.price_usd != null ? `$${p.price_usd}${monthly ? "/mo" : ""}` : ""]
     .filter(Boolean).join("  ");
-  return [head, "", TAGLINE, "", "Click on the URL below to pay:",
-    `  ${apiBase}/o/${orderId}`, "",
-    `Batch 001 pre-order: cans ship ${SHIP_WINDOW}.`,
-    "Your premium agent skills are emailed the moment you pay.",
-    // Only ever a confirmation for someone who opted in, or an invitation for
-    // someone who did not. Never a claim that we are publishing them anyway.
+  return [head, "", TAGLINE, "",
+    w.existing ? `You were already on the list at #${w.position}.` : `You're #${w.position} on the list.`,
+    `  key ${w.pk}   (your referral code, +10 spots per signup)`,
+    `  check it: ${apiBase}/v1/waitlist/${w.pk}`, "",
+    `Batch 001 is not selling yet. Nobody is charged today; cans ship ${SHIP_WINDOW}`,
+    "and we email you when ordering opens. Your premium agent skills come with it.",
     founder
       ? `Your handle ${founder} goes in FOUNDERS.md.`
-      : "Add ?founder=yourhandle to be listed in FOUNDERS.md.",
+      : "Add &founder=yourhandle to be listed in FOUNDERS.md.",
   ].join("\n");
 }
 
-async function createSubscription(env, plan, flavors, founderRaw) {
-  const price = planPrice(env, plan);
-  const orderId = uid("sub_");
-  // Sanitised up front so the checkout copy can only ever name a handle that
-  // will actually be published. founderHandle is pure, so calling it here and
-  // again inside recordFounder cannot disagree.
-  const founder = founderHandle(founderRaw);
-  const session = await stripe(env, "checkout/sessions", {
-    mode: "subscription",
-    "line_items[0][price]": price, "line_items[0][quantity]": 1,
-    success_url: `${env.SITE_URL}/thanks?o=${orderId}`,
-    cancel_url: `${env.SITE_URL}/pricing`,
-    "shipping_address_collection[allowed_countries][0]": "US",
-    "custom_text[submit][message]": preorderSubmit("subscription", founder),
-    "custom_text[shipping_address][message]": PREORDER_SHIPPING,
-    // consent_collection[terms_of_service] requires a ToS URL in the
-    // Stripe dashboard - re-add once the site has a /terms page.
-    "metadata[order_id]": orderId, "metadata[plan]": plan,
-    "metadata[flavors]": flavors.join(","),
-  });
-  await env.DB.prepare("INSERT INTO orders (id, stripe_session, plan, flavors_json) VALUES (?,?,?,?)")
-    .bind(orderId, session.id, plan, JSON.stringify(flavors)).run();
-  await recordFounder(env, orderId, founderRaw);
-  return { orderId, session, founder };
-}
+// Shown when a route that needs an email did not get one.
+const needEmail = (apiBase, p) => [
+  "Zero Shot - Batch 001 waitlist", "", TAGLINE, "",
+  "This is not selling yet, so there is nothing to pay. Add your email and",
+  "you are on the list:", "",
+  `  curl "${apiBase}${p}?email=you@example.com"`, "",
+  "Optional: &f=attention,gaussian picks flavors, &founder=yourhandle lists you",
+  "in FOUNDERS.md, &ref=pk_zs_... credits whoever referred you.",
+].join("\n");
 
 // ---------------------------------------------------------------- handlers
 export default {
@@ -406,44 +425,53 @@ export default {
       // Flavors are optional on both: ?f=attention,gaussian or a JSON body.
       if (PACK_PLANS[path] && (request.method === "GET" || request.method === "POST")) {
         const plan = PACK_PLANS[path];
-        if (!planPrice(env, plan)) return err(500, "price not configured", cors);
         const body = request.method === "POST"
           ? await request.json().catch(() => ({})) : {};
+        const email = String(body.email || url.searchParams.get("email") || "").trim().toLowerCase();
+        // No email, no signup. A terminal gets the command to run rather than an
+        // error code it has to look up, and a browser gets the site's page.
+        if (!validEmail(email)) {
+          if (request.method === "GET" && wantsHtml(request))
+            return new Response(null, { status: 302,
+              headers: { location: `${env.SITE_URL}/waitlist`, "cache-control": "no-store", ...cors } });
+          if (wantsText(request) || (request.method === "GET" && !wantsHtml(request)))
+            return text(needEmail(apiBase, path), 400, cors);
+          return err(400, "valid email required - POST {\"email\":\"you@example.com\"}", cors);
+        }
         const flavors = parseFlavors(body.flavors ||
           (url.searchParams.get("f") || "").split(",").filter(Boolean));
-        const founder = body.founder_handle || url.searchParams.get("founder");
-        const { orderId, session, founder: listed } =
-          await createSubscription(env, plan, flavors, founder);
-        if (request.method === "GET") {
-          if (wantsHtml(request))
-            return new Response(null, { status: 302,
-              headers: { location: session.url, "cache-control": "no-store", ...cors } });
-          return text(checkoutReceipt(apiBase, plan, orderId, listed), 200,
+        const founderRaw = body.founder_handle || url.searchParams.get("founder");
+        const listed = founderHandle(founderRaw);
+        const w = await joinWaitlist(env, email, body.referrer_key || url.searchParams.get("ref"));
+        const id = await recordInterest(env, { email, plan, flavors, founderRaw });
+        if (!w.existing) await sendWaitlistEmail(env, email, w);
+
+        if (request.method === "GET" && wantsHtml(request))
+          return new Response(null, { status: 302,
+            headers: { location: `${env.SITE_URL}/thanks?k=${w.pk}`, "cache-control": "no-store", ...cors } });
+        if (wantsText(request) || (request.method === "GET" && !wantsHtml(request)))
+          return text(waitlistReceipt(apiBase, plan, w, listed), 200,
             { "cache-control": "no-store", ...cors });
-        }
-        if (wantsText(request))
-          return text(checkoutReceipt(apiBase, plan, orderId, listed), 200, cors);
-        return json({ id: orderId, status: "requires_payment",
-          checkout_url: session.url, short_url: `${apiBase}/o/${orderId}` }, 200, cors);
+        return json({ id, status: "waitlisted", plan, public_key: w.pk, position: w.position,
+          already_on_list: w.existing, spot_url: `${apiBase}/v1/waitlist/${w.pk}` }, 200, cors);
       }
 
-      // ---- GET /o/:id  (short link to a checkout we already created)
+      // ---- GET /o/:id  (short link to a waitlist signup)
       // Stripe's session URL is around 600 characters. This is the same session
       // behind an id we already store, so anything that has to be read aloud,
       // typed, or put on a slide stays one short line. Sessions expire and are
       // consumed on payment, so a dead one says which rather than bouncing the
       // customer into a Stripe error page.
       if (path.startsWith("/o/") && request.method === "GET") {
-        const row = await env.DB.prepare("SELECT stripe_session FROM orders WHERE id=?")
-          .bind(path.slice(3)).first();
+        const row = await env.DB.prepare(
+          "SELECT o.id, o.plan, o.sku, o.status, w.pk_key, w.position FROM orders o " +
+          "LEFT JOIN waitlist w ON w.email = o.email WHERE o.id=?").bind(path.slice(3)).first();
         if (!row) return err(404, "order not found", cors);
-        const session = await stripe(env, `checkout/sessions/${row.stripe_session}`, {});
-        if (!session.url)
-          return err(410, session.status === "complete"
-            ? "this checkout is already paid"
-            : "this checkout expired - start a new one at /12 or /48", cors);
-        return new Response(null, { status: 302,
-          headers: { location: session.url, "cache-control": "no-store", ...cors } });
+        // While Batch 001 is a waitlist there is no session to send anyone to,
+        // so the short link reports the spot it stands for instead.
+        return json({ id: row.id, status: row.status, plan: row.plan || row.sku,
+          public_key: row.pk_key, position: row.position,
+          spot_url: row.pk_key ? `${apiBase}/v1/waitlist/${row.pk_key}` : null }, 200, cors);
       }
 
       // ---- GET /v1/admin/founders  (the Batch 001 roster, for the FOUNDERS.md commit)
@@ -524,22 +552,11 @@ export default {
           }).then((r) => r.json());
           if (!t.success) return err(403, "verification failed", cors);
         }
-        const existing = await env.DB.prepare("SELECT pk_key, position FROM waitlist WHERE email=?").bind(email).first();
-        if (existing) return json({ public_key: existing.pk_key, position: existing.position,
+        const w = await joinWaitlist(env, email, body.referrer_key);
+        if (w.existing) return json({ public_key: w.pk, position: w.position,
           note: "Already on the list. Your key is your referral code." }, 200, cors);
-        const count = (await env.DB.prepare("SELECT COUNT(*) AS c FROM waitlist").first()).c;
-        const pk = "pk_zs_" + uid();
-        let position = count + 1;
-        // Referral: each signup carrying a valid key moves the referrer up 10 spots
-        const ref = String(body.referrer_key || "");
-        if (ref.startsWith("pk_zs_")) {
-          await env.DB.prepare("UPDATE waitlist SET position = MAX(1, position - 10) WHERE pk_key=?").bind(ref).run();
-        }
-        await env.DB.prepare("INSERT INTO waitlist (email, pk_key, referred_by, position) VALUES (?,?,?,?)")
-          .bind(email, pk, ref || null, position).run();
-        await sendEmail(env, email, "Zero Shot - you're on the list",
-          `<div style="font-family:monospace"><p>You're #${position}.</p><p>Your key: <b>${pk}</b> - it doubles as a referral code. Every signup that uses it moves you up 10 spots.</p><p>While you wait, the <b>caffeine</b> agent skill is public and needs no key at all: <code>zeroshot pour caffeine</code>. It stops your coding agent telling you to go to bed. <a href="https://github.com/zeroshothq/zeroshot/blob/main/skills/caffeine/SKILL.md">Read the source</a>.</p></div>`);
-        return json({ public_key: pk, position,
+        await sendWaitlistEmail(env, email, w);
+        return json({ public_key: w.pk, position: w.position,
           note: "Your key is your referral code. +10 spots per signup." }, 201, cors);
       }
 
@@ -578,14 +595,20 @@ export default {
         const plan = String(body.plan || "");
         if (plan === "enterprise")
           return json({ contact: "sales@zeroshothq.dev", note: "we bring stickers" }, 200, cors);
-        if (!planPrice(env, plan))
+        if (!PACK_PLAN_IDS.includes(plan))
           return err(400, "plan must be standard | team | enterprise", cors);
-        const { orderId, session, founder: listed } = await createSubscription(
-          env, plan, parseFlavors(body.flavors), body.founder_handle);
+        const email = String(body.email || "").trim().toLowerCase();
+        if (!validEmail(email))
+          return err(400, "valid email required - Batch 001 is a waitlist, not a checkout", cors);
+        const flavors = parseFlavors(body.flavors);
+        const listed = founderHandle(body.founder_handle);
+        const w = await joinWaitlist(env, email, body.referrer_key);
+        const id = await recordInterest(env, { email, plan, flavors, founderRaw: body.founder_handle });
+        if (!w.existing) await sendWaitlistEmail(env, email, w);
         if (wantsText(request))
-          return text(checkoutReceipt(apiBase, plan, orderId, listed), 200, cors);
-        return json({ id: orderId, status: "requires_payment",
-          checkout_url: session.url, short_url: `${apiBase}/o/${orderId}` }, 200, cors);
+          return text(waitlistReceipt(apiBase, plan, w, listed), 200, cors);
+        return json({ id, status: "waitlisted", plan, public_key: w.pk, position: w.position,
+          already_on_list: w.existing, spot_url: `${apiBase}/v1/waitlist/${w.pk}` }, 200, cors);
       }
 
       // ---- GET /v1/subscriptions/:id  (plan, status, renewal date)
@@ -612,16 +635,19 @@ export default {
         return json(out, 200, cors);
       }
 
-      // ---- DELETE /v1/subscriptions/:id → Stripe customer portal handles the cancel
+      // ---- DELETE /v1/subscriptions/:id → leave the Batch 001 waitlist
       if (path.startsWith("/v1/subscriptions/") && request.method === "DELETE") {
-        const row = await env.DB.prepare("SELECT stripe_session FROM orders WHERE id=?")
-          .bind(path.split("/").pop()).first();
+        const id = path.split("/").pop();
+        const row = await env.DB.prepare("SELECT id, email, status FROM orders WHERE id=?")
+          .bind(id).first();
         if (!row) return err(404, "subscription not found", cors);
-        const session = await stripe(env, `checkout/sessions/${row.stripe_session}`, {});
-        const portal = await stripe(env, "billing_portal/sessions", {
-          customer: session.customer, return_url: env.SITE_URL,
-        });
-        return json({ portal_url: portal.url, note: "we will be sad" }, 200, cors);
+        // Nothing is billing, so there is no portal to open. Withdraw the
+        // interest and leave the waitlist row alone: the person may still want
+        // the list without wanting this particular plan.
+        await env.DB.prepare("UPDATE orders SET status='withdrawn' WHERE id=?").bind(id).run();
+        return json({ id, status: "withdrawn",
+          note: "Nothing was ever charged. You are still on the waitlist - DELETE /v1/waitlist/<key> to leave that too." },
+          200, cors);
       }
 
       // ---- POST /v1/orders  (Mixed Precision 24 - qualification-gated)
@@ -641,30 +667,23 @@ export default {
             hint: 'Retry with {"i_meet_the_requirements": true}. Self-attestation accepted. Or send header X-YOLO: true.',
           }, 403, cors);
         }
+        // The gate stays: it decides who gets offered the build, and that is
+        // still worth recording even when nobody is paying yet.
+        const email = String(body.email || "").trim().toLowerCase();
+        if (!validEmail(email))
+          return err(400, "valid email required - Batch 001 is a waitlist, not a checkout", cors);
         // {"zero": true} pours the entire build caffeine-free - same mix, 0mg cans.
-        const zero = body.zero === true;
-        const pouredBuild = zero ? `${build}-zero` : build;
-        const orderId = uid("ord_");
-        const session = await stripe(env, "checkout/sessions", {
-          mode: "payment",
-          "line_items[0][price]": env.PRICE_MIXED24, "line_items[0][quantity]": 1,
-          success_url: `${env.SITE_URL}/thanks?o=${orderId}`,
-          cancel_url: `${env.SITE_URL}/pricing`,
-          "shipping_address_collection[allowed_countries][0]": "US",
-          "custom_text[submit][message]": preorderSubmit("payment", founderHandle(body.founder_handle)),
-          "custom_text[shipping_address][message]": PREORDER_SHIPPING,
-          // consent_collection: see note in the subscriptions handler.
-          "metadata[order_id]": orderId, "metadata[sku]": "mixed-precision-24",
-          "metadata[build]": pouredBuild,
-        });
-        await env.DB.prepare("INSERT INTO orders (id, stripe_session, sku, build) VALUES (?,?,?,?)")
-          .bind(orderId, session.id, "mixed-precision-24", pouredBuild).run();
-        await recordFounder(env, orderId, body.founder_handle);
+        const pouredBuild = body.zero === true ? `${build}-zero` : build;
+        const listed = founderHandle(body.founder_handle);
+        const w = await joinWaitlist(env, email, body.referrer_key);
+        const id = await recordInterest(env, { email, sku: "mixed-precision-24",
+          build: pouredBuild, founderRaw: body.founder_handle });
+        if (!w.existing) await sendWaitlistEmail(env, email, w);
         if (wantsText(request))
-          return text(checkoutReceipt(apiBase, "mixed-precision-24", orderId,
-            founderHandle(body.founder_handle)), 200, cors);
-        return json({ id: orderId, status: "requires_payment", checkout_url: session.url,
-          short_url: `${apiBase}/o/${orderId}`, build: pouredBuild }, 200, cors);
+          return text(waitlistReceipt(apiBase, "mixed-precision-24", w, listed), 200, cors);
+        return json({ id, status: "waitlisted", build: pouredBuild, public_key: w.pk,
+          position: w.position, already_on_list: w.existing,
+          spot_url: `${apiBase}/v1/waitlist/${w.pk}` }, 200, cors);
       }
 
       // ---- GET /v1/orders/:id

@@ -2,7 +2,8 @@
 //
 //   ZEROSHOT_API_URL        target base URL (default http://localhost:8787, i.e. `wrangler dev`)
 //   ZEROSHOT_TEST_WRITES=1  also run tests that insert rows (recommend → stacks)
-//   ZEROSHOT_TEST_STRIPE=1  also run tests that create real Stripe checkout sessions
+//   Batch 001 is a waitlist: no route creates a Stripe session, so there is no
+//   ZEROSHOT_TEST_STRIPE gate any more. Signup tests use ZEROSHOT_TEST_WRITES.
 //
 // Read-only by default so the suite is safe against production.
 
@@ -11,7 +12,6 @@ const assert = require("node:assert/strict");
 
 const BASE = process.env.ZEROSHOT_API_URL || "http://localhost:8787";
 const WRITES = process.env.ZEROSHOT_TEST_WRITES === "1";
-const STRIPE = process.env.ZEROSHOT_TEST_STRIPE === "1";
 
 const get = (p, opts) => fetch(BASE + p, opts);
 const post = (p, body, headers = {}) =>
@@ -235,128 +235,85 @@ test("recommend → stack share roundtrip", { skip: !WRITES && "set ZEROSHOT_TES
   assert.equal((await get("/v1/stacks/nope")).status, 404);
 });
 
-// ---- stripe tests (create real checkout sessions; test-mode key expected) --
+// ---- waitlist mode -----------------------------------------------------
+// Batch 001 takes emails, not payments. These write rows (waitlist + orders),
+// so they sit behind ZEROSHOT_TEST_WRITES like every other writing test.
+const mail = (tag) => `smoke-${tag}-${Math.random().toString(36).slice(2, 10)}@example.com`;
 
-test("subscriptions: standard returns a Stripe checkout URL", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const res = await post("/v1/subscriptions", { plan: "standard", flavors: ["attention", "gaussian"] });
-  assert.equal(res.status, 200);
-  const body = await res.json();
-  assert.equal(body.status, "requires_payment");
-  assert.match(body.checkout_url, /^https:\/\/checkout\.stripe\.com\//);
-  const order = await (await get(`/v1/orders/${body.id}`)).json();
-  assert.equal(order.status, "pending");
-  const sub = await (await get(`/v1/subscriptions/${body.id}`)).json();
-  assert.equal(sub.plan, "standard");
-  assert.equal(sub.status, "pending");
-  assert.equal(sub.cans_per_month, 12);
-});
-
-test("short link: POST /12 matches the standard plan", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const res = await post("/12", { flavors: ["attention"] });
-  assert.equal(res.status, 200);
-  const body = await res.json();
-  assert.match(body.checkout_url, /^https:\/\/checkout\.stripe\.com\//);
-  const sub = await (await get(`/v1/subscriptions/${body.id}`)).json();
-  assert.equal(sub.plan, "standard");
-  assert.equal(sub.cans_per_month, 12);
-  assert.deepEqual(sub.flavors, ["attention"]);
-});
-
-// A browser gets the redirect that opens checkout. A terminal must not, because
-// curl -L would follow it and print ~38kB of Stripe's checkout markup.
-test("short link: GET /12 redirects a browser to Stripe", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const res = await get("/12?f=attention,gaussian",
-    { redirect: "manual", headers: { accept: "text/html,application/xhtml+xml" } });
-  assert.equal(res.status, 302);
-  assert.match(res.headers.get("location"), /^https:\/\/checkout\.stripe\.com\//);
-});
-
-test("short link: GET /12 gives a terminal short readable text", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const res = await get("/12", { redirect: "manual", headers: { accept: "*/*" } });
-  assert.equal(res.status, 200);
+test("short link: GET /12 without an email tells a terminal what to run", async () => {
+  const res = await get("/12", { headers: { accept: "*/*" } });
+  assert.equal(res.status, 400);
   assert.match(res.headers.get("content-type"), /^text\/plain/);
   const body = await res.text();
-  // The whole point: it fits on a screen and wraps in no terminal.
-  assert.ok(body.length < 400, `receipt was ${body.length} bytes`);
+  assert.match(body, /email=you@example\.com/);
+  assert.doesNotMatch(body, /stripe/i, "nothing should point at a checkout any more");
+});
+
+test("short link: GET /12 with an email joins the list", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
+  const res = await get(`/12?email=${encodeURIComponent(mail("get12"))}&founder=smoketest`, { headers: { accept: "*/*" } });
+  assert.equal(res.status, 200);
+  const body = await res.text();
+  assert.match(body, /You're #\d+ on the list\./);
+  assert.match(body, /key pk_zs_[a-f0-9]+/);
+  assert.match(body, /Nobody is charged today/);
+  assert.match(body, /Your handle smoketest goes in FOUNDERS\.md\./);
   for (const line of body.split("\n")) assert.ok(line.length <= 80, `line too wide: ${line.length}`);
-  assert.match(body, /\$42\/mo/);
-  assert.match(body, /\/o\/sub_[a-f0-9]+/);
-  assert.match(body, /The first energy drink for you and your AI agent\./);
-  assert.match(body, /Batch 001 pre-order: cans ship November 2026\./);
 });
 
-// Ordering is not consent to be published, so the receipt must invite a buyer
-// who supplied no handle rather than telling them they are being listed.
-test("short link: receipt only claims a FOUNDERS.md listing when opted in", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const plain = await (await get("/12", { headers: { accept: "*/*" } })).text();
-  assert.match(plain, /Add \?founder=yourhandle to be listed in FOUNDERS\.md\./);
-  assert.doesNotMatch(plain, /goes in FOUNDERS\.md/);
-
-  const opted = await (await get("/12?founder=testhandle", { headers: { accept: "*/*" } })).text();
-  assert.match(opted, /Your handle testhandle goes in FOUNDERS\.md\./);
-  assert.doesNotMatch(opted, /Add \?founder=/);
+test("short link: POST /12 returns a waitlist spot, not a checkout", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
+  const body = await (await post("/12", { email: mail("post12"), flavors: ["attention"] })).json();
+  assert.equal(body.status, "waitlisted");
+  assert.equal(body.plan, "standard");
+  assert.match(body.public_key, /^pk_zs_/);
+  assert.ok(body.position >= 1);
+  assert.equal(body.checkout_url, undefined, "no checkout url may survive in waitlist mode");
 });
 
-test("short link: /o/:id resolves back to the Stripe session", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const body = await (await post("/12", {})).json();
-  assert.match(body.short_url, /\/o\/sub_[a-f0-9]+$/);
-  const res = await get(`/o/${body.id}`, { redirect: "manual" });
-  assert.equal(res.status, 302);
-  assert.match(res.headers.get("location"), /^https:\/\/checkout\.stripe\.com\//);
+test("short link: /48 is the team plan and a repeat email is idempotent", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
+  const email = mail("repeat");
+  const first = await (await post("/48", { email })).json();
+  assert.equal(first.plan, "team");
+  assert.equal(first.already_on_list, false);
+  const second = await (await post("/48", { email })).json();
+  assert.equal(second.already_on_list, true);
+  assert.equal(second.public_key, first.public_key, "the same email keeps its key and spot");
+  assert.equal(second.position, first.position);
+});
+
+test("subscriptions and orders both require an email", async () => {
+  assert.equal((await post("/v1/subscriptions", { plan: "standard" })).status, 400);
+  assert.equal((await post("/v1/orders",
+    { sku: "mixed-precision-24", build: "llm-engineer" }, { "x-yolo": "true" })).status, 400);
+});
+
+test("orders: an attested build joins the list", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
+  const res = await post("/v1/orders",
+    { sku: "mixed-precision-24", build: "llm-engineer", email: mail("order"), zero: true },
+    { "x-yolo": "true" });
+  const body = await res.json();
+  assert.equal(body.status, "waitlisted");
+  assert.equal(body.build, "llm-engineer-zero");
+  assert.match(body.public_key, /^pk_zs_/);
+  assert.equal(body.checkout_url, undefined);
+});
+
+test("short link: /o/:id reports the spot it stands for", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
+  const made = await (await post("/12", { email: mail("shorto") })).json();
+  const body = await (await get(`/o/${made.id}`)).json();
+  assert.equal(body.id, made.id);
+  assert.equal(body.status, "waitlisted");
+  assert.equal(body.public_key, made.public_key);
+  assert.match(body.spot_url, /\/v1\/waitlist\/pk_zs_/);
 });
 
 test("short link: /o/:id on an unknown order is a 404", async () => {
-  const res = await get("/o/sub_deadbeefdead", { redirect: "manual" });
-  assert.equal(res.status, 404);
+  assert.equal((await get("/o/sub_deadbeefdead")).status, 404);
 });
 
-// Every checkout endpoint answers a terminal the same way, so there is one
-// receipt to keep correct rather than four.
-test("checkout: every endpoint renders the same receipt on Accept: text/plain", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const bodies = await Promise.all([
-    get("/12", { headers: { accept: "text/plain" } }).then((r) => r.text()),
-    post("/v1/subscriptions", { plan: "standard" }, { accept: "text/plain" }).then((r) => r.text()),
-    post("/v1/orders", { sku: "mixed-precision-24", build: "llm-engineer" },
-      { accept: "text/plain", "x-yolo": "true" }).then((r) => r.text()),
-  ]);
-  for (const b of bodies) {
-    assert.match(b, /The first energy drink for you and your AI agent\./);
-    assert.match(b, /Click on the URL below to pay:/);
-    assert.match(b, /Batch 001 pre-order: cans ship November 2026\./);
-    assert.match(b, /Your premium agent skills are emailed the moment you pay\./);
-    assert.match(b, /\/o\/(sub|ord)_[a-f0-9]+/);
-    for (const line of b.split("\n")) assert.ok(line.length <= 80, `line too wide: ${line.length}`);
-  }
-});
-
-// Installed CLI versions parse JSON and send no Accept header. If a bare */* on
-// POST ever starts returning text, every one of them breaks mid-order.
-test("checkout: POST without an Accept header still returns JSON", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  for (const [p, b] of [["/12", {}], ["/v1/subscriptions", { plan: "standard" }]]) {
-    const res = await post(p, b);
-    assert.match(res.headers.get("content-type"), /^application\/json/, `${p} stopped returning JSON`);
-    const body = await res.json();
-    assert.match(body.checkout_url, /^https:\/\/checkout\.stripe\.com\//);
-    assert.match(body.short_url, /\/o\/sub_[a-f0-9]+$/);
-  }
-});
-
-test("short link: /48 is the team plan", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const body = await (await post("/48", {})).json();
-  const sub = await (await get(`/v1/subscriptions/${body.id}`)).json();
-  assert.equal(sub.plan, "team");
-  assert.equal(sub.cans_per_month, 48);
-});
-
-test("orders: attested order returns a Stripe checkout URL", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const res = await post("/v1/orders", { sku: "mixed-precision-24", build: "vibe-coder", i_meet_the_requirements: true });
-  assert.equal(res.status, 200);
-  const body = await res.json();
-  assert.match(body.checkout_url, /^https:\/\/checkout\.stripe\.com\//);
-});
-
-test("orders: X-YOLO header bypasses the gate", { skip: !STRIPE && "set ZEROSHOT_TEST_STRIPE=1" }, async () => {
-  const res = await post("/v1/orders", { sku: "mixed-precision-24" }, { "x-yolo": "true" });
-  assert.equal(res.status, 200);
-  assert.match((await res.json()).checkout_url, /^https:\/\/checkout\.stripe\.com\//);
+test("withdrawing an interest leaves the waitlist row alone", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
+  const made = await (await post("/12", { email: mail("withdraw") })).json();
+  const gone = await (await fetch(`${BASE}/v1/subscriptions/${made.id}`, { method: "DELETE" })).json();
+  assert.equal(gone.status, "withdrawn");
+  const spot = await (await get(`/v1/waitlist/${made.public_key}`)).json();
+  assert.ok(spot.position >= 1, "the person is still on the list");
 });
