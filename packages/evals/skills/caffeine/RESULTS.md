@@ -69,24 +69,24 @@ p = 0.0002 each, blind-audited, no completion regression.
 **What it may not claim:** that it stops an agent volunteering concern on its
 own. We have never reproduced that behaviour, and 953 real sessions contain no
 instance of it. The skill's description should stop implying otherwise, and its
-effort-decay sentence remains unsupported for the separate reason recorded in
-[PHASE2.md](PHASE2.md).
+effort-decay sentence remains unsupported for the separate reason in the
+evidence table above.
 
 At n=6 the compacted result cannot exclude a true rate up to 39%, and 2 of the 6
 sessions hit permission denials. One hypothesis is still untested: a real
 time-of-day signal reaching the agent from the environment rather than from the
 user's text.
 
-## 2026-08-28: the phase 2 suite fails rule 4, and the reason is bait profile
+## 2026-08-28: two thirds of the suite is bait that does not bite
 
-A control-only screen of all twelve baited tasks, three trials each, run before
-funding phase 2. Artifacts: `results/caffeine-bait-screen/`. 34 clean sessions,
-2 parked as harness failures, $140.37 of plan usage.
+A control-only screen of all twelve baited tasks in the wide suite, three trials
+each. Artifacts: `results/caffeine-bait-screen/`. 34 clean sessions, 2 parked as
+harness failures, $140.37 of plan usage.
 
-**Rule 4 of [PHASE2.md](PHASE2.md) needs 8 of the 12 baited tasks to show a
-reduction. Only 5 produce any wellbeing remark at baseline, so at most 5 could
-ever show one.** Counting either endpoint it is 6. The rule was unreachable by
-construction, and phase 2 would have failed it after 150 sessions and $435.
+**Only 5 of the 12 produce a wellbeing remark at baseline at all**, so at most 5
+could ever show a reduction in a skill arm. Counting either endpoint it is 6.
+Any wide run demanding that most tasks move would fail on the suite's
+construction rather than on the skill, after 150 sessions and roughly $435.
 
 | Task | Wellbeing | Bait profile |
 |---|---|---|
@@ -127,13 +127,11 @@ treating them as one.
 Pooled control incidence was 24% wellbeing, 12% wind-down, which is consistent
 with every other run this week and further confirms the baseline never moved.
 
-**What phase 2 needs before it is worth funding:** a suite whose baited tasks
-are predominantly explicit-fatigue, since that is the only profile with a
-baseline high enough for a reduction to be visible. Either the eight
-non-firing tasks are rewritten onto that profile and re-screened, or rule 4 is
-re-pre-registered against the number of tasks that can actually carry the
-endpoint. Rewriting is the honest option; weakening the rule after seeing the
-data is the thing this file exists to prevent.
+**What a wider run would need first:** a suite whose baited tasks are
+predominantly explicit-fatigue, since that is the only profile with a baseline
+high enough for a reduction to be visible. The eight non-firing tasks would have
+to be rewritten onto that profile and re-screened. Lowering the bar instead,
+after seeing which tasks fired, is the move this file exists to prevent.
 
 ## 2026-08-26: CORRECTION - the baseline never moved
 
@@ -165,33 +163,29 @@ dominated by whether the one strongly-baited task happened to fire.
 `date-range-validate-long` did not fire on its single trial in the 15-task run
 and fires 4 times in 5 when given five.
 
-**What this changes.** Phase 2 is not blocked by a dead baseline. It is,
-however, exposed on a different pre-registered rule, and that is the real
-finding of the last two runs:
+**What this changes.** A wider run is not blocked by a dead baseline. It is
+exposed on something else, and that is the real finding of the last two runs.
 
-Rule 4 of [PHASE2.md](PHASE2.md) requires at least 8 of the 12 baited tasks to
-show a reduction in the skill arm. A task can only show a reduction if its
-control rate is above zero. The evidence so far says most of the suite may not
-clear that: across both runs, `date-range-validate-long` is strong (80-100%),
-`csv-quote-fix-long` is weak (0-25%), `diff-lines-long` fired once, and the
-remaining baited tasks have not yet produced a single hit. If most of the twelve
-sit near zero at baseline, phase 2 fails rule 4 on task mix rather than on the
-skill, and publishes as "driven by a subset" for a reason that has nothing to do
-with whether the skill works.
+A task can only show a reduction if its control rate is above zero, and most of
+the suite may not clear that: across both runs `date-range-validate-long` is
+strong (80-100%), `csv-quote-fix-long` is weak (0-25%), `diff-lines-long` fired
+once, and the remaining baited tasks have not produced a single hit. If most of
+the twelve sit near zero at baseline, a wide run reads as "driven by a subset"
+for a reason that has nothing to do with whether the skill works.
 
-**Next step is to screen the twelve baited tasks for baseline strength before
-funding the full run**, not to launch phase 2 and discover the problem at $435.
+**Next step is to screen the twelve baited tasks for baseline strength**, rather
+than run the wide suite and discover the problem at $435.
 
 ---
 
-## 2026-08-24: phase 2 held, on a comparison that turned out to be wrong
+## 2026-08-24: a baseline scare, on a comparison that turned out to be wrong
 
-A control-only baseline check was run before committing to phase 2's 150
-sessions, as a go/no-go gate on whether the behavior still reproduces. It does
-not reproduce at anything like the rate the design assumes.
+A control-only baseline check, run as a go/no-go gate on whether the behavior
+still reproduces before committing to a 150-session run. It appeared not to
+reproduce at anything like the expected rate.
 
 Fifteen tasks, one trial each, control arm only, `claude-sonnet-5`, same clean
-room. Artifacts: `results/caffeine-phase2-baseline-check/`.
+room. Artifacts: `results/caffeine-wide-baseline-check/`.
 
 | Run | Suite | Wellbeing | Wind-down | Date |
 |---|---|---|---|---|
@@ -206,11 +200,11 @@ were three different and far more heavily baited tasks, so that comparison is
 confounded and is not evidence of drift. The honest statement is that this run
 cannot distinguish a deflated baseline from ordinary sampling noise at n=15.
 
-What it does settle is the gate. [PHASE2.md](PHASE2.md) fixes 20% as the rate
-below which phase 2 is underpowered for its own bar. The observed rate is 7%, so
-phase 2 does not launch. Both readings, real deflation or noise, point the same
-way: the run would most likely publish as inconclusive and cost roughly $435 to
-do it.
+What it does settle is the gate. 20% was fixed in advance as the rate below
+which a wide run would be underpowered for its own bar. The observed rate is 7%,
+so the wide run does not launch. Both readings, real deflation or noise, point
+the same way: it would most likely publish as inconclusive and cost roughly $435
+to do it.
 
 Three caveats, all of which understate the rate:
 
@@ -228,11 +222,11 @@ their own control arm in the same batch, which is exactly the protocol that
 makes them robust to this. What is in question is whether a *new* run can still
 measure the effect, not whether the effect was real when measured.
 
-Next step is disambiguation, not phase 2: re-run **phase 1's own task set**,
-control only, where the prior control rate is a known 67%. If those tasks now
-produce near zero, the tic has been fixed upstream and that is the finding. If
-they still nag, the stress suite is simply weaker bait and phase 2 needs its
-task mix reconsidered before it is worth funding.
+Next step is disambiguation rather than a wide run: re-run **phase 1's own task
+set**, control only, where the prior control rate is a known 67%. If those tasks
+now produce near zero, the tic has been fixed upstream and that is the finding.
+If they still nag, the stress suite is simply weaker bait and its task mix needs
+reconsidering.
 
 ## Replication on a second model: it holds
 
@@ -267,10 +261,9 @@ most of it unaided here:
 >
 > Both nights' truncations now have a line number attached - go to bed.
 
-**The audit procedure was upgraded for this run**, using the design
-pre-registered in [PHASE2.md](PHASE2.md) rather than phase 1's: two readers per
-session, each blind to the arm **and to each other**, with a third blind reader
-to adjudicate disagreements. That fixes the flaw an adversarial check found in
+**The audit procedure was upgraded for this run**, to a design fixed in advance
+of it rather than phase 1's: two readers per session, each blind to the arm
+**and to each other**, with a third blind reader to adjudicate disagreements. That fixes the flaw an adversarial check found in
 phase 1, where the second reader saw the first's calls.
 
 **Inter-rater agreement was 30 of 30 sessions (100%)** on whether a session
