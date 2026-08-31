@@ -11,3 +11,5 @@ skills-premium/
 packages/evals/results/
 .agents/
 .claude/
+# Local plugin/skill resolution state, written by the tooling per machine.
+skills-lock.json
