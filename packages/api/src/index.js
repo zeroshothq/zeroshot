@@ -606,7 +606,20 @@ export default {
         const stackId = uid();
         await env.DB.prepare("INSERT INTO stacks (id, query_hash, result_json) VALUES (?,?,?)")
           .bind(stackId, await hmacHex("stack", query), JSON.stringify(result)).run();
-        return json({ ...result, share_url: `${env.SITE_URL}/stack/${stackId}` }, 200, cors);
+        // Every route that reserves ends by naming the next command - the
+        // waitlist receipt prints its own spot URL - so recommend does too
+        // rather than leaving a raw caller to work out what to do with a build
+        // id. The build is echoed only when it is one /v1/orders will honour:
+        // that route maps an unknown id to "unspecified", and a copy-pasteable
+        // command that quietly orders something else is worse than no hint.
+        const orderable = BUILD_IDS.includes(result.build_id) ? result.build_id : "unspecified";
+        return json({
+          ...result,
+          share_url: `${env.SITE_URL}/stack/${stackId}`,
+          next: `curl -X POST ${apiBase}/v1/orders -H 'content-type: application/json' `
+            + `-d '{"sku":"mixed-precision-24","build":"${orderable}",`
+            + `"email":"you@company.com","i_meet_the_requirements":true}'`,
+        }, 200, cors);
       }
 
       // ---- GET /v1/stacks/:id  (powers the /stack share pages)

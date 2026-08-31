@@ -342,3 +342,20 @@ test("waitlist: DELETE removes the row and scrubs the email off orders", { skip:
 test("waitlist: DELETE on an unknown key is a 404", async () => {
   assert.equal((await fetch(`${BASE}/v1/waitlist/pk_zs_deadbeefdead`, { method: "DELETE" })).status, 404);
 });
+
+// A hint is only worth emitting if it runs. This asserts the shape and that the
+// build it names is one /v1/orders will actually honour - that route maps an
+// unknown build to "unspecified", so echoing a build id blindly would hand the
+// caller a command that quietly orders something else.
+test("recommend: the next hint names a build orders will honour", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
+  const rec = await (await post("/v1/recommend", { query: "staff LLM engineer" })).json();
+  assert.ok(rec.next, "recommend must say what to do next");
+  assert.match(rec.next, /^curl -X POST \S+\/v1\/orders /);
+  assert.match(rec.next, /"sku":"mixed-precision-24"/);
+  assert.match(rec.next, /"i_meet_the_requirements":true/);
+
+  const build = rec.next.match(/"build":"([^"]+)"/)[1];
+  const builds = await (await get("/v1/builds")).json();
+  assert.ok(build === "unspecified" || builds[build],
+    `the hint names ${build}, which /v1/orders would silently replace`);
+});
