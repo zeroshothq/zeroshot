@@ -2,8 +2,13 @@
 
 One shared harness ([methodology](BENCHMARKING.md)), one suite per skill.
 Every skill gets its own tasks, published runs, and results page under
-`skills/<name>/`. Verdicts are per model and per skill version; all runs are
-published, including losses and invalidated runs.
+`skills/<name>/`. Verdicts are per model and per skill version.
+
+**Every run of a shipping skill is published, including its losses and its
+invalidated runs.** The one thing that removes runs is retiring the skill: when
+`warmup` was retired on 2026-08-31 its five runs went with it, two of which were
+losses on `claude-haiku-4-5`. They are recoverable from git history at `59e8cf0`.
+Nothing is ever deleted because of what it showed.
 
 | Skill | Version | Latest verdict | Details |
 |---|---|---|---|

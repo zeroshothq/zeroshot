@@ -44,7 +44,9 @@ so diff size only counts when the task passed.
 
 - 5+ trials per task per arm. Agents are stochastic; single runs prove nothing.
 - Report mean and stddev, and per-task win/loss/tie. Never a best run.
-- All runs are published, including the ones the skill loses.
+- All runs of a shipping skill are published, including the ones it loses. A run
+  is only ever removed by retiring the skill it belongs to, never because of
+  what it showed; retired runs stay recoverable in git history.
 - Ship bar: claim improvement only if the pass-rate delta is at least +15
   points, or pass rate holds while discipline metrics improve by 30%+, across
   5+ runs per arm. Discipline metrics are loop-incident reduction and

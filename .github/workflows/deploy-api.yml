@@ -1,19 +1,60 @@
 name: deploy-api
+
+# Deploys only after `test` has passed on main. Previously this ran straight off
+# the push, independently of the test workflow, so a red commit reached
+# production anyway - which happened twice on 2026-08-31.
+#
+# GitHub has no cross-workflow `needs`, so the gate is workflow_run: this fires
+# when `test` completes and refuses to deploy unless it concluded successfully.
 on:
   workflow_dispatch:
-  push:
+  workflow_run:
+    workflows: [test]
+    types: [completed]
     branches: [main]
-    paths: ['packages/api/**', 'flavors/flavors.json']
+
 jobs:
   deploy:
+    # A manual dispatch is a deliberate override and always runs. Everything else
+    # requires the test run that triggered it to have passed.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Deploy the commit that was tested, not whatever main points at now.
+          # Those differ the moment a second push lands while this is queued, and
+          # deploying the tip would ship code no test run ever saw.
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+          fetch-depth: 2
+
+      # workflow_run carries no `paths` filter, so the path check the push
+      # trigger used to do for free happens here instead. Without it every
+      # green docs-only commit would cut a new Worker version.
+      - name: Does this commit touch the API?
+        id: scope
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only HEAD~1 HEAD | grep -qE '^(packages/api/|flavors/flavors\.json)'; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "No API or flavors change in this commit; skipping deploy."
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.scope.outputs.deploy == 'true'
         with: { node-version: 22 }
+
       - name: Install deps (pinned wrangler)
+        if: steps.scope.outputs.deploy == 'true'
         run: cd packages/api && npm ci
+
       - name: Deploy Worker
+        if: steps.scope.outputs.deploy == 'true'
         run: cd packages/api && npx wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

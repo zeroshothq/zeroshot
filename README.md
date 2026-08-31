@@ -207,8 +207,9 @@ benchmark chart before its published run clears the ship bar.
 Skills make measurable claims: the [eval harness](packages/evals/) runs each
 skill with-vs-without across repeated trials, scored by real test execution
 and blind grading. Results are published as they clear the ship bar - and
-when they do not ([all runs are public](packages/evals/RESULTS.md), including
-the losses). No benchmark on a can that isn't reproducible.
+when they do not ([every run of a shipping skill is
+public](packages/evals/RESULTS.md), including the losses). No benchmark on a can
+that isn't reproducible.
 
 ## API
 
