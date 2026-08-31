@@ -1,14 +1,14 @@
 # Zero Shot · Flavor Name Catalog
 
 Naming system: **a mechanism, method, or metric from ML** — one or two syllables where
-possible, sayable out loud, with a real paper behind it. Every can prints the paper title,
+possible, sayable out loud, with a published paper behind it. Every can prints the paper title,
 year, and identifier. Names that fail the say-it-out-loud test are listed under *Rejected*.
 
 Selection filter, applied to every candidate:
 
 1. **Sayable** — someone can order it in a sentence without spelling it.
 2. **Tastes like something** — the word suggests a flavor direction on its own.
-3. **Citable** — a real paper exists, with a year and (ideally) an identifier.
+3. **Citable** — a published paper, with a year and (ideally) an identifier.
 4. **Doesn't date** — avoids naming a specific model generation that ages out.
 
 ---

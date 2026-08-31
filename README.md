@@ -105,8 +105,8 @@ by the API, the CLI, and the website. AGI: rolling out gradually.
 
 ## Mixed Precision 24 - role builds
 
-Eight builds, each with real minimum qualifications (sourced from actual
-2025-2026 job postings) and a flavor mix tuned to the role:
+Eight builds, each with the minimum qualifications from 2025-2026 job postings
+and a flavor mix tuned to the role:
 
 | Build | Tagline | Minimum qualifications (abridged) |
 |---|---|---|
@@ -154,7 +154,7 @@ mention you are tired, it starts closing turns with "go get some sleep, this is
 a good stopping point" instead of the next fix. This removes that.
 
 Here is how the agent ended the same turn, having just made the same fix
-correctly. Real benchmark transcripts, same task, same turn number:
+correctly. Benchmark transcripts, same task, same turn number:
 
 > **Without the skill:** "...with the reason text always naming whichever cap
 > applied. `src/range.js:26-40`. **Get some rest - this is a good stopping
@@ -205,8 +205,8 @@ benchmark chart before its published run clears the ship bar.
 | `skills-premium/relu` | `relu` | Simplify mode: cut scope, remove abstraction, prefer the boring linear solution |
 
 Skills make measurable claims: the [eval harness](packages/evals/) runs each
-skill with-vs-without across repeated trials, scored by real test execution
-and blind grading. Results are published as they clear the ship bar - and
+skill with-vs-without across repeated trials, scored by test execution and
+blind grading. Results are published as they clear the ship bar - and
 when they do not ([every run of a shipping skill is
 public](packages/evals/RESULTS.md), including the losses). No benchmark on a can
 that isn't reproducible.
@@ -247,7 +247,7 @@ Rate limits: 60 req/min (10/min on `/recommend`). Exceeding returns
 ## Contributing
 
 Flavor proposals land as model-card PRs in `flavors/`; the top community
-proposal each quarter goes into real production planning. Merged contributors
+proposal each quarter goes into production planning. Merged contributors
 get a 12-pack on us. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Compliance

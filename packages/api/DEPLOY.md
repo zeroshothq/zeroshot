@@ -89,9 +89,14 @@ node --test packages/api/test/*.test.js packages/cli/test/*.test.js
 ```
 
 Read-only by default. `ZEROSHOT_API_URL` targets a deployment (default
-`http://localhost:8787` for `wrangler dev`); `ZEROSHOT_TEST_WRITES=1` adds
-row-inserting tests; `ZEROSHOT_TEST_STRIPE=1` adds tests that create real
-checkout sessions (use a test-mode key).
+`http://localhost:8787` for `wrangler dev`); `ZEROSHOT_TEST_WRITES=1` adds the
+tests that insert rows, which is every waitlist signup path. There is no
+`ZEROSHOT_TEST_STRIPE` any more: Batch 001 is a waitlist and no route creates a
+checkout session.
+
+CI raises `RATE_LIMIT_GENERAL` and `RATE_LIMIT_RECOMMEND` in `.dev.vars`,
+because the suite drives more requests from one IP in a minute than production's
+60/min allows. Neither variable is set in production.
 
 ## Website contract (separate repo)
 

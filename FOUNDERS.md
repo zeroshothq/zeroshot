@@ -39,8 +39,7 @@ from an opt-in list, not from the orders table.
 the next commit, no questions and no reply required. Git history keeps the old
 commit, so removal means the name stops appearing, not that it never existed.
 If you want it gone from history too, say so and we will rewrite the file's
-history and force-push it, which is a thing we will actually do rather than a
-thing we say.
+history and force-push it.
 
 ## Why this exists
 

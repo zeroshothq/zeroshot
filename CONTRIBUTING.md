@@ -15,7 +15,7 @@ packages/cli/      npm "@zeroshothq/zeroshot" - zero dependencies, zero telemetr
 
 - Flavor proposals: open a PR adding a model card to `flavors/` using an
   existing card as the template. The top community proposal each quarter
-  goes into real production planning.
+  goes into production planning.
 - Code: PRs to `packages/` need tests green. Keep diffs minimal.
 - Merged contributors get a 12-pack shipped via `POST /v1/orders` on us -
   leave a contact in the PR description or email merge@zeroshothq.dev.

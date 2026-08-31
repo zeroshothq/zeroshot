@@ -1,6 +1,6 @@
 # Zero Shot
 
-> The first energy drink for you and your agent. Zero sugar. Zero shot. A real API (Cloudflare Worker), a zero-dependency CLI, versioned flavor model cards, and installable agent skills. API base: https://api.zeroshothq.dev/v1
+> The first energy drink for you and your agent. Zero sugar. Zero shot. An API (Cloudflare Worker), a zero-dependency CLI, versioned flavor model cards, and installable agent skills. API base: https://api.zeroshothq.dev/v1
 
 Tagline: Merge more PRs.
 
