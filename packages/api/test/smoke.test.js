@@ -359,3 +359,23 @@ test("recommend: the next hint names a build orders will honour", { skip: !WRITE
   assert.ok(build === "unspecified" || builds[build],
     `the hint names ${build}, which /v1/orders would silently replace`);
 });
+
+// curl defaults to GET, so a POST-only route used to answer `curl .../v1/orders`
+// with a 404 that blamed the path and sent people hunting for a typo that was
+// not there. Wrong method is 405, wrong path is 404, and they must not swap.
+test("wrong method is a 405 that names the verb, not a 404", async () => {
+  for (const [p, verb] of [["/v1/orders", "POST"], ["/v1/subscriptions", "POST"],
+                           ["/v1/waitlist", "POST"], ["/v1/recommend", "POST"]]) {
+    const res = await get(p);
+    assert.equal(res.status, 405, `${p} should be 405 on GET`);
+    assert.equal(res.headers.get("allow"), verb, `${p} must advertise Allow: ${verb}`);
+    assert.match((await res.json()).error, new RegExp(`${p} accepts ${verb}`));
+  }
+});
+
+test("a singular/plural slip names the route it meant", async () => {
+  const body = await (await get("/v1/order")).json();
+  assert.match(body.error, /did you mean \/v1\/orders\?/);
+  // A genuinely unknown path gets no guess.
+  assert.match((await (await get("/v1/nonsense")).json()).error, /^not found - see /);
+});

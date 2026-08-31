@@ -316,6 +316,29 @@ const PACK_PLAN_IDS = Object.values(PACK_PLANS);
 
 const validEmail = (e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
 
+// What each route accepts, used only to answer a wrong-method request with 405
+// instead of 404. Kept beside the handlers rather than derived from them: a
+// table that drifts is better than a router rewrite, and the drift shows up as
+// a wrong Allow header rather than a broken route.
+const EXACT_ROUTES = {
+  "": "GET", "/v1": "GET",
+  "/12": "GET, POST", "/48": "GET, POST",
+  "/v1/status": "GET", "/v1/agi": "GET", "/v1/flavors": "GET",
+  "/v1/builds": "GET", "/v1/skills": "GET",
+  "/v1/waitlist": "POST", "/v1/recommend": "POST",
+  "/v1/subscriptions": "POST", "/v1/orders": "POST",
+  "/v1/stripe/webhook": "POST",
+  "/v1/admin/founders": "GET", "/v1/admin/stats": "GET",
+};
+const PREFIX_ROUTES = [
+  ["/v1/waitlist/", "GET, DELETE"],
+  ["/v1/subscriptions/", "GET, DELETE"],
+  ["/v1/orders/", "GET"],
+  ["/v1/stacks/", "GET"],
+  ["/v1/skills/", "GET"],
+  ["/o/", "GET"],
+];
+
 // Batch 001 is not taking money yet, so everything that used to open a Stripe
 // checkout now takes an email instead. One place does the joining, so the
 // referral arithmetic and the welcome mail cannot drift between the six routes
@@ -793,6 +816,24 @@ export default {
         await env.DB.prepare("UPDATE orders SET status=? WHERE id=?").bind(status, id).run();
         return json({ id, status });
       }
+
+      // Falling through means no handler matched. Before saying "not found",
+      // work out whether the path was fine and only the method was wrong: curl
+      // defaults to GET, so every POST-only route answered a plain
+      // `curl .../v1/orders` with a 404 that blamed the path. That is the wrong
+      // answer to the wrong question, and it sends people hunting for a typo
+      // that is not there.
+      const allow = EXACT_ROUTES[path]
+        || (PREFIX_ROUTES.find(([p]) => path.startsWith(p)) || [])[1];
+      if (allow)
+        return err(405, `method not allowed - ${path} accepts ${allow}`, { ...cors, allow });
+
+      // A singular/plural slip lands here rather than on the 405 above, so name
+      // the route they meant instead of pointing at the docs index.
+      const near = [path + "s", path.replace(/s$/, "")]
+        .find((p) => p !== path && (EXACT_ROUTES[p] || PREFIX_ROUTES.some(([q]) => p.startsWith(q))));
+      if (near)
+        return err(404, `not found - did you mean ${near}? see ${env.SITE_URL}/docs`, cors);
 
       return err(404, "not found - see " + env.SITE_URL + "/docs", cors);
     } catch (e) {
