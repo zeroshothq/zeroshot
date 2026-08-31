@@ -620,7 +620,11 @@ export default {
         const out = { id: row.id, plan: row.plan, status: row.status,
           cans_per_month: (FLAVORS_DATA.plans[row.plan] || {}).cans || null,
           flavors: JSON.parse(row.flavors_json || "[]"), renews_at: null, created_at: row.created_at };
-        if (row.status !== "pending") {
+        // Gate on the session id, not on the status. A waitlisted row has no
+        // session, and testing `status !== "pending"` sent every waitlist lookup
+        // to Stripe asking for checkout/sessions/null - a live API call, with
+        // the live key, that could only ever fail into the catch below.
+        if (row.stripe_session && row.status !== "pending") {
           try { // renewal info is best-effort from Stripe; our row is the source of truth
             const session = await stripe(env, `checkout/sessions/${row.stripe_session}`, {});
             if (session.subscription) {
