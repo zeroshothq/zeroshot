@@ -105,8 +105,8 @@ by the API, the CLI, and the website. AGI: rolling out gradually.
 
 ## Mixed Precision 24 - role builds
 
-Eight builds, each with the minimum qualifications from 2025-2026 job postings
-and a flavor mix tuned to the role:
+Eight builds, each with the role's minimum qualifications and a flavor mix
+tuned to it:
 
 | Build | Tagline | Minimum qualifications (abridged) |
 |---|---|---|
