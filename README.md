@@ -219,6 +219,7 @@ Base: `https://api.zeroshothq.dev/v1` · Full reference: [zeroshothq.dev/docs](h
 |---|---|---|
 | POST | `/waitlist` | Join; returns your `pk_` key (referral code) |
 | GET | `/waitlist/{pk_key}` | Check your spot: position, referrals, spots gained |
+| DELETE | `/waitlist/{pk_key}` | Leave the list. Deletes the row and clears your email off any order rows |
 | GET | `/flavors` | Model cards with params + changelog |
 | GET | `/builds` | Build names, mixes, taglines, requirements |
 | POST | `/recommend` | Job title in → 24-can build out (+ share_url) |

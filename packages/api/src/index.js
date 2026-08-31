@@ -570,6 +570,33 @@ export default {
           joined: row.created_at, note: "Every signup using your key moves you up 10 spots." }, 200, cors);
       }
 
+      // ---- DELETE /v1/waitlist/:pk_key  (leave, and take the email with you)
+      // The key is the credential, exactly as it is for the GET above: holding
+      // it is what proves the address is yours. There is no confirmation step,
+      // because asking someone to prove ownership of an email by email is how
+      // deletion requests get quietly dropped.
+      //
+      // This deletes rather than flags. The waitlist row goes, and the email is
+      // cleared from every orders row it appears on, so the address stops
+      // existing in the database rather than merely stopping being displayed.
+      // The intent rows themselves survive without an address: they are what
+      // Batch 001 is sized against, and a count is not personal data.
+      if (path.startsWith("/v1/waitlist/") && request.method === "DELETE") {
+        const pk = path.split("/").pop();
+        const row = await env.DB.prepare("SELECT email FROM waitlist WHERE pk_key=?").bind(pk).first();
+        if (!row) return err(404, "key not found", cors);
+        const scrubbed = await env.DB.prepare("UPDATE orders SET email=NULL WHERE email=?")
+          .bind(row.email).run();
+        // Anyone this key referred keeps the spots they earned; only the pointer
+        // back to the deleted key goes, so no row references a key that is gone.
+        await env.DB.prepare("UPDATE waitlist SET referred_by=NULL WHERE referred_by=?").bind(pk).run();
+        await env.DB.prepare("DELETE FROM waitlist WHERE pk_key=?").bind(pk).run();
+        return json({ deleted: true, key: pk,
+          orders_scrubbed: (scrubbed.meta && scrubbed.meta.changes) || 0,
+          note: "Removed from the waitlist and your email cleared from any order rows. Nothing was ever charged." },
+          200, cors);
+      }
+
       // ---- POST /v1/recommend
       if (path === "/v1/recommend" && request.method === "POST") {
         const body = await request.json().catch(() => ({}));

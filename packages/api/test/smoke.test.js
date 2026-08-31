@@ -317,3 +317,28 @@ test("withdrawing an interest leaves the waitlist row alone", { skip: !WRITES &&
   const spot = await (await get(`/v1/waitlist/${made.public_key}`)).json();
   assert.ok(spot.position >= 1, "the person is still on the list");
 });
+
+test("waitlist: DELETE removes the row and scrubs the email off orders", { skip: !WRITES && "set ZEROSHOT_TEST_WRITES=1" }, async () => {
+  const made = await (await post("/12", { email: mail("leave") })).json();
+  assert.equal((await get(`/v1/waitlist/${made.public_key}`)).status, 200);
+
+  const res = await fetch(`${BASE}/v1/waitlist/${made.public_key}`, { method: "DELETE" });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.deleted, true);
+  assert.ok(body.orders_scrubbed >= 1, "the email must be cleared off the order row too");
+
+  // Gone, and gone idempotently.
+  assert.equal((await get(`/v1/waitlist/${made.public_key}`)).status, 404);
+  assert.equal((await fetch(`${BASE}/v1/waitlist/${made.public_key}`, { method: "DELETE" })).status, 404);
+
+  // The intent row survives without an address: it is what Batch 001 is sized
+  // against, and a count is not personal data.
+  const order = await (await get(`/o/${made.id}`)).json();
+  assert.equal(order.status, "waitlisted");
+  assert.equal(order.public_key, null, "no key should resolve once the waitlist row is gone");
+});
+
+test("waitlist: DELETE on an unknown key is a 404", async () => {
+  assert.equal((await fetch(`${BASE}/v1/waitlist/pk_zs_deadbeefdead`, { method: "DELETE" })).status, 404);
+});

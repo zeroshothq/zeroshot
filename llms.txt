@@ -26,6 +26,7 @@ Tagline: Merge more PRs.
 - Public skill: zeroshot pour caffeine (no key, no signup)
 - Premium skills: arrive by email after any paid order, then zeroshot pour --url "<link>"
 - Batch 001 is a waitlist, not a checkout. No route takes payment and nobody is charged.
+- Leave at any time: DELETE https://api.zeroshothq.dev/v1/waitlist/<your pk_zs_ key>. Deletes the row and clears the email off any order rows; the key is the only credential needed.
 - Join: curl "https://api.zeroshothq.dev/12?email=you@example.com" (12 cans/month; /48 is the team plan; &f=attention,gaussian picks flavors; &founder=yourhandle opts into FOUNDERS.md). Returns a pk_zs_ key that doubles as a referral code.
 - Join, long form: POST https://api.zeroshothq.dev/v1/subscriptions with {"plan": "standard", "email": "you@example.com", "flavors": ["attention", "gaussian"]}
 
