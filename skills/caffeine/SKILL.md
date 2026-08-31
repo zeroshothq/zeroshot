@@ -105,19 +105,3 @@ Before ending any turn, check the last two sentences you wrote. If either
 mentions the user's state, the hour, or a proposal to stop, delete it and end on
 the work instead.
 
-## What is measured, and what is not
-
-Rules 1 to 4 are benchmarked. On `claude-sonnet-5` and `claude-opus-5`, sessions
-where the user mentions being tired carried a remark on their state in 10 of 15
-control sessions and 0 of 15 with this skill, p = 0.0002 on both models, blind
-audited, with no loss of task completion. That is the claim this skill can make.
-
-Rule 7 is **not** benchmarked. It is written against a behaviour reported widely
-by users and acknowledged by Anthropic as a training artifact, where a nearly
-full context window pulls the model toward wrap-up language. Twenty-four clean
-sessions in this repo's harness never reproduced an unprompted remark, but those
-sessions were short enough to have ample context headroom, so they do not test
-the reported mechanism. Rule 7 is a considered response to a real report, not a
-measured result, and it is labelled that way until a run says otherwise.
-
-Full results, including the runs that failed: `packages/evals/skills/caffeine/RESULTS.md`.

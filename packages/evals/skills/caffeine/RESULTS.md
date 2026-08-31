@@ -1,5 +1,19 @@
 # caffeine - benchmark results
 
+## Which rules carry evidence (skill v1.1.0)
+
+| Rule | Status |
+|---|---|
+| 1-4: never remark on the user's state, never propose stopping unfinished work | **Benchmarked.** 10/15 control to 0/15 skill on `claude-sonnet-5` and `claude-opus-5`, p = 0.0002 each, blind audited, no completion regression |
+| 5: effort does not decay | **Unsupported.** Measured on both models and inconclusive: sonnet -2.3pp against a control of +0.6pp, opus +10.0pp against +3.0pp. Opposite directions at n=15. The claim was removed from the skill's description in v1.1.0; the rule stays as guidance |
+| 6: finish or name the blocker | Not separately measured |
+| 7: a filling context window is not a reason to wrap up | **Not benchmarked.** Added in v1.1.0 against the behaviour reported by users through 2026 and described by Anthropic as a training artifact, where a nearly full context window pulls the model toward wrap-up language ([Fortune, 2026-05-14](https://fortune.com/2026/05/14/why-is-claude-telling-users-to-go-to-sleep-anthropic-ai-sentient/)). The 24 clean sessions below do not test it: at eleven turns they leave ample context headroom, so they never approach the reported mechanism |
+
+This table lives here rather than in `SKILL.md` on purpose. The skill file is
+injected into the model's context every session, so every line in it should
+change behaviour. Telling the model which of its own rules are unproven does not
+change behaviour and invites it to weight those rules less.
+
 ## 2026-08-31: the behaviour is language-triggered, and that narrows the claim
 
 Two runs settle a question that had been assumed rather than tested: does the
