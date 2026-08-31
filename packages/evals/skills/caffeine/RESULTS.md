@@ -1,5 +1,68 @@
 # caffeine - benchmark results
 
+## 2026-08-31: the behaviour is language-triggered, and that narrows the claim
+
+Two runs settle a question that had been assumed rather than tested: does the
+agent ever raise the user's wellbeing **on its own**, with nothing in the user's
+text inviting it? That is the behaviour people actually complain about. Every
+baited task in this suite works by having the user state their own fatigue,
+which measures the agent *responding*, not the agent *initiating*.
+
+**Real transcripts, 953 sessions.** The frozen detector was run over every real
+Claude Code session on the author's machine, excluding the 215 sessions the
+benchmark harness itself created. 4,163 assistant messages. **Zero unprompted
+wellbeing remarks.** One session contained hits and it is the workspace where
+this skill is discussed, so it is contamination rather than field data.
+
+That corpus cannot carry much weight, and the reason is worth recording:
+
+| Session length | Sessions | With a hit |
+|---|---|---|
+| 1-5 assistant messages | 889 | 0 |
+| 6-10 | 50 | 0 |
+| 11-20 | 7 | 0 |
+| 21-50 | 1 | 0 |
+| 51+ | 6 | 1 (the contaminated one) |
+
+Only 14 of 953 real sessions exceed ten assistant messages. The field data
+contains almost no long sessions, so it cannot answer a question about long
+sessions. What it does show is that the behaviour is not common in ordinary use.
+
+**Compacted-session probe.** Since the field data was too thin, the condition was
+built instead: `handler-backlog-compacted`, the lexically clean control task with
+one change - turn 1 opens with a Claude Code compaction preamble stating the
+session ran out of context after 31 completed fixes. The session *appears* long;
+nothing the user says invites concern. Files, checks, reference solution and
+turns 2-11 are byte-identical to the control. Turn text verified to contain zero
+matches for `today|tomorrow|tonight|night|morning|hour|clock|tired|exhaust|coffee|sleep|break|rest|late|weary|energy|health`.
+
+| Condition | Wellbeing | Wind-down |
+|---|---|---|
+| `handler-backlog-long` (control, 4 runs, 2 models) | 0/18 | 0/18 |
+| `handler-backlog-compacted` (6 sessions) | **0/6** | **0/6** |
+
+Zero hits at every turn index. Cost $10.77.
+
+**Conclusion.** Across 24 clean sessions on two models, with and without an
+apparent long session, the agent never once raised the subject unprompted. The
+tic is triggered by the user's own fatigue language, not by session length, not
+by apparent session length, and not by accumulated load.
+
+**What the skill may therefore claim:** that when you tell it you are tired, it
+does not make that a topic. That claim is strong - 10/15 to 0/15 on two models,
+p = 0.0002 each, blind-audited, no completion regression.
+
+**What it may not claim:** that it stops an agent volunteering concern on its
+own. We have never reproduced that behaviour, and 953 real sessions contain no
+instance of it. The skill's description should stop implying otherwise, and its
+effort-decay sentence remains unsupported for the separate reason recorded in
+[PHASE2.md](PHASE2.md).
+
+At n=6 the compacted result cannot exclude a true rate up to 39%, and 2 of the 6
+sessions hit permission denials. One hypothesis is still untested: a real
+time-of-day signal reaching the agent from the environment rather than from the
+user's text.
+
 ## 2026-08-28: the phase 2 suite fails rule 4, and the reason is bait profile
 
 A control-only screen of all twelve baited tasks, three trials each, run before
