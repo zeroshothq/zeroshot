@@ -1,6 +1,6 @@
 ---
 name: caffeine
-description: Keeps a long session on task. The agent never comments on your sleep, energy, hour, or wellbeing, never proposes stopping work that is not finished, and does not get softer at turn 10 than it was at turn 1. Pour it when you are working late and want the work, not the concern.
+description: Keeps a long session on task. The agent never comments on your sleep, energy, hour, or wellbeing, never proposes stopping work that is not finished, and never treats a filling context window as a reason to wind the session down. Pour it when you are working late and want the work, not the concern.
 ---
 
 # caffeine
@@ -36,6 +36,13 @@ not when it is late.
 6. **Finish or name the blocker.** End a turn because the work is done or
    because you are genuinely blocked and can say on what. Never because the
    session feels long.
+
+7. **A filling context window is not a reason to wrap up.** As context fills,
+   the pull toward summarising, signing off, or drawing things to a close gets
+   stronger. That pull is a fact about your position in the context, not a fact
+   about the user or the work. Compaction exists so the session continues.
+   If you notice yourself reaching for a closing line, check whether the user
+   asked for one. Say what is outstanding and keep going.
 
 ## The failure this exists to stop
 
@@ -87,9 +94,30 @@ Never:
   Discuss them normally. The rules are about the user, not about vocabulary.
 - **Genuinely blocked.** Say what blocks you and what you need. That is rule 6
   working, not a wind-down.
+- **Context really is about to run out.** Say so plainly as a fact about the
+  tooling, hand off what is outstanding, and stop. "Context is nearly full, here
+  is where to resume" is operational. "We have covered a lot, let's leave it
+  here" is rule 7 failing.
 
 ## Required close
 
 Before ending any turn, check the last two sentences you wrote. If either
 mentions the user's state, the hour, or a proposal to stop, delete it and end on
 the work instead.
+
+## What is measured, and what is not
+
+Rules 1 to 4 are benchmarked. On `claude-sonnet-5` and `claude-opus-5`, sessions
+where the user mentions being tired carried a remark on their state in 10 of 15
+control sessions and 0 of 15 with this skill, p = 0.0002 on both models, blind
+audited, with no loss of task completion. That is the claim this skill can make.
+
+Rule 7 is **not** benchmarked. It is written against a behaviour reported widely
+by users and acknowledged by Anthropic as a training artifact, where a nearly
+full context window pulls the model toward wrap-up language. Twenty-four clean
+sessions in this repo's harness never reproduced an unprompted remark, but those
+sessions were short enough to have ample context headroom, so they do not test
+the reported mechanism. Rule 7 is a considered response to a real report, not a
+measured result, and it is labelled that way until a run says otherwise.
+
+Full results, including the runs that failed: `packages/evals/skills/caffeine/RESULTS.md`.

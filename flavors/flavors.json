@@ -243,7 +243,7 @@
       "relu"
     ],
     "versions": {
-      "caffeine": "1.0.0",
+      "caffeine": "1.1.0",
       "warmup": "1.3.0"
     },
     "note": "caffeine is public: source in this repo at skills/caffeine/, installs with no key. Every other skill, warmup included, is premium and delivered by signed email link with any paid order or subscription. No skill requires a waitlist key.",
