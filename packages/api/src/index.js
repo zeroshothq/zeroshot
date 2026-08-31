@@ -427,7 +427,15 @@ export default {
 
     // Global rate limit (webhook exempt - Stripe retries must not be dropped)
     if (path !== "/v1/stripe/webhook") {
-      const limit = path === "/v1/recommend" ? 10 : 60;
+      // Production limits, overridable per environment. CI drives the whole
+      // suite from one IP inside a minute, so the suite outgrew 60/min and
+      // started failing on 429 rather than on anything it was testing. The
+      // override lives in .dev.vars, is absent in production, and cannot be set
+      // by a caller - a header-based bypass would just be a rate limit anyone
+      // can turn off.
+      const generalLimit = Number(env.RATE_LIMIT_GENERAL) || 60;
+      const recommendLimit = Number(env.RATE_LIMIT_RECOMMEND) || 10;
+      const limit = path === "/v1/recommend" ? recommendLimit : generalLimit;
       if (await rateLimited(env, ip, path === "/v1/recommend" ? "rec" : "all", limit))
         return err(429, "you've had enough. drink water.", cors);
     }

@@ -20,7 +20,9 @@ jobs:
           WRANGLER_SEND_METRICS: "false"
         run: |
           cd packages/api
-          printf 'SKILL_SIGNING_SECRET=ci-test-secret\nADMIN_BEARER=ci-test-admin\n' > .dev.vars
+          # The whole suite runs from one IP inside a minute, so production's
+          # 60/min limiter would fail it on 429 rather than on anything real.
+          printf 'SKILL_SIGNING_SECRET=ci-test-secret\nADMIN_BEARER=ci-test-admin\nRATE_LIMIT_GENERAL=100000\nRATE_LIMIT_RECOMMEND=100000\n' > .dev.vars
           npx wrangler d1 execute zeroshot --file=./schema.sql -y
           npx wrangler dev --port 8787 &
           for i in $(seq 1 90); do curl -sf http://localhost:8787/v1/status >/dev/null && break; sleep 2; done
