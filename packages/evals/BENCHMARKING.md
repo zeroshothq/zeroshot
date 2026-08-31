@@ -3,8 +3,8 @@
 The short version. Deep methodology: [README.md](README.md). Published numbers:
 [RESULTS.md](RESULTS.md) (index of all skills) and per skill under
 `skills/<name>/` - each skill has its own `tasks/`, `published/` runs, and
-results page. Harness defaults target the `descent` skill (source is
-untracked, at `skills-premium/descent/SKILL.md`); benchmark
+results page. Harness defaults target the public `caffeine` skill (source is in
+this repo, at `skills/caffeine/SKILL.md`); benchmark
 another with `--skill <path-to-SKILL.md> --tasks skills/<name>/tasks`.
 
 ## The claim being tested

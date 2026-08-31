@@ -30,5 +30,5 @@ packages/evals/
     RESULTS.md         the skill's results story and run history
 ```
 
-Defaults point at `skills-premium/descent/` (skill sources are untracked); benchmark another skill with
+Defaults point at `skills/caffeine/` (premium skill sources are untracked); benchmark another skill with
 `--skill <path-to-SKILL.md> --tasks skills/<name>/tasks`.
