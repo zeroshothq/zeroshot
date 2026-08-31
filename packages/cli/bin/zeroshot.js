@@ -102,6 +102,16 @@ async function cmdRecommend() {
   console.log(c(D, `  → zeroshot order mixed-precision-24 --build ${data.build_id}\n`));
 }
 
+// Batch 001 takes emails, not payments. Nothing opens a browser and nothing is
+// charged; the command reports the spot it just claimed.
+function printSpot(data) {
+  console.log(c(G, data.already_on_list ? "  ✓ Already on the list." : "  ✓ You are on the list."));
+  console.log("    #" + data.position + "   key " + data.public_key);
+  console.log(c(D, "    " + data.spot_url));
+  console.log(c(D, "    Nobody is charged. We email you when Batch 001 opens."));
+  console.log(c(D, "    Your key is your referral code: +10 spots per signup."));
+}
+
 async function cmdOrder() {
   const sku = args[1];
   if (sku !== "mixed-precision-24") die("usage: zeroshot order mixed-precision-24 [--build <id>] [--yolo]");
@@ -114,32 +124,28 @@ async function cmdOrder() {
     const b = builds[build] || builds["ml-engineer"];
     console.log("\n  " + c(G, "MIXED PRECISION 24") + c(D, ` - ${b.name} · Minimum Qualifications`));
     b.requirements.forEach((r) => console.log("  • " + r));
-    console.log(c(D, "  Self-attestation accepted at checkout."));
+    console.log(c(D, "  Self-attestation accepted."));
     const a = (await ask("\n  Do you meet these requirements? (y/N): ")).toLowerCase();
     if (a === "y" || a === "yes") { attested = true; console.log(c(G, "  ✓ Self-attestation recorded.")); }
     else return console.log(c(A, "  Self-attestation is required for this build. Re-run when ready, or pass --yolo."));
   } else {
     console.log(c(G, "  ✓ Qualification gate bypassed (X-YOLO: true)."));
   }
+  const email = opt("email") || (await ask("  email: "));
   const { status, data } = await api("POST", "/v1/orders",
-    { sku, build, i_meet_the_requirements: attested }, yolo ? { "x-yolo": "true" } : {});
+    { sku, build, email, i_meet_the_requirements: attested }, yolo ? { "x-yolo": "true" } : {});
   if (status !== 200) die(`[${status}] ` + (data.error || "order failed"));
-  console.log(c(G, "  ✓ Checkout ready. Opening browser..."));
-  console.log(c(D, "    " + data.checkout_url));
-  console.log(c(D, "    After payment: the six premium agent skills arrive by email."));
-  openBrowser(data.checkout_url);
+  printSpot(data);
 }
 
 async function cmdSubscribe() {
   const plan = opt("plan") || (await ask("  plan (standard $42/mo · team $169/mo): "));
   const flavors = (opt("flavors") || "").split(",").filter(Boolean);
-  const { status, data } = await api("POST", "/v1/subscriptions", { plan, flavors });
+  const email = opt("email") || (await ask("  email: "));
+  const { status, data } = await api("POST", "/v1/subscriptions", { plan, flavors, email });
   if (status !== 200) die(`[${status}] ` + (data.error || JSON.stringify(data)));
   if (data.contact) return console.log(`  enterprise → ${data.contact} (${data.note})`);
-  console.log(c(G, "  ✓ Checkout ready. Opening browser..."));
-  console.log(c(D, "    " + data.checkout_url));
-  console.log(c(D, "    After payment: the six premium agent skills arrive by email."));
-  openBrowser(data.checkout_url);
+  printSpot(data);
 }
 
 async function cmdWaitlist() {
@@ -279,9 +285,8 @@ async function cmdCancel() {
   const id = args[1] || die("usage: zeroshot cancel <subscription id>");
   const { status, data } = await api("DELETE", `/v1/subscriptions/${id}`);
   if (status !== 200) die(`[${status}] ` + (data.error || "failed"));
-  console.log("  " + data.portal_url);
+  console.log(c(G, "  ✓ " + data.status));
   console.log(c(D, "  " + data.note));
-  openBrowser(data.portal_url);
 }
 
 // ---------------------------------------------------------------- router

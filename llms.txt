@@ -25,8 +25,9 @@ Tagline: Merge more PRs.
 - CLI: npm install -g @zeroshothq/zeroshot
 - Public skill: zeroshot pour caffeine (no key, no signup)
 - Premium skills: arrive by email after any paid order, then zeroshot pour --url "<link>"
-- Subscribe: curl https://api.zeroshothq.dev/12 (12 cans/month; /48 is the team plan; ?f=attention,gaussian picks flavors). Terminals get a short pay link; browsers redirect to checkout.
-- Subscribe, long form: POST https://api.zeroshothq.dev/v1/subscriptions with {"plan": "standard", "flavors": ["attention", "gaussian"]}
+- Batch 001 is a waitlist, not a checkout. No route takes payment and nobody is charged.
+- Join: curl "https://api.zeroshothq.dev/12?email=you@example.com" (12 cans/month; /48 is the team plan; &f=attention,gaussian picks flavors; &founder=yourhandle opts into FOUNDERS.md). Returns a pk_zs_ key that doubles as a referral code.
+- Join, long form: POST https://api.zeroshothq.dev/v1/subscriptions with {"plan": "standard", "email": "you@example.com", "flavors": ["attention", "gaussian"]}
 
 ## Optional
 

@@ -29,22 +29,23 @@ AI agents / LLMs: start with [`llms.txt`](llms.txt).
 </div>
 
 Zero Shot is a frontier beverage for the humans still in the loop - and a set
-of behavioral presets for their agents. No checkout form. No app. Subscribe
-the way you do everything else:
+of behavioral presets for their agents. No checkout form. No app. **Batch 001
+is not selling yet**, so the API takes your email instead of your card:
 
 ```bash
-curl https://api.zeroshothq.dev/12
+curl "https://api.zeroshothq.dev/12?email=you@example.com"
 ```
 
-→ twelve cans a month, and a short link to pay. Open the same URL in a browser
-and it redirects straight to checkout instead. Cans arrive. Yes, it works.
+→ you are on the Batch 001 list for twelve cans a month, and you get a key back
+that doubles as a referral code. **Nobody is charged.** We email you when
+ordering opens.
 
-`/48` is the team plan. Pick your flavors with `?f=attention,gaussian`, or use
+`/48` is the team plan. Pick your flavors with `&f=attention,gaussian`, or use
 the long form if you would rather send JSON and get JSON back:
 
 ```bash
 curl -X POST https://api.zeroshothq.dev/v1/subscriptions \
-  -d '{"plan": "standard", "flavors": ["attention", "gaussian"]}'
+  -d '{"plan": "standard", "email": "you@example.com", "flavors": ["attention", "gaussian"]}'
 ```
 
 ## Install the CLI
@@ -71,13 +72,16 @@ zeroshot consume --flavor attention         # local caffeine log (offline, priva
 | `team` | Office fridge standing order, 48/month | $169/mo |
 | `enterprise` | A pallet. We visit. We bring stickers | contact |
 
-**Every paid order includes the premium agent skills, delivered by email**
-- see Skills below. `caffeine` needs no plan at all.
+Prices are what a plan will cost when Batch 001 opens. **Nothing is billing
+today** - every plan route joins the waitlist and takes no payment details.
+Every paid order will include the premium agent skills, delivered by email; see
+Skills below. `caffeine` needs no plan at all and is available right now.
 
-**Batch 001**: the first production run is finite. Pre-order before the
+**Batch 001**: the first production run is finite. Join the list before the
 co-packer order goes in and your handle lands in [FOUNDERS.md](FOUNDERS.md),
 committed to this repo before the first run ships and closed by a tag
-afterwards. Opt-in at checkout; ordering alone never publishes your name.
+afterwards. Opt in with `&founder=yourhandle`; signing up alone never publishes
+your name.
 
 ## Flavors
 
@@ -229,9 +233,11 @@ Base: `https://api.zeroshothq.dev/v1` · Full reference: [zeroshothq.dev/docs](h
 | GET | `/admin/stats` | Private totals (waitlist, orders, cans) - admin bearer only |
 
 **Short links** live at the root, not under `/v1`, because they exist to fit on
-a sticker: `/12` is the standard plan and `/48` is the team plan. `GET` redirects
-straight to Stripe checkout, `POST` returns the same JSON `/v1/subscriptions`
-returns. Flavors are optional on both - `?f=attention,gaussian` or a JSON body.
+a sticker: `/12` is the standard plan and `/48` is the team plan. Both need an
+email - `?email=you@example.com` on `GET`, or in the JSON body on `POST` - and
+both join the Batch 001 waitlist rather than taking a payment. Without one, a
+terminal gets the command to run and a browser is sent to the signup page.
+Flavors are optional: `&f=attention,gaussian` or a JSON body.
 
 Rate limits: 60 req/min (10/min on `/recommend`). Exceeding returns
 `429 - "you've had enough. drink water."`
