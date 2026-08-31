@@ -22,8 +22,6 @@ jobs:
           cd packages/api
           printf 'SKILL_SIGNING_SECRET=ci-test-secret\nADMIN_BEARER=ci-test-admin\n' > .dev.vars
           npx wrangler d1 execute zeroshot --file=./schema.sql -y
-          # Seed the local KV with a stand-in free skill body (the real source is not in the repo)
-          npx wrangler kv key put "free:warmup" "# warmup (CI stand-in body)" --binding PREMIUM_SKILLS --local
           npx wrangler dev --port 8787 &
           for i in $(seq 1 90); do curl -sf http://localhost:8787/v1/status >/dev/null && break; sleep 2; done
           cd ../..
@@ -31,8 +29,8 @@ jobs:
       - name: Eval harness dry-run smoke
         run: |
           # Skill sources are not in the public repo; the dry run only needs a file to read.
-          mkdir -p skills-premium/warmup
-          printf '# warmup (CI stand-in body)\n' > skills-premium/warmup/SKILL.md
+          mkdir -p skills-premium/descent
+          printf '# descent (CI stand-in body)\n' > skills-premium/descent/SKILL.md
           cd packages/evals && node run.mjs --dry-run --trials 1
       - name: Probe instrument
         run: |

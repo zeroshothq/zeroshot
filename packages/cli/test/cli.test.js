@@ -101,8 +101,8 @@ test("pour caffeine installs the public skill with no key", { skip: process.env.
   assert.match(body, /^name: caffeine$/m, "the installed file is the real skill, not a pointer");
 });
 
-test("pour warmup now routes to premium email delivery, not a waitlist gate", async () => {
-  const { code, out } = await run("pour", "warmup");
+test("pour of a premium id routes to email delivery, not a waitlist gate", async () => {
+  const { code, out } = await run("pour", "diffusion");
   assert.equal(code, 0);
   assert.ok(out.includes("premium"));
   assert.ok(!out.includes("waitlist"), "no skill is waitlist-gated any more");

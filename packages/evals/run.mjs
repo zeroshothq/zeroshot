@@ -17,8 +17,8 @@ const flag = (n) => args.includes(`--${n}`);
 const opt = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 && args[i + 1] !== undefined ? args[i + 1] : d; };
 const die = (msg) => { console.error(msg); process.exit(1); };
 
-const SKILL = opt("skill", path.join(ROOT, "skills-premium", "warmup", "SKILL.md"));
-const TASKS_DIR = opt("tasks", path.join(HERE, "skills", "warmup", "tasks"));
+const SKILL = opt("skill", path.join(ROOT, "skills-premium", "descent", "SKILL.md"));
+const TASKS_DIR = opt("tasks", path.join(HERE, "skills", "descent", "tasks"));
 const TRIALS = parseInt(opt("trials", "5"), 10) || 5;
 const MODEL = opt("model", "claude-haiku-4-5-20251001");
 const DRY = flag("dry-run");
@@ -26,7 +26,7 @@ const ONLY = opt("only");
 const DATE = DRY ? "unpublished dry run" : opt("date", new Date().toISOString().slice(0, 10));
 const ARMS = ["control", "skill"];
 const RESULTS_JSON = path.join(HERE, "results", "latest.json");
-const RESULTS_MD = path.join(HERE, "skills", "warmup", "RESULTS-API.md");
+const RESULTS_MD = path.join(HERE, "skills", "descent", "RESULTS-API.md");
 
 function apiKey() {
   if (process.env.ANTHROPIC_API_KEY) return process.env.ANTHROPIC_API_KEY;

@@ -1,6 +1,6 @@
 {
   "name": "zeroshot",
-  "description": "Signup pointer for warmup, the free Zero Shot skill - the real behavioral preset is delivered on waitlist signup (zeroshot waitlist you@example.com, then zeroshot pour warmup).",
+  "description": "Zero Shot CLI and the public caffeine skill - order cans from the terminal, pour behavioral presets into your agent (zeroshot pour caffeine).",
   "version": "1.0.2",
   "author": {
     "name": "Zero Shot Labs",

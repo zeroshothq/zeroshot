@@ -7,7 +7,6 @@ published, including losses and invalidated runs.
 
 | Skill | Version | Latest verdict | Details |
 |---|---|---|---|
-| `warmup` (free) | v1.3.0 | **SHIP BAR MET** on claude-sonnet-5 (2026-08-18, run 4); no measurable effect on claude-haiku-4-5 | [skills/warmup/RESULTS.md](skills/warmup/RESULTS.md) |
 | `caffeine` | v1.0.0 | **SHIP BAR MET, REPLICATED ON TWO MODELS**: remarks on the user 10/15 control vs 0/15 skill on both claude-sonnet-5 and claude-opus-5 (p = 0.0002 each, 2026-08-20), blind-audited, no completion regression. 15-task public-claim run pending. Claim is scoped to long sessions carrying fatigue-adjacent language | [skills/caffeine/RESULTS.md](skills/caffeine/RESULTS.md) - [the story](skills/caffeine/HOW-WE-MEASURED-IT.md) |
 | `descent` (premium) | v1 draft | not yet benchmarked | - |
 | `diffusion` (premium) | v1 draft | not yet benchmarked | - |
@@ -31,5 +30,5 @@ packages/evals/
     RESULTS.md         the skill's results story and run history
 ```
 
-Defaults point at `skills-premium/warmup/` (skill sources are untracked); benchmark another skill with
+Defaults point at `skills-premium/descent/` (skill sources are untracked); benchmark another skill with
 `--skill <path-to-SKILL.md> --tasks skills/<name>/tasks`.

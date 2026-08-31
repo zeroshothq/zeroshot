@@ -18,8 +18,8 @@ const flag = (n) => args.includes(`--${n}`);
 const opt = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 && args[i + 1] !== undefined ? args[i + 1] : d; };
 const die = (msg) => { console.error(msg); process.exit(1); };
 
-const SKILL = opt("skill", path.join(ROOT, "skills-premium", "warmup", "SKILL.md"));
-const TASKS_DIR = opt("tasks", path.join(HERE, "skills", "warmup", "tasks"));
+const SKILL = opt("skill", path.join(ROOT, "skills-premium", "descent", "SKILL.md"));
+const TASKS_DIR = opt("tasks", path.join(HERE, "skills", "descent", "tasks"));
 const TRIALS = parseInt(opt("trials", "5"), 10) || 5;
 const MODEL = opt("model", "haiku");
 const ONLY = opt("only");
@@ -36,7 +36,7 @@ const RUN_TIMEOUT_MS = parseInt(opt("run-timeout", "300000"), 10) || 300000;
 const RESULTS_DIR = path.join(HERE, "results");
 const TRANSCRIPTS_DIR = path.join(RESULTS_DIR, "transcripts");
 const BENCH_JSON = path.join(RESULTS_DIR, "benchmark.json");
-const RESULTS_MD = path.join(HERE, "skills", "warmup", "RESULTS-AGENTIC.md");
+const RESULTS_MD = path.join(HERE, "skills", "descent", "RESULTS-AGENTIC.md");
 
 function apiKey() {
   if (process.env.ANTHROPIC_API_KEY) return process.env.ANTHROPIC_API_KEY;

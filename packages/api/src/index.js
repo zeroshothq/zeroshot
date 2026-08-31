@@ -37,7 +37,8 @@ async function recordFounder(env, orderId, raw) {
     return false;
   }
 }
-// alias -> canonical id, so `zeroshot` keeps resolving to `warmup` for older CLIs
+// alias -> canonical id, for retired or renamed skill ids. Empty is fine; the
+// map is read from flavors.json so a retired alias disappears with its skill.
 const SKILL_ALIASES = Object.fromEntries(
   Object.entries(FLAVORS_DATA.skills.aliases || {}).flatMap(([id, list]) => list.map((a) => [a, id])));
 // Public skills are served straight from the repo, so there is exactly one copy
@@ -680,8 +681,7 @@ export default {
         // redirect. Anyone can also just read it on GitHub, which is the point.
         if (PUBLIC_SKILLS.includes(id))
           return new Response(null, { status: 302, headers: { location: `${GITHUB_RAW}/skills/${id}/SKILL.md`, ...cors } });
-        // Aliases resolve to their canonical premium id, so older CLI versions
-        // asking for `zeroshot` still land on `warmup`.
+        // Aliases resolve to their canonical premium id.
         const canonical = SKILL_ALIASES[id] || id;
         if (!PREMIUM.includes(canonical)) return err(404, "skill not found", cors);
         const email = url.searchParams.get("email") || "";
