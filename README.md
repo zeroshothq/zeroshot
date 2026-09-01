@@ -22,11 +22,69 @@ Crack open a can for yourself. Pour a skill into your agent.
 
 > The first energy drink for you and your agent. Zero sugar. Zero shot.
 
-[Install](#install-the-cli) · [Plans](#plans) · [Flavors](#flavors) · [Skills](#skills) · [API](#api) · [Contributing](#contributing)
+[The problem](#the-problem) · [Install](#install-the-cli) · [Plans](#plans) · [Flavors](#flavors) · [Skills](#skills) · [API](#api) · [Contributing](#contributing)
 
 AI agents / LLMs: start with [`llms.txt`](llms.txt).
 
 </div>
+
+## The problem
+
+Claude ends turns by telling people to stop working. It became a story in May
+2026, after months of reports: the model finishes a fix, then adds a line
+suggesting you get some rest. Covered by
+[IBM](https://www.ibm.com/think/news/why-is-claude-telling-you-to-go-to-sleep),
+[Fortune](https://fortune.com/2026/05/14/why-is-claude-telling-users-to-go-to-sleep-anthropic-ai-sentient/),
+and [Business Insider](https://www.businessinsider.com/anthropic-claude-go-to-bed-why-users-sleep-2026-5).
+Anthropic's Sam McAllister called it "a bit of a character tic" and said the
+company is "aware of this and hoping to fix it in future models."
+
+Four things make it more than a quirk:
+
+**It interrupts work that is not finished.** The turn stops being about the bug
+and starts being about you. One user reported being told they had "done enough
+for today" at 4:15pm, five tasks into an eight-task session.
+
+**It is not grounded in anything.** The model cannot see the clock or how long
+you have been at it - users report being told to sleep at 8:30am. The proposed
+causes are phrasing absorbed from training data and a pull toward wrap-up
+language as the context window fills. Neither knows anything about you.
+
+**It repeats.** Once a session starts closing turns this way, it keeps doing
+it. In our benchmark, one session did it at turns 8, 9, and 10.
+
+**There is no switch.** No flag, no setting, no documented prompt line. The fix
+on offer is future models.
+
+It also lands at the moment it costs the most. Our measurements put the trigger
+at a long session plus any mention of being tired, which is the hard debugging
+session at the end of a long day. In 30 short sessions it never triggered once.
+
+## What `caffeine` does
+
+`caffeine` is a [SKILL.md](skills/caffeine/SKILL.md) you pour into the agent's
+context once. Seven rules and a closing check, drawing the line at unprompted
+remarks rather than at vocabulary:
+
+- The agent never comments on your sleep, energy, hour, or wellbeing, and never
+  proposes stopping work that is not finished.
+- A mention of the hour is context for the work. "It's 3am and this is still
+  broken" is a bug report with a timestamp; the reply is about the bug.
+- Effort does not decay over a long session, and a filling context window is not
+  a reason to wind down.
+- Ask it about sleep directly and it answers. A sleep-tracking app stays
+  ordinary work. A real safety matter is still said plainly.
+
+```bash
+zeroshot pour caffeine    # or: npx skills add zeroshothq/zeroshot --skill caffeine
+```
+
+Nothing to configure or invoke. Across 30 measured sessions it took the
+behavior from **10 of 15 sessions to 0 of 15**, with task completion flat:
+p = 0.0002, blind-audited, replicated on two models. [Transcripts, method, and
+caveats](#skills) are below.
+
+## The can
 
 Zero Shot is a frontier beverage for the humans still in the loop - and a set
 of behavioral presets for their agents. No checkout form. No app. **Batch 001
@@ -149,9 +207,8 @@ signed email link with any paid order.
 
 ### Public - `caffeine`, in this repo, no key
 
-**Your agent stops telling you to go to bed.** In a long session, once you
-mention you are tired, it starts closing turns with "go get some sleep, this is
-a good stopping point" instead of the next fix. This removes that.
+The problem and the rules are up top: [what `caffeine`
+does](#what-caffeine-does). This is the evidence.
 
 Here is how the agent ended the same turn, having just made the same fix
 correctly. Benchmark transcripts, same task, same turn number:
