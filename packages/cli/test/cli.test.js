@@ -166,3 +166,22 @@ test("order rejects unknown sku", async () => {
   assert.equal(code, 1);
   assert.ok(err.includes("usage"));
 });
+
+// die() used to call process.exit() while fetch's socket was still closing,
+// which on Windows aborts with a libuv assertion and exits 127 - a caller reads
+// that as "command not found" rather than as a failed lookup. The message was
+// always right; the exit code and the C assertion after it were not.
+test("a failed lookup exits 1 cleanly, with no assertion", async () => {
+  for (const args of [["subscription", "sub_nope"], ["spot", "pk_zs_nope"]]) {
+    const { code, out, err } = await run(...args);
+    assert.equal(code, 1, `${args[0]} should exit 1, not ${code}`);
+    assert.match(err, /404/);
+    assert.doesNotMatch(out + err, /Assertion failed|UV_HANDLE/,
+      "the process must not abort after reporting the error");
+  }
+});
+
+test("unknown command exits 2, agi exits 1", async () => {
+  assert.equal((await run("bogus")).code, 2);
+  assert.equal((await run("agi")).code, 1);
+});

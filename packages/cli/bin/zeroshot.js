@@ -6,7 +6,6 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const readline = require("readline");
-const { execSync } = require("child_process");
 
 const API = process.env.ZEROSHOT_API_URL || "https://api.zeroshothq.dev";
 const CFG_DIR = path.join(os.homedir(), ".config", "zeroshot");
@@ -44,17 +43,23 @@ async function api(method, p, body, headers = {}) {
   return { status: res.status, data };
 }
 
-function openBrowser(url) {
-  const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start \"\"" : "xdg-open";
-  try { execSync(`${cmd} "${url}"`, { stdio: "ignore" }); } catch { /* print instead */ }
-}
-
 function ask(q) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((r) => rl.question(q, (a) => { rl.close(); r(a.trim()); }));
 }
 
-function die(msg, code = 1) { console.error(c(A, msg)); process.exit(code); }
+// Unwinds to the router. process.exit() cannot be used: it tears the loop down
+// while fetch's socket is still closing, and on Windows libuv aborts with
+// "Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)". That turned a clean
+// "[404] subscription not found" into a C assertion and exit code 127, which a
+// caller reads as "command not found" rather than as a failed lookup. Setting
+// exitCode and letting the loop drain exits with the code we meant.
+class Exit extends Error {}
+function die(msg, code = 1) {
+  console.error(c(A, msg));
+  process.exitCode = code;
+  throw new Exit(msg);
+}
 
 const CAN = [
   "      ┌─────┐",
@@ -307,10 +312,14 @@ async function cmdCancel() {
       case "subscription": await cmdSubscription(); break;
       case "consume": cmdConsume(); break;
       case "cancel": await cmdCancel(); break;
-      case "agi": console.log(c(A, "  404: rolling out gradually.")); process.exit(1);
+      case "agi": console.log(c(A, "  404: rolling out gradually.")); process.exitCode = 1; break;
       default: die(`unknown command: ${cmd} (try: zeroshot help)`, 2);
     }
   } catch (e) {
-    die("error: " + e.message);
+    // die() has already printed and set the code; anything else has not.
+    if (!(e instanceof Exit)) {
+      console.error(c(A, "error: " + e.message));
+      process.exitCode = 1;
+    }
   }
 })();
