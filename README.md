@@ -22,7 +22,7 @@ Crack open a can for yourself. Pour a skill into your agent.
 
 > The first energy drink for you and your agent. Zero sugar. Zero shot.
 
-[The problem](#the-problem) · [Install](#install-the-cli) · [Plans](#plans) · [Flavors](#flavors) · [Skills](#skills) · [API](#api) · [Contributing](#contributing)
+[Website](https://zeroshothq.dev/) · [The problem](#the-problem) · [Install](#install-the-cli) · [Plans](#plans) · [Flavors](#flavors) · [Skills](#skills) · [API](#api) · [Contributing](#contributing)
 
 AI agents / LLMs: start with [`llms.txt`](llms.txt).
 
